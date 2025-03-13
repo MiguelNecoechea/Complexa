@@ -1,0 +1,30 @@
+{
+    "name": "Japanese Learning Assistant",
+    "description": "A tool for learning Japanese by extracting text from websites",
+    "version": "1.0",
+    "manifest_version": 3,
+    "action": {
+      "default_popup": "src/views/popup.html",
+      "default_icon": "assets/images/icon.png"
+    },
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
+    "background": {
+      "service_worker": "src/background/background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["src/models/JapaneseTextModel.js", "src/content/content.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["src/models/*", "src/content/*"],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }

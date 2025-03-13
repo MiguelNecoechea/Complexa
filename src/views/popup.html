@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Japanese Learning Assistant</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../styles/popup.css">
+</head>
+<body>
+  <h1>Japanese Learning Assistant</h1>
+  
+  <button id="extractText">Extract Japanese Text</button>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="text">Text</div>
+    <div class="tab" data-tab="stats">Statistics</div>
+    <div class="tab" data-tab="about">About</div>
+  </div>
+  
+  <div class="tab-content active" id="text-tab">
+    <div id="status">Status: Ready</div>
+  </div>
+  
+  <div class="tab-content" id="stats-tab">
+    <div class="stats-container">
+      <div class="stat-box">
+        <div class="stat-value" id="total-segments">0</div>
+        <div class="stat-label">Segments</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="total-chars">0</div>
+        <div class="stat-label">Characters</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="hiragana-percent">0%</div>
+        <div class="stat-label">Hiragana</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="katakana-percent">0%</div>
+        <div class="stat-label">Katakana</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="kanji-percent">0%</div>
+        <div class="stat-label">Kanji</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tab-content" id="about-tab">
+    <p>Japanese Learning Assistant helps you learn Japanese by extracting text from websites.</p>
+    <p>This extension identifies Japanese text (Hiragana, Katakana, and Kanji) and provides statistics to help with your learning.</p>
+    <p>Version: 1.0</p>
+  </div>
+  
+  <script src="../viewmodels/popup.js"></script>
+</body>
+</html> 
