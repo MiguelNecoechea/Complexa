@@ -1,68 +1,67 @@
-# Japanese Learning Assistant Chrome Extension
+# Japanese Learning Tool Chrome Extension
 
-A Chrome extension designed to help users learn Japanese by extracting Japanese text from web pages.
+A Chrome extension for learning Japanese with reading and dictionary features. This extension uses a glassmorphic design with Tailwind CSS for the UI.
 
 ## Features
 
-- Extracts Japanese text (Hiragana, Katakana, and Kanji) from web pages
-- Filters out non-Japanese text
-- Displays extracted text in the extension popup
-- Provides statistics about the extracted text
-- Logs extracted text to the console for debugging
+- Enable readings for Japanese text
+- Enable dictionary lookups
+- Open a dedicated app page for more features
+
+## Development Setup
+
+1. Install dependencies:
+   ```
+   npm install
+   ```
+
+2. Compile TypeScript files:
+   ```
+   npm run build
+   ```
+
+3. For continuous development:
+   ```
+   npm run watch
+   ```
+
+## Loading the Extension in Chrome
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" (toggle in the top right corner)
+3. Click "Load unpacked" and select the root directory of this project
+4. The extension should now appear in your Chrome toolbar
 
 ## Project Structure
 
-The project follows the MVVM (Model-View-ViewModel) architecture:
+This project follows the MVVM (Model-View-ViewModel) architecture:
 
 ```
 ├── assets/
-│   └── images/
-│       └── icon.png
+│   └── icons/
+│       ├── icon16.png
+│       ├── icon48.png
+│       └── icon128.png
+├── dist/            # Compiled JavaScript files
+│   └── scripts/
+│       ├── content/ # Content scripts
+│       ├── models/  # Data models
+│       └── ui/      # UI-related scripts
 ├── src/
-│   ├── background/
-│   │   └── background.js
-│   ├── content/
-│   │   └── content.js
-│   ├── models/
-│   │   └── JapaneseTextModel.js
-│   ├── styles/
-│   │   └── popup.css
-│   ├── views/
-│   │   └── popup.html
-│   ├── viewmodels/
-│   │   └── popup.js
-│   └── utils/
-└── manifest.json
+│   ├── scripts/     # TypeScript source files
+│   │   ├── content/ # Content scripts
+│   │   ├── models/  # Data models
+│   │   └── ui/      # UI-related scripts
+│   └── views/       # HTML files
+│       ├── app.html
+│       └── popup.html
+├── manifest.json    # Extension configuration
+├── package.json     # Project dependencies
+└── tsconfig.json    # TypeScript configuration
 ```
 
-- **Model**: `src/models/JapaneseTextModel.js` - Contains the data processing logic for Japanese text extraction
-- **View**: `src/views/popup.html` - The UI components with tabs for text, statistics, and about
-- **ViewModel**: `src/viewmodels/popup.js` - Connects the UI to the data model
-- **Content Script**: `src/content/content.js` - Extracts text from web pages
-- **Background Script**: `src/background/background.js` - Handles background tasks and initialization
+## Using the Extension
 
-## How to Use
-
-1. Install the extension in Chrome:
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" in the top right
-   - Click "Load unpacked" and select the extension directory
-2. Navigate to a webpage containing Japanese text
-3. Click on the extension icon to open the popup
-4. Click the "Extract Japanese Text" button
-5. View the extracted Japanese text in the "Text" tab and statistics in the "Statistics" tab
-
-## Development
-
-This extension follows the MVVM (Model-View-ViewModel) architecture:
-- **Model**: The data processing logic in JapaneseTextModel.js
-- **View**: The UI components in popup.html
-- **ViewModel**: The popup.js file that connects the UI to the data model
-
-## Future Enhancements
-
-- Add text-to-speech functionality for pronunciation practice
-- Implement dictionary lookup for selected Japanese words
-- Add flashcard creation for vocabulary learning
-- Implement spaced repetition system for memorization
-- Add grammar analysis for sentence structure learning 
+1. Click on the extension icon in the Chrome toolbar to open the popup
+2. Use the provided buttons to enable readings or dictionary lookups on the current page
+3. Click "Launch App" to open the full application page 

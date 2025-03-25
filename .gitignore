@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+
+# Chrome extension files
+*.crx
+*.pem
+
+# macos files
+.DS_Store
+
+
+# Chrome extension build files
+build/
+

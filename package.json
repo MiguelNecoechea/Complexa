@@ -1,0 +1,17 @@
+{
+  "name": "japanese-learning-tool",
+  "version": "1.0.0",
+  "description": "A Chrome extension for learning Japanese with reading and dictionary features",
+  "dependencies": {
+    "@scriptin/jmdict-simplified-loader": "^3.6.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.246",
+    "@types/node": "^22.13.13",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  }
+}

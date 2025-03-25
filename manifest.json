@@ -1,29 +1,49 @@
 {
-    "name": "Japanese Learning Assistant",
-    "description": "A tool for learning Japanese by extracting text from websites",
-    "version": "1.0",
     "manifest_version": 3,
+    "name": "Japanese Learning Tool",
+    "version": "1.0.0",
+    "description": "A Chrome extension for learning Japanese with reading and dictionary features",
     "action": {
       "default_popup": "src/views/popup.html",
-      "default_icon": "assets/images/icon.png"
+      "default_icon": {
+        "16": "assets/icons/icon16.png",
+        "48": "assets/icons/icon48.png",
+        "128": "assets/icons/icon128.png"
+      }
     },
     "permissions": [
+      "storage",
       "activeTab",
-      "scripting",
-      "storage"
+      "tabs"
     ],
-    "background": {
-      "service_worker": "src/background/background.js"
+    "icons": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     },
+    "host_permissions": [
+      "<all_urls>"
+    ],
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
-        "js": ["src/models/JapaneseTextModel.js", "src/content/content.js"]
+        "js": ["dist/scripts/models/JapaneseTextModel.js", "dist/scripts/content/content.js"]
       }
     ],
     "web_accessible_resources": [
       {
-        "resources": ["src/models/*", "src/content/*"],
+        "resources": [
+          "dist/scripts/models/*", 
+          "dist/scripts/content/*",
+          "src/views/dashboard/*",
+          "dist/scripts/ui/*",
+          "src/styles/*",
+          "assets/images/*"
+        ],
+        "matches": ["<all_urls>"]
+      },
+      {
+        "resources": ["src/views/app.html"],
         "matches": ["<all_urls>"]
       }
     ]

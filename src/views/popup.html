@@ -1,56 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Japanese Learning Assistant</title>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="../styles/popup.css">
+    <title>Popup</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="../../dist/scripts/ui/popup.js" defer></script>
+    <style>
+        body {
+            min-width: 300px;
+            min-height: 320px;
+            overflow: hidden;
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .button-glassmorphism {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        .button-glassmorphism:hover {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 20px 0 rgba(31, 38, 135, 0.3);
+        }
+    </style>
 </head>
-<body>
-  <h1>Japanese Learning Assistant</h1>
-  
-  <button id="extractText">Extract Japanese Text</button>
-  
-  <div class="tabs">
-    <div class="tab active" data-tab="text">Text</div>
-    <div class="tab" data-tab="stats">Statistics</div>
-    <div class="tab" data-tab="about">About</div>
-  </div>
-  
-  <div class="tab-content active" id="text-tab">
-    <div id="status">Status: Ready</div>
-  </div>
-  
-  <div class="tab-content" id="stats-tab">
-    <div class="stats-container">
-      <div class="stat-box">
-        <div class="stat-value" id="total-segments">0</div>
-        <div class="stat-label">Segments</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="total-chars">0</div>
-        <div class="stat-label">Characters</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="hiragana-percent">0%</div>
-        <div class="stat-label">Hiragana</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="katakana-percent">0%</div>
-        <div class="stat-label">Katakana</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-value" id="kanji-percent">0%</div>
-        <div class="stat-label">Kanji</div>
-      </div>
+<body class="bg-gradient-to-br from-purple-500 to-indigo-700 p-4">
+    <div class="glassmorphism rounded-xl p-6 flex flex-col space-y-6">
+        <h1 class="text-white text-xl font-bold text-center">日本語 学習ツール</h1>
+        <p class="text-white text-sm opacity-80 text-center">Japanese Learning Tool</p>
+        
+        <div class="flex flex-col space-y-4">
+            <button id="enable-readings" class="button-glassmorphism text-white py-3 px-4 rounded-lg font-medium">
+                Enable Readings
+            </button>
+            
+            <button id="enable-dictionary" class="button-glassmorphism text-white py-3 px-4 rounded-lg font-medium">
+                Enable Dictionary
+            </button>
+            
+            <button id="launch-app" class="button-glassmorphism text-white py-3 px-4 rounded-lg font-medium">
+                Launch App
+            </button>
+        </div>
+        
+        <div class="text-white text-xs text-center opacity-60 mt-2">
+            v1.0.0
+        </div>
     </div>
-  </div>
-  
-  <div class="tab-content" id="about-tab">
-    <p>Japanese Learning Assistant helps you learn Japanese by extracting text from websites.</p>
-    <p>This extension identifies Japanese text (Hiragana, Katakana, and Kanji) and provides statistics to help with your learning.</p>
-    <p>Version: 1.0</p>
-  </div>
-  
-  <script src="../viewmodels/popup.js"></script>
 </body>
-</html> 
+</html>
+
