@@ -1,6 +1,6 @@
 # Japanese Learning Tool Chrome Extension
 
-A Chrome extension for learning Japanese with reading and dictionary features. This extension uses a glassmorphic design with Tailwind CSS for the UI.
+A Chrome extension for learning Japanese with reading and dictionary features. This extension uses a glassmorphic design with custom CSS for the UI.
 
 ## Features
 
@@ -39,9 +39,8 @@ This project follows the MVVM (Model-View-ViewModel) architecture:
 ```
 ├── assets/
 │   └── icons/
-│       ├── icon16.png
-│       ├── icon48.png
-│       └── icon128.png
+│       ├── Modular48.png
+│       └── Modular128.png
 ├── dist/            # Compiled JavaScript files
 │   └── scripts/
 │       ├── content/ # Content scripts
@@ -52,6 +51,11 @@ This project follows the MVVM (Model-View-ViewModel) architecture:
 │   │   ├── content/ # Content scripts
 │   │   ├── models/  # Data models
 │   │   └── ui/      # UI-related scripts
+│   ├── styles/      # CSS files
+│   │   ├── colors.css      # Color scheme
+│   │   ├── glassmorphism.css # Glassmorphism effects
+│   │   ├── popup.css       # Popup-specific styles
+│   │   └── app.css         # App-specific styles
 │   └── views/       # HTML files
 │       ├── app.html
 │       └── popup.html

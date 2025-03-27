@@ -1,0 +1,39 @@
+/* Import color scheme and glassmorphism */
+@import 'colors.css';
+@import 'glassmorphism.css';
+
+body {
+  background: linear-gradient(to bottom right, var(--primary-gradient-from), var(--primary-gradient-to));
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.app-container {
+  margin: 0 auto;
+  max-width: 56rem;
+}
+
+.content-container {
+  padding: 2rem;
+  border-radius: 0.75rem;
+}
+
+.app-title {
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.app-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+#app-container {
+  text-align: center;
+  color: var(--text-primary);
+} 

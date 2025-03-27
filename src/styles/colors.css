@@ -1,0 +1,30 @@
+:root {
+  /* Primary colors */
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-active: #4338ca;
+  
+  /* Background colors */
+  --bg-color: #f8fafc;
+  --surface-color: rgba(255, 255, 255, 0.75);
+  
+  /* Text colors */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  
+  /* Border colors */
+  --border-color: #e2e8f0;
+  
+  /* Accent colors */
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Glass effect */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+}

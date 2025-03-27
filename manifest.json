@@ -6,9 +6,8 @@
     "action": {
       "default_popup": "src/views/popup.html",
       "default_icon": {
-        "16": "assets/icons/icon16.png",
-        "48": "assets/icons/icon48.png",
-        "128": "assets/icons/icon128.png"
+        "48": "assets/icons/Modular48.png",
+        "128": "assets/icons/Modular128.png"
       }
     },
     "permissions": [
@@ -17,9 +16,8 @@
       "tabs"
     ],
     "icons": {
-      "16": "assets/icons/icon16.png",
-      "48": "assets/icons/icon48.png",
-      "128": "assets/icons/icon128.png"
+      "48": "assets/icons/Modular48.png",
+      "128": "assets/icons/Modular128.png"
     },
     "host_permissions": [
       "<all_urls>"
