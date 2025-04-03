@@ -11,4 +11,4 @@ node_modules/
 
 # Chrome extension build files
 build/
-dist/scripts
+dist/
