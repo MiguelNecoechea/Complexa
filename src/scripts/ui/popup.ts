@@ -7,7 +7,7 @@
  *
  * @see PopupView.js for the implementation details
  */
-import { PopupView } from "./PopupView.js";
+import { PopupView } from "../views/PopupView.js";
 
 // Local constants - defined directly in this file to avoid dependencies
 document.addEventListener("DOMContentLoaded", () => {
