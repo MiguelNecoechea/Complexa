@@ -1,69 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Popup</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="../../src/styles/popup.css" rel="stylesheet">
-    <script src="../../dist/scripts/ui/popup.js" defer></script>
-    <style>
-        .bg-gradient {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top right, rgba(50, 50, 80, 0.15), transparent 70%),
-                        radial-gradient(circle at bottom left, rgba(30, 30, 50, 0.1), transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-        }
-    </style>
-</head>
-<body class="popup-body glassmorphism">
-    <div class="bg-gradient"></div>
-    <div class="popup-container">
-        <h2 class="popup-title">Language Learning Tool</h2>
-        
-        <div class="general-configs-container">
-            <h3 class="configs-title">General Settings</h3>
+    <head>
+        <title>Popup</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/src/styles/popup.css" rel="stylesheet" />
+        <script type="module" src="/dist/scripts/ui/popup.js" defer></script>
+        <style>
+            .bg-gradient {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background:
+                    radial-gradient(
+                        circle at top right,
+                        rgba(50, 50, 80, 0.15),
+                        transparent 70%
+                    ),
+                    radial-gradient(
+                        circle at bottom left,
+                        rgba(30, 30, 50, 0.1),
+                        transparent 70%
+                    );
+                z-index: 0;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body class="popup-body glassmorphism">
+        <div class="bg-gradient"></div>
+        <div class="popup-container">
+            <h2 class="popup-title">Language Learning Tool</h2>
 
-            <div class="general-configs-item">
-                <input type="checkbox" id="enable-dictionary">
-                <label for="enable-dictionary">Enable Dictionary</label>
+            <div class="general-configs-container">
+                <h3 class="configs-title">General Settings</h3>
+
+                <div class="general-configs-item">
+                    <input type="checkbox" id="enable-dictionary" />
+                    <label for="enable-dictionary">Enable Dictionary</label>
+                </div>
+
+                <div class="general-configs-item">
+                    <input type="checkbox" id="enable-readings" />
+                    <label for="enable-readings">Enable Readings</label>
+                </div>
+
+                <div class="general-configs-item">
+                    <input type="checkbox" id="enable-text-segmentation" />
+                    <label for="enable-text-segmentation"
+                        >Enable Text Segmentation</label
+                    >
+                </div>
+
+                <div class="general-configs-item">
+                    <input type="checkbox" id="enable-word-filters" />
+                    <label for="enable-word-filters">Enable Word Filters</label>
+                </div>
             </div>
 
-            <div class="general-configs-item">  
-                <input type="checkbox" id="enable-readings">
-                <label for="enable-readings">Enable Readings</label>
+            <div class="quiz-configs-container">
+                <h3 class="configs-title">Quiz Settings</h3>
+
+                <div class="quiz-configs-item">
+                    <input type="checkbox" id="enable-quiz" />
+                    <label for="enable-quiz">Enable Quiz</label>
+                </div>
             </div>
 
-            <div class="general-configs-item">
-                <input type="checkbox" id="enable-text-segmentation">
-                <label for="enable-text-segmentation">Enable Text Segmentation</label>
-            </div>
+            <button id="launch-app" class="button">Launch App</button>
 
-            <div class="general-configs-item">
-                <input type="checkbox" id="enable-word-filters">
-                <label for="enable-word-filters">Enable Word Filters</label>
-            </div>
+            <div class="version">v1.0.0</div>
         </div>
-
-        <div class="quiz-configs-container">
-            <h3 class="configs-title">Quiz Settings</h3>
-
-            <div class="quiz-configs-item">
-                <input type="checkbox" id="enable-quiz">
-                <label for="enable-quiz">Enable Quiz</label>
-            </div>
-        </div>
-
-        <button id="launch-app" class="button">Launch App</button>
-        
-        <div class="version">
-            v1.0.0
-        </div>
-    </div>
-</body>
+    </body>
 </html>
-

@@ -1,48 +1,47 @@
 {
-    "manifest_version": 3,
-    "name": "Japanese Learning Tool",
-    "version": "1.0.0",
-    "description": "A Chrome extension for learning Japanese with reading and dictionary features",
-    "action": {
-      "default_popup": "src/views/popup.html",
-      "default_icon": {
-        "48": "assets/icons/Modular48.png",
-        "128": "assets/icons/Modular128.png"
-      }
-    },
-    "permissions": [
-      "storage",
-      "activeTab",
-      "tabs"
-    ],
-    "icons": {
+  "manifest_version": 3,
+  "name": "Japanese Learning Tool",
+  "version": "1.0.0",
+  "description": "A Chrome extension for learning Japanese with reading and dictionary features",
+  "action": {
+    "default_popup": "src/views/popup.html",
+    "default_icon": {
       "48": "assets/icons/Modular48.png",
       "128": "assets/icons/Modular128.png"
+    }
+  },
+  "permissions": ["storage", "activeTab", "tabs", "scripting"],
+  "background": {
+    "service_worker": "dist/scripts/background/backgroundWorker.js"
+  },
+  "icons": {
+    "48": "assets/icons/Modular48.png",
+    "128": "assets/icons/Modular128.png"
+  },
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/scripts/content/kanjiReading.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/scripts/content/*",
+        "dist/scripts/models/*",
+        "dist/scripts/services/*",
+        "dist/scripts/ui/*",
+        "dist/scripts/viewmodels/*",
+        "src/views/dashboard/*",
+        "src/styles/*",
+        "assets/images/*"
+      ],
+      "matches": ["<all_urls>"]
     },
-    "host_permissions": [
-      "<all_urls>"
-    ],
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["dist/scripts/models/JapaneseTextModel.js", "dist/scripts/content/content.js"]
-      }
-    ],
-    "web_accessible_resources": [
-      {
-        "resources": [
-          "dist/scripts/models/*", 
-          "dist/scripts/content/*",
-          "src/views/dashboard/*",
-          "dist/scripts/ui/*",
-          "src/styles/*",
-          "assets/images/*"
-        ],
-        "matches": ["<all_urls>"]
-      },
-      {
-        "resources": ["src/views/app.html"],
-        "matches": ["<all_urls>"]
-      }
-    ]
-  }
+    {
+      "resources": ["src/views/app.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
