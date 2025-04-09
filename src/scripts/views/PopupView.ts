@@ -1,5 +1,5 @@
-import { PopupSettings } from "../models/PopupSettings.js";
-import { PopupViewModel } from "../viewmodels/PopupViewModel.js";
+import { PopupSettings } from "../models/PopupSettings";
+import { PopupViewModel } from "../viewmodels/PopupViewModel";
 
 const DOM_IDS = {
   LAUNCH_APP: "launch-app",

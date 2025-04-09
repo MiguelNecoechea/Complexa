@@ -11,9 +11,9 @@
  * - Update settings when changes are made in the popup
  * - Maintain consistency between the popup UI and the application's configuration
  */
-import { PopupSettings } from "../models/PopupSettings.js";
-import { SettingsService } from "../services/SettingsService.js";
-import { TabService } from "../services/TabService.js";
+import { PopupSettings } from "../models/PopupSettings";
+import { SettingsService } from "../services/SettingsService";
+import { TabService } from "../services/TabService";
 
 export class PopupViewModel {
   private settingsService = new SettingsService();

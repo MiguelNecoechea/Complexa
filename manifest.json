@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "A Chrome extension for learning Japanese with reading and dictionary features",
   "action": {
-    "default_popup": "src/views/popup.html",
+    "default_popup": "static/views/popup.html",
     "default_icon": {
-      "48": "assets/icons/Modular48.png",
-      "128": "assets/icons/Modular128.png"
+      "48": "static/assets/icons/Modular48.png",
+      "128": "static/assets/icons/Modular128.png"
     }
   },
   "permissions": ["storage", "activeTab", "tabs", "scripting"],
@@ -15,8 +15,8 @@
     "service_worker": "dist/scripts/background/backgroundWorker.js"
   },
   "icons": {
-    "48": "assets/icons/Modular48.png",
-    "128": "assets/icons/Modular128.png"
+    "48": "static/assets/icons/Modular48.png",
+    "128": "static/assets/icons/Modular128.png"
   },
   "host_permissions": ["<all_urls>"],
   "content_scripts": [

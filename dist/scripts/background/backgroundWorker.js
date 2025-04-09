@@ -1,4 +1,9 @@
-"use strict";
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/*!****************************************************!*\
+  !*** ./src/scripts/background/backgroundWorker.ts ***!
+  \****************************************************/
+
 // Listen for extension installation or update
 // Local constants to avoid dependencies
 const BACKGROUND_ACTIONS = {
@@ -71,3 +76,7 @@ chrome.runtime.onStartup.addListener(() => {
     console.log('Extension started');
 });
 setupMessageListeners();
+
+/******/ })()
+;
+//# sourceMappingURL=backgroundWorker.js.map

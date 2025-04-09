@@ -1,4 +1,9 @@
-"use strict";
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/*!*********************************************!*\
+  !*** ./src/scripts/content/kanjiReading.ts ***!
+  \*********************************************/
+
 (function () {
     // Local constants - defined directly in this file to avoid dependencies
     const ACTIONS = {
@@ -117,3 +122,7 @@
     console.log('Initializing kanji reading script');
     const kanjiReader = new KanjiReadingScript();
 })();
+
+/******/ })()
+;
+//# sourceMappingURL=kanjiReading.js.map

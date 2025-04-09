@@ -6,12 +6,18 @@
     "@scriptin/jmdict-simplified-loader": "^3.6.1"
   },
   "devDependencies": {
+    "@scriptin/jmdict-simplified-types": "^3.6.1",
     "@types/chrome": "^0.0.246",
     "@types/node": "^22.13.13",
-    "typescript": "^5.2.2"
+    "copy-webpack-plugin": "^13.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.2.2",
+    "webpack": "^5.99.5",
+    "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch"
+    "build": "tsc --noEmit && webpack --config webpack.config.js",
+    "watch": "webpack --watch --config webpack.config.js",
+    "type-check": "tsc --noEmit"
   }
 }

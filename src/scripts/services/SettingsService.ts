@@ -3,7 +3,7 @@
  * This module handles reading and writing settings to Chrome's synchronized storage.
  */
 
-import { PopupSettings } from "../models/PopupSettings.js";
+import { PopupSettings } from "../models/PopupSettings";
 /**
  * Service responsible for managing popup settings for the extension.
  *
