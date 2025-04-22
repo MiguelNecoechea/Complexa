@@ -1,11 +1,10 @@
-(function() {
-  // Local constants - defined directly in this file to avoid dependencies
+(function () {
   const ACTIONS = {
-    UPDATE_SETTINGS: 'updateSettings',
-    GET_EXTRACTED_KANJI: 'getExtractedKanji',
-    INITIATE_CONTENT_SCRIPT: 'initiateKanjiReadingScript'
+    UPDATE_SETTINGS: "updateSettings",
+    GET_EXTRACTED_KANJI: "getExtractedKanji",
+    INITIATE_CONTENT_SCRIPT: "initiateKanjiReadingScript",
   };
-  
+
   class KanjiReadingScript {
     private settings = {
       enableReadings: false,
@@ -13,123 +12,96 @@
       enableTextSegmentation: false,
       enableWordFilters: false,
       enableKanjiExtraction: false,
-      readingType: 'romaji'
+      readingType: "romaji",
     };
-    
+
     constructor() {
       this.initialize();
     }
-    
-    /**
-     * Initialize the kanji reading script
-     */
+
     private async initialize(): Promise<void> {
       // Load settings from storage
       await this.loadSettings();
-      
-      // Listen for messages from the extension
+
       this.setupMessageListeners();
-      
-      console.log('Kanji reading script initialized with settings:', this.settings);
+
+      console.log(
+        "Kanji reading script initialized with settings:",
+        this.settings,
+      );
     }
-    
-    /**
-     * Load settings from Chrome storage
-     */
+
     private async loadSettings(): Promise<void> {
       try {
         const result = await chrome.storage.sync.get([
-          'enableReadings',
-          'enableDictionary',
-          'enableTextSegmentation',
-          'enableWordFilters',
-          'enableKanjiExtraction',
-          'readingType'
+          "enableReadings",
+          "enableDictionary",
+          "enableTextSegmentation",
+          "enableWordFilters",
+          "enableKanjiExtraction",
+          "readingType",
         ]);
-        
+
         this.settings = {
           enableReadings: result.enableReadings ?? false,
           enableDictionary: result.enableDictionary ?? false,
           enableTextSegmentation: result.enableTextSegmentation ?? false,
           enableWordFilters: result.enableWordFilters ?? false,
           enableKanjiExtraction: result.enableKanjiExtraction ?? false,
-          readingType: result.readingType ?? 'romaji'
+          readingType: result.readingType ?? "romaji",
         };
       } catch (error) {
-        console.error('Error loading settings:', error);
+        console.error("Error loading settings:", error);
       }
     }
-    
+
     private setupMessageListeners(): void {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log('Kanji reading script received message:', message);
-        
+        console.log("Kanji reading script received message:", message);
+
         if (message.action === ACTIONS.GET_EXTRACTED_KANJI) {
-          // Extract kanji from the page and return them
-          const extractedKanji = this.extractKanjiFromPage();
-          sendResponse({ success: true, kanji: extractedKanji });
+          // Extract the raw text from the page.
+          const extractedText = this.extractAllTextFromPage();
+          // Apply the ruby conversion function to wrap Kanji with ruby tags.
+          const rubyText = this.addRubyReadings(extractedText);
+          this.applyRubyReadingsToPage();
+          // Return the processed text with ruby tags.
+          sendResponse({ success: true, kanji: rubyText });
         } else if (message.action === ACTIONS.UPDATE_SETTINGS) {
-          // Update local settings
           if (message.settings) {
             Object.assign(this.settings, message.settings);
-            console.log('Settings updated:', this.settings);
+            console.log("Settings updated:", this.settings);
           }
           sendResponse({ success: true });
         } else {
-          // Default response for unhandled actions
           sendResponse({ success: false, error: "Unknown action" });
         }
-        
-        // Return true to indicate async response will be sent
         return true;
       });
     }
-    
-    // Entry point for extracting paragraphs containing kanji from the page
-    // This method identifies text blocks/paragraphs that contain kanji characters
-    // to enable more accurate morphological analysis later
-    private extractKanjiFromPage(): string[] {
-      // Define the kanji character range
-      const kanjiRange = '\\u4e00-\\u9faf'; // Kanji characters
-      const kanjiRegex = new RegExp(`[${kanjiRange}]`);
-      
-      // Get all paragraph elements
-      const paragraphs: string[] = [];
-      
-      // Method 1: Get text from paragraph-like elements
-      const paragraphElements = document.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li, td, article, section');
-      paragraphElements.forEach(element => {
-        const text = element.textContent?.trim() || '';
-        
-        // Only include paragraphs that contain kanji and have reasonable length
-        if (text.length > 0 && kanjiRegex.test(text)) {
-          paragraphs.push(text);
-        }
+
+    private extractAllTextFromPage(): string {
+      return document.body.innerText.trim();
+    }
+
+    private addRubyReadings(text: string): string {
+      const kanjiRegex = /([\u4e00-\u9faf])/g;
+      return text.replace(kanjiRegex, (match) => {
+        const reading = "dummy"; // TODO: Replace with actual lookup based on this.settings.readingType
+        return `<ruby>${match}<rt>${reading}</rt></ruby>`;
       });
-      
-      // Method 2: If no paragraph elements with kanji were found, 
-      // split the entire body text by newlines and find kanji-containing lines
-      if (paragraphs.length === 0) {
-        const bodyText = document.body.textContent || '';
-        const textBlocks = bodyText.split(/\n+/).map(block => block.trim());
-        
-        textBlocks.forEach(block => {
-          if (block.length > 0 && kanjiRegex.test(block)) {
-            paragraphs.push(block);
-          }
-        });
-      }
-      
-      // Filter out duplicates and very short texts
-      const filteredParagraphs = [...new Set(paragraphs)].filter(
-        paragraph => paragraph.length >= 2 // Minimum meaningful length
-      );
-      
-      console.log('Extracted paragraphs containing kanji:', filteredParagraphs);
-      return filteredParagraphs;
+    }
+
+    private applyRubyReadingsToPage(): void {
+      // For demonstration, we update the entire body's HTML.
+      // In production, you might want to selectively update certain nodes.
+      const originalHTML = document.body.innerHTML;
+      const updatedHTML = this.addRubyReadings(originalHTML);
+      document.body.innerHTML = updatedHTML;
+      console.log("Applied ruby readings to the page (sample implementation)");
     }
   }
 
-  console.log('Initializing kanji reading script');
+  console.log("Initializing kanji reading script");
   const kanjiReader = new KanjiReadingScript();
 })();

@@ -1,3 +1,0 @@
-Modular@ /Users/mnecoea/Documents/Modular
-└── @scriptin/jmdict-simplified-loader@3.6.1
-

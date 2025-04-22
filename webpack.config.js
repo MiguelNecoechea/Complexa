@@ -1,9 +1,10 @@
-const path = require("path");
-const CopyWepackPlugin = require("copy-webpack-plugin");
+import path from "path";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
-module.exports = {
+export default {
   mode: "development",
   devtool: "source-map",
+
   // Entry points
   entry: {
     "scripts/background/backgroundWorker":
@@ -14,7 +15,7 @@ module.exports = {
 
   output: {
     filename: "[name].js",
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(process.cwd(), "dist"),
     clean: true,
   },
   // Just allow ts and js.
@@ -29,14 +30,14 @@ module.exports = {
         exclude: /node_modules/,
         loader: "ts-loader",
         options: {
-          configFile: path.resolve(__dirname, "tsconfig.json"),
+          configFile: path.resolve(process.cwd(), "tsconfig.json"),
         },
       },
     ],
   },
 
   plugins: [
-    new CopyWepackPlugin({
+    new CopyWebpackPlugin({
       patterns: [{ from: "static", to: "." }],
     }),
   ],

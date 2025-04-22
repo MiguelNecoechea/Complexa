@@ -32,10 +32,7 @@
         "dist/scripts/models/*",
         "dist/scripts/services/*",
         "dist/scripts/ui/*",
-        "dist/scripts/viewmodels/*",
-        "src/views/dashboard/*",
-        "src/styles/*",
-        "assets/images/*"
+        "dist/scripts/viewmodels/*"
       ],
       "matches": ["<all_urls>"]
     },

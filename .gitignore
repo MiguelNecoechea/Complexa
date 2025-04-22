@@ -8,6 +8,8 @@ node_modules/
 # macos files
 .DS_Store
 
+#json dict files
+dictsJson/
 
 # Chrome extension build files
 build/
