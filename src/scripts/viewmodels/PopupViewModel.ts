@@ -1,136 +1,130 @@
-/**
- * Imports the PopupSettings interface from the models directory.
- *
- * PopupSettings represents the configuration options for the popup interface,
- * including settings like:
- * - enableKanjiExtraction: Controls whether kanji extraction is active
- * - Other popup-related configuration options
- *
- * This model is used throughout the PopupViewModel to:
- * - Initialize the popup's state with current settings
- * - Update settings when changes are made in the popup
- * - Maintain consistency between the popup UI and the application's configuration
- */
+// ViewModel for the extension popup, with clear separation of concerns and OOP-friendly services
+
 import { PopupSettings } from "../models/PopupSettings";
 import { SettingsService } from "../services/SettingsService";
 import { TabService } from "../services/TabService";
 
 export class PopupViewModel {
-  private settingsService = new SettingsService();
-  private tabService = new TabService();
-  private settings: PopupSettings | null = null;
+    private settingsService: SettingsService;
+    private tabService: TabService;
+    public settings!: PopupSettings;
 
-  /**
-   * Initializes the popup's settings by retrieving them from the settings service.
-   *
-   * @returns {Promise<PopupSettings>} A promise that resolves to the current popup settings
-   */
-  async init(): Promise<PopupSettings> {
-    this.settings = await this.settingsService.getSettings();
-    if (this.settings.enableReadings) {
-      await this.injectKanjiReadingScript();
-    }
-    return this.settings;
-  }
-
-  /**
-   * Updates the specified setting with a new value and syncs it to the settings service.
-   * If the setting is enableKanjiExtraction, notifies the active tab of the change.
-   *
-   * @param {K} key - The key of the setting to update
-   * @param {PopupSettings[K]} value - The new value for the setting
-   * @returns {Promise<void>} A promise that resolves when the setting is updated
-   * @template K - Type parameter extending keyof PopupSettings
-   */
-  async updateSetting<K extends keyof PopupSettings>(
-    key: K,
-    value: PopupSettings[K],
-  ): Promise<void> {
-    await this.settingsService.updateSetting(key, value);
-
-    if (this.settings) {
-      this.settings[key] = value;
+    /**
+     * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
+     * @param tabService - allows injecting a custom TabService (e.g. for testing)
+     */
+    constructor(
+        settingsService: SettingsService = new SettingsService(),
+        tabService: TabService = new TabService(),
+    ) {
+        this.settingsService = settingsService;
+        this.tabService = tabService;
     }
 
-    if (key === "enableKanjiExtraction") {
-      const tab = await this.tabService.getActiveTab();
-      if (tab?.id) {
+    /**
+     * Loads and returns current popup settings. If readings are enabled,
+     * injects the content script immediately.
+     */
+    async init(): Promise<PopupSettings> {
+        this.settings = await this.settingsService.getSettings();
+        if (this.settings.enableReadings) {
+            await this.injectKanjiReadingScript();
+        }
+        return this.settings;
+    }
+
+    /**
+     * Updates one setting, persists it, and notifies content script if needed.
+     */
+    async updateSetting<K extends keyof PopupSettings>(
+        key: K,
+        value: PopupSettings[K],
+    ): Promise<void> {
+        // Update local state and persist
+        this.settings[key] = value;
+        await this.settingsService.updateSetting(key, value);
+        console.log("updating settings with k: ", key, " and v: ", value);
+        // Notify content script for keys affecting page behavior
+        if (this.shouldNotifyContentScript(key)) {
+            await this.notifyContentScript({ [key]: value });
+        }
+    }
+
+    /**
+     * Determines which settings changes require a content-script update
+     */
+    private shouldNotifyContentScript<K extends keyof PopupSettings>(
+        key: K,
+    ): boolean {
+        const contentKeys: Array<keyof PopupSettings> = [
+            "enableReadings",
+            "enableKanjiExtraction",
+            "readingType",
+        ];
+        return contentKeys.includes(key);
+    }
+
+    /**
+     * Sends an "updateSettings" message to the active tab with the changed settings
+     */
+    private async notifyContentScript(
+        payload: Partial<PopupSettings>,
+    ): Promise<void> {
+        const tab = await this.tabService.getActiveTab();
+        if (tab?.id) {
+            try {
+                await this.tabService.sendMessageToTab(tab.id, {
+                    action: "updateSettings",
+                    settings: payload,
+                });
+            } catch (err) {
+                console.error("Failed to notify content script:", err);
+            }
+        }
+    }
+
+    /**
+     * Requests kanji readings from the content script, injecting it first if necessary.
+     */
+    async requestAddReadings(): Promise<void> {
+        const tab = await this.tabService.getActiveTab();
+        if (!tab?.id) return;
+
         try {
-          await this.tabService.sendMessageToTab(tab.id, {
-            action: "updateSettings",
-            settings: { [key]: value },
-          });
-        } catch (error) {
-          console.error("Error sending message to tab:", error);
+            const response = await this.tabService.sendMessageToTab(tab.id, {
+                action: "addReadings",
+            });
+            return response?.kanji ?? [];
+        } catch {
+            // Try injecting script and retry once
+            const injected = await this.injectKanjiReadingScript();
+            if (!injected) return;
+            const retry = await this.tabService.sendMessageToTab(tab.id, {
+                action: "addReadings",
+            });
         }
-      }
     }
 
-    this.settings = await this.settingsService.getSettings();
-  }
-
-  /**
-   * Requests the extracted kanji from the active tab.
-   *
-   * @returns {Promise<string[]>} A promise that resolves to an array of extracted kanji characters
-   */
-  async requestKanj(): Promise<string[]> {
-    const tab = await this.tabService.getActiveTab();
-
-    if (!tab?.id) {
-      return [];
-    }
-
-    try {
-      const response = await this.tabService.sendMessageToTab(tab.id, {
-        action: "getExtractedKanji",
-      });
-
-      return response?.kanji || [];
-    } catch (error) {
-      console.error("Error sending message to tab:", error);
-      console.log("Trying to inject the reading script");
-      try {
-        const wasSuccesful = await this.injectKanjiReadingScript();
-
-        if (wasSuccesful) {
-          console.log("Script Successfully injected");
-          const response = await this.tabService.sendMessageToTab(tab.id, {
-            action: "getExtractedKanji",
-          });
-          return response?.kanji || [];
+    /**
+     * Ensures the content script is loaded into the active tab for annotation.
+     */
+    async injectKanjiReadingScript(): Promise<boolean> {
+        const tab = await this.tabService.getActiveTab();
+        if (!tab?.id) {
+            console.error("No active tab found for script injection");
+            return false;
         }
-      } catch (error) {
-        console.error("An unexpected error happened: ", error);
-      }
-      return [];
-    }
-  }
 
-  /**
-   * Injects the kanjiReading script into the active tab.
-   * This allows for real-time kanji reading functionality on the current page.
-   *
-   * @returns {Promise<boolean>} A promise that resolves to true if injection was successful, false otherwise
-   */
-  async injectKanjiReadingScript(): Promise<boolean> {
-    const tab = await this.tabService.getActiveTab();
-
-    if (!tab?.id) {
-      console.error("No active tab found for script injection");
-      return false;
+        try {
+            await this.tabService.injectScript(
+                tab.id,
+                "dist/scripts/content/JapaneseReadingContent.js",
+            );
+            console.log("Injected kanjiReading script");
+            return true;
+        } catch (err) {
+            console.error("Script injection failed:", err);
+            return false;
+        }
     }
-
-    try {
-      await this.tabService.injectScript(
-        tab.id,
-        "dist/scripts/content/kanjiReading.js",
-      );
-      console.log("Successfully injected kanjiReading script");
-      return true;
-    } catch (error) {
-      console.error("Error injecting kanjiReading script:", error);
-      return false;
-    }
-  }
 }

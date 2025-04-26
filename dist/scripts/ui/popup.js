@@ -162,18 +162,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/SettingsService */ "./src/scripts/services/SettingsService.ts");
 /* harmony import */ var _services_TabService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/TabService */ "./src/scripts/services/TabService.ts");
+// ViewModel for the extension popup, with clear separation of concerns and OOP-friendly services
 
 
 class PopupViewModel {
-    constructor() {
-        this.settingsService = new _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService();
-        this.tabService = new _services_TabService__WEBPACK_IMPORTED_MODULE_1__.TabService();
-        this.settings = null;
+    /**
+     * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
+     * @param tabService - allows injecting a custom TabService (e.g. for testing)
+     */
+    constructor(settingsService = new _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService(), tabService = new _services_TabService__WEBPACK_IMPORTED_MODULE_1__.TabService()) {
+        this.settingsService = settingsService;
+        this.tabService = tabService;
     }
     /**
-     * Initializes the popup's settings by retrieving them from the settings service.
-     *
-     * @returns {Promise<PopupSettings>} A promise that resolves to the current popup settings
+     * Loads and returns current popup settings. If readings are enabled,
+     * injects the content script immediately.
      */
     async init() {
         this.settings = await this.settingsService.getSettings();
@@ -183,75 +186,71 @@ class PopupViewModel {
         return this.settings;
     }
     /**
-     * Updates the specified setting with a new value and syncs it to the settings service.
-     * If the setting is enableKanjiExtraction, notifies the active tab of the change.
-     *
-     * @param {K} key - The key of the setting to update
-     * @param {PopupSettings[K]} value - The new value for the setting
-     * @returns {Promise<void>} A promise that resolves when the setting is updated
-     * @template K - Type parameter extending keyof PopupSettings
+     * Updates one setting, persists it, and notifies content script if needed.
      */
     async updateSetting(key, value) {
+        // Update local state and persist
+        this.settings[key] = value;
         await this.settingsService.updateSetting(key, value);
-        if (this.settings) {
-            this.settings[key] = value;
+        console.log("updating settings with k: ", key, " and v: ", value);
+        // Notify content script for keys affecting page behavior
+        if (this.shouldNotifyContentScript(key)) {
+            await this.notifyContentScript({ [key]: value });
         }
-        if (key === "enableKanjiExtraction") {
-            const tab = await this.tabService.getActiveTab();
-            if (tab?.id) {
-                try {
-                    await this.tabService.sendMessageToTab(tab.id, {
-                        action: "updateSettings",
-                        settings: { [key]: value },
-                    });
-                }
-                catch (error) {
-                    console.error("Error sending message to tab:", error);
-                }
-            }
-        }
-        this.settings = await this.settingsService.getSettings();
     }
     /**
-     * Requests the extracted kanji from the active tab.
-     *
-     * @returns {Promise<string[]>} A promise that resolves to an array of extracted kanji characters
+     * Determines which settings changes require a content-script update
      */
-    async requestKanj() {
+    shouldNotifyContentScript(key) {
+        const contentKeys = [
+            "enableReadings",
+            "enableKanjiExtraction",
+            "readingType",
+        ];
+        return contentKeys.includes(key);
+    }
+    /**
+     * Sends an "updateSettings" message to the active tab with the changed settings
+     */
+    async notifyContentScript(payload) {
         const tab = await this.tabService.getActiveTab();
-        if (!tab?.id) {
-            return [];
+        if (tab?.id) {
+            try {
+                await this.tabService.sendMessageToTab(tab.id, {
+                    action: "updateSettings",
+                    settings: payload,
+                });
+            }
+            catch (err) {
+                console.error("Failed to notify content script:", err);
+            }
         }
+    }
+    /**
+     * Requests kanji readings from the content script, injecting it first if necessary.
+     */
+    async requestAddReadings() {
+        const tab = await this.tabService.getActiveTab();
+        if (!tab?.id)
+            return;
         try {
             const response = await this.tabService.sendMessageToTab(tab.id, {
-                action: "getExtractedKanji",
+                action: "addReadings",
             });
-            return response?.kanji || [];
+            return response?.kanji ?? [];
         }
-        catch (error) {
-            console.error("Error sending message to tab:", error);
-            console.log("Trying to inject the reading script");
-            try {
-                const wasSuccesful = await this.injectKanjiReadingScript();
-                if (wasSuccesful) {
-                    console.log("Script Successfully injected");
-                    const response = await this.tabService.sendMessageToTab(tab.id, {
-                        action: "getExtractedKanji",
-                    });
-                    return response?.kanji || [];
-                }
-            }
-            catch (error) {
-                console.error("An unexpected error happened: ", error);
-            }
-            return [];
+        catch {
+            // Try injecting script and retry once
+            const injected = await this.injectKanjiReadingScript();
+            if (!injected)
+                return;
+            const retry = await this.tabService.sendMessageToTab(tab.id, {
+                action: "addReadings",
+            });
         }
     }
     /**
-     * Injects the kanjiReading script into the active tab.
-     * This allows for real-time kanji reading functionality on the current page.
-     *
-     * @returns {Promise<boolean>} A promise that resolves to true if injection was successful, false otherwise
+     * Ensures the content script is loaded into the active tab for annotation.
      */
     async injectKanjiReadingScript() {
         const tab = await this.tabService.getActiveTab();
@@ -260,12 +259,12 @@ class PopupViewModel {
             return false;
         }
         try {
-            await this.tabService.injectScript(tab.id, "dist/scripts/content/kanjiReading.js");
-            console.log("Successfully injected kanjiReading script");
+            await this.tabService.injectScript(tab.id, "dist/scripts/content/JapaneseReadingContent.js");
+            console.log("Injected kanjiReading script");
             return true;
         }
-        catch (error) {
-            console.error("Error injecting kanjiReading script:", error);
+        catch (err) {
+            console.error("Script injection failed:", err);
             return false;
         }
     }
@@ -310,8 +309,7 @@ const CSS_CLASSES = {
 const STRINGS = {
     ENABLE_KANJI_EXTRACTION_LABEL: "Enable Kanji Extraction",
     READING_TYPE_LABEL: "Reading Type:",
-    ROMAJI: "romaji",
-    HIRAGANA: "hiragana",
+    KATAKANA_LABEL: "Katakana",
     ROMAJI_LABEL: "Romaji",
     HIRAGANA_LABEL: "Hiragana",
     ADD_READINGS: "Add Readings",
@@ -396,6 +394,9 @@ class PopupView {
         }
     }
     createReadingSelector(activeType) {
+        const katakana = "katakana";
+        const hiragana = "hiragana";
+        const romaji = "romaji";
         const configsContainer = document.querySelector(`.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`);
         if (!configsContainer)
             return;
@@ -412,8 +413,9 @@ class PopupView {
         const optionsContainer = document.createElement("div");
         optionsContainer.className = CSS_CLASSES.READING_OPTIONS;
         const options = [
-            { value: STRINGS.ROMAJI, label: STRINGS.ROMAJI_LABEL },
-            { value: STRINGS.HIRAGANA, label: STRINGS.HIRAGANA_LABEL },
+            { value: romaji, label: STRINGS.ROMAJI_LABEL },
+            { value: hiragana, label: STRINGS.HIRAGANA_LABEL },
+            { value: katakana, label: STRINGS.KATAKANA_LABEL },
         ];
         options.forEach((option) => {
             const optionElement = document.createElement("div");
@@ -445,11 +447,7 @@ class PopupView {
         addReadingsButton.style.width = "100%";
         addReadingsButton.addEventListener("click", async () => {
             console.log(STRINGS.ADD_READINGS_CLICKED);
-            const kanji = await this.viewModel.requestKanj();
-            if (kanji.length > 0) {
-                console.log(STRINGS.KANJI_RECEIVED, kanji);
-                // Process the kanji here
-            }
+            const kanji = await this.viewModel.requestAddReadings();
         });
         buttonContainer.appendChild(addReadingsButton);
         // Insert elements in the correct order

@@ -1,44 +1,44 @@
 {
-  "manifest_version": 3,
-  "name": "Japanese Learning Tool",
-  "version": "1.0.0",
-  "description": "A Chrome extension for learning Japanese with reading and dictionary features",
-  "action": {
-    "default_popup": "static/views/popup.html",
-    "default_icon": {
-      "48": "static/assets/icons/Modular48.png",
-      "128": "static/assets/icons/Modular128.png"
-    }
-  },
-  "permissions": ["storage", "activeTab", "tabs", "scripting"],
-  "background": {
-    "service_worker": "dist/scripts/background/backgroundWorker.js"
-  },
-  "icons": {
-    "48": "static/assets/icons/Modular48.png",
-    "128": "static/assets/icons/Modular128.png"
-  },
-  "host_permissions": ["<all_urls>"],
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["dist/scripts/content/kanjiReading.js"]
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "dist/scripts/content/*",
-        "dist/scripts/models/*",
-        "dist/scripts/services/*",
-        "dist/scripts/ui/*",
-        "dist/scripts/viewmodels/*"
-      ],
-      "matches": ["<all_urls>"]
+    "manifest_version": 3,
+    "name": "Japanese Learning Tool",
+    "version": "1.0.0",
+    "description": "A Chrome extension for learning Japanese with reading and dictionary features",
+    "action": {
+        "default_popup": "static/views/popup.html",
+        "default_icon": {
+            "48": "static/assets/icons/Modular48.png",
+            "128": "static/assets/icons/Modular128.png"
+        }
     },
-    {
-      "resources": ["src/views/app.html"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+    "permissions": ["storage", "activeTab", "tabs", "scripting"],
+    "background": {
+        "service_worker": "dist/scripts/background/backgroundWorker.js"
+    },
+    "icons": {
+        "48": "static/assets/icons/Modular48.png",
+        "128": "static/assets/icons/Modular128.png"
+    },
+    "host_permissions": ["<all_urls>"],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["dist/scripts/content/JapaneseReadingContent.js"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "dist/scripts/content/*",
+                "dist/scripts/models/*",
+                "dist/scripts/services/*",
+                "dist/scripts/ui/*",
+                "dist/scripts/viewmodels/*"
+            ],
+            "matches": ["<all_urls>"]
+        },
+        {
+            "resources": ["src/views/app.html"],
+            "matches": ["<all_urls>"]
+        }
+    ]
 }

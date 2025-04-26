@@ -1,3 +1,7 @@
+/*
+ReadingTypes supported by the application to make it better typed lol
+*/
+export type ReadingTypes = "romaji" | "hiragana" | "katakana";
 /**
  * Settings for the popup functionality.
  * Controls various features that can be enabled or disabled for the popup display.
@@ -9,14 +13,14 @@
  * @property {boolean} enableWordFilters - Enables or disables word filtering capabilities
  * @property {boolean} enableQuiz - Enables or disables quiz functionality within the popup
  * @property {boolean} enableKanjiExtraction - Enables or disables kanji extraction features
- * @property {string} readingType - Specifies the type of reading to display (e.g., 'hiragana', 'romaji')
+ * @property {ReadingTypes} readingType - Specifies the type of reading to display (availabe 'hiragana', 'romaji' and 'katakana')
  */
 export interface PopupSettings {
-  enableDictionary: boolean;
-  enableReadings: boolean;
-  enableTextSegmentation: boolean;
-  enableWordFilters: boolean;
-  enableQuiz: boolean;
-  enableKanjiExtraction: boolean;
-  readingType: string;
+    enableDictionary: boolean;
+    enableReadings: boolean;
+    enableTextSegmentation: boolean;
+    enableWordFilters: boolean;
+    enableQuiz: boolean;
+    enableKanjiExtraction: boolean;
+    readingType: ReadingTypes;
 }
