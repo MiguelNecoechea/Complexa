@@ -6,7 +6,8 @@
   "dependencies": {
     "@scriptin/jmdict-simplified-loader": "^3.6.1",
     "browser-level": "^2.0.0",
-    "level": "^9.0.0"
+    "level": "^9.0.0",
+    "wanakana": "^5.3.1"
   },
   "devDependencies": {
     "@scriptin/jmdict-simplified-types": "^3.6.1",

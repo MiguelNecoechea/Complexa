@@ -1,46 +1,20 @@
 // Handles DOM traversal, messaging, and style injection
 import { PopupSettings } from "../models/PopupSettings";
-import { NlpApiClient } from "../api/server/nlpTools";
-
-type Settings = PopupSettings;
+import { ReadingTools } from "../api/server/readingTools";
+import * as wanakana from "wanakana";
 
 class KanjiReadingScript {
-    private settings: Settings = {
-        enableDictionary: false,
-        enableReadings: false,
-        enableTextSegmentation: false,
-        enableWordFilters: false,
-        enableKanjiExtraction: false,
-        enableQuiz: false,
-        readingType: "romaji",
-    };
-
-    private currentPageHasReadings: boolean;
-
-    private apiClient: NlpApiClient = new NlpApiClient();
+    private apiClient: ReadingTools = new ReadingTools();
+    private readingsAdded: boolean = false;
 
     constructor() {
         this.initialize();
-        this.currentPageHasReadings = false;
     }
 
     /* ─────────────────────────  BOOTSTRAP  ───────────────────────── */
     private async initialize(): Promise<void> {
-        await this.loadSettings();
-
         this.setupMessageListeners();
         this.addRubyStyles();
-    }
-
-    private async loadSettings(): Promise<void> {
-        try {
-            const result = await chrome.storage.sync.get(
-                Object.keys(this.settings),
-            );
-            this.settings = { ...this.settings, ...result };
-        } catch (error) {
-            console.error("Error loading settings:", error);
-        }
     }
 
     /* ─────────────────────────  MESSAGING  ───────────────────────── */
@@ -58,22 +32,21 @@ class KanjiReadingScript {
                                 }),
                             );
                         break;
-                    case "updateSettings": {
-                        const newSetting: Partial<Settings> = message.settings
-                            ? message.settings
-                            : (({ action, ...rest }) => rest)(message);
-
-                        this.updateSetting(newSetting)
+                    case "changeReadingType":
+                        this.apiClient
+                            .changeReadingMode(message.readingType)
                             .then(() => sendResponse({ success: true }))
-                            .catch((err) =>
+                            .catch((e) =>
                                 sendResponse({
                                     success: false,
-                                    error: err.message,
+                                    error: e.message,
                                 }),
                             );
-                        break;
-                    }
 
+                        if (this.readingsAdded) {
+                            this.changeReadingType(message.readingType);
+                        }
+                        break;
                     default:
                         sendResponse({
                             success: false,
@@ -84,26 +57,6 @@ class KanjiReadingScript {
                 return true;
             },
         );
-    }
-
-    private async updateSetting(newSetting: Partial<Settings>): Promise<void> {
-        Object.assign(this.settings, newSetting);
-        console.log("New settings →", this.settings);
-
-        try {
-            await chrome.storage.sync.set(this.settings);
-            console.log("Settings saved!");
-        } catch (err) {
-            console.error("Failed to save settings:", err);
-        }
-
-        if ("readingType" in newSetting) {
-            await this.apiClient.changeReadingMode(this.settings.readingType);
-        }
-
-        if (this.currentPageHasReadings) {
-            // TODO: Update the readings without actually doing deep processing, maybe we don't even need api
-        }
     }
 
     /* ─────────────────────  RUBY ANNOTATION FLOW  ─────────────────── */
@@ -120,6 +73,7 @@ class KanjiReadingScript {
             tasks.push(this.annotateNode(node));
         }
         await Promise.all(tasks);
+        this.readingsAdded = true;
     }
 
     private filterNode(n: Node): number {
@@ -139,12 +93,54 @@ class KanjiReadingScript {
         node.replaceWith(frag);
     }
 
+    /* ─────────────────── CLEAR & RE-ANNOTATE ─────────────────── */
+    private clearReadings(): void {
+        document.querySelectorAll("ruby").forEach((ruby) => {
+            let surface = "";
+            // collect only the original surface text nodes, drop <rt>
+            ruby.childNodes.forEach((n) => {
+                if (n.nodeType === Node.TEXT_NODE) {
+                    surface += n.textContent;
+                }
+            });
+            const textNode = document.createTextNode(surface);
+            ruby.replaceWith(textNode);
+        });
+        this.readingsAdded = false;
+    }
+
+    private changeReadingType(mode: "hiragana" | "katakana" | "romaji"): void {
+        // If not yet annotated, fall back to API call
+        if (!this.readingsAdded) {
+            this.addReadings();
+            return;
+        }
+
+        // Convert each <rt> without touching the network
+        document.querySelectorAll("ruby rt").forEach((rt) => {
+            const base = rt.textContent || "";
+            let converted: string;
+            switch (mode) {
+                case "katakana":
+                    converted = wanakana.toKatakana(base);
+                    break;
+                case "romaji":
+                    converted = wanakana.toRomaji(base);
+                    break;
+                default:
+                    converted = wanakana.toHiragana(base);
+            }
+            rt.textContent = converted;
+        });
+    }
+
+    /* ─────────────────────────  STYLES  ───────────────────────── */
     private addRubyStyles(): void {
         const style = document.createElement("style");
-        style.textContent = `ruby { line-height: 1.8; } ruby rt { font-size: .55em; white-space: nowrap; }`;
+        style.textContent = `ruby { line-height: 1.65; } ruby rt { font-size: .55em; white-space: nowrap; }`;
         document.head.appendChild(style);
     }
 }
 
-console.log("Initializing kanji reading script");
+console.log("Initializing JapaneseReadingContent script");
 const kanjiReader = new KanjiReadingScript();

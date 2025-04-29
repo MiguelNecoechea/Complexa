@@ -181,7 +181,7 @@ class PopupViewModel {
     async init() {
         this.settings = await this.settingsService.getSettings();
         if (this.settings.enableReadings) {
-            await this.injectKanjiReadingScript();
+            await this.injectReadingScript();
         }
         return this.settings;
     }
@@ -189,40 +189,21 @@ class PopupViewModel {
      * Updates one setting, persists it, and notifies content script if needed.
      */
     async updateSetting(key, value) {
-        // Update local state and persist
-        this.settings[key] = value;
         await this.settingsService.updateSetting(key, value);
-        console.log("updating settings with k: ", key, " and v: ", value);
-        // Notify content script for keys affecting page behavior
-        if (this.shouldNotifyContentScript(key)) {
-            await this.notifyContentScript({ [key]: value });
-        }
-    }
-    /**
-     * Determines which settings changes require a content-script update
-     */
-    shouldNotifyContentScript(key) {
-        const contentKeys = [
-            "enableReadings",
-            "enableKanjiExtraction",
-            "readingType",
-        ];
-        return contentKeys.includes(key);
-    }
-    /**
-     * Sends an "updateSettings" message to the active tab with the changed settings
-     */
-    async notifyContentScript(payload) {
-        const tab = await this.tabService.getActiveTab();
-        if (tab?.id) {
-            try {
-                await this.tabService.sendMessageToTab(tab.id, {
-                    action: "updateSettings",
-                    settings: payload,
-                });
+        if (key === "enableReadings") {
+            if (value) {
+                await this.injectReadingScript();
             }
-            catch (err) {
-                console.error("Failed to notify content script:", err);
+            else {
+            }
+        }
+        if (key === "readingType" && this.settings.enableReadings) {
+            const tab = await this.tabService.getActiveTab();
+            if (tab?.id) {
+                await this.tabService.sendMessageToTab(tab.id, {
+                    action: "changeReadingType",
+                    readingType: value,
+                });
             }
         }
     }
@@ -233,40 +214,19 @@ class PopupViewModel {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id)
             return;
-        try {
-            const response = await this.tabService.sendMessageToTab(tab.id, {
-                action: "addReadings",
-            });
-            return response?.kanji ?? [];
-        }
-        catch {
-            // Try injecting script and retry once
-            const injected = await this.injectKanjiReadingScript();
-            if (!injected)
-                return;
-            const retry = await this.tabService.sendMessageToTab(tab.id, {
-                action: "addReadings",
-            });
-        }
+        await this.tabService.sendMessageToTab(tab.id, {
+            action: "addReadings",
+        });
     }
     /**
      * Ensures the content script is loaded into the active tab for annotation.
      */
-    async injectKanjiReadingScript() {
+    async injectReadingScript() {
         const tab = await this.tabService.getActiveTab();
-        if (!tab?.id) {
-            console.error("No active tab found for script injection");
+        if (!tab?.id)
             return false;
-        }
-        try {
-            await this.tabService.injectScript(tab.id, "dist/scripts/content/JapaneseReadingContent.js");
-            console.log("Injected kanjiReading script");
-            return true;
-        }
-        catch (err) {
-            console.error("Script injection failed:", err);
-            return false;
-        }
+        await this.tabService.injectScript(tab.id, "dist/scripts/content/JapaneseReadingContent.js");
+        return true;
     }
 }
 

@@ -19,12 +19,6 @@
         "128": "static/assets/icons/Modular128.png"
     },
     "host_permissions": ["<all_urls>"],
-    "content_scripts": [
-        {
-            "matches": ["<all_urls>"],
-            "js": ["dist/scripts/content/JapaneseReadingContent.js"]
-        }
-    ],
     "web_accessible_resources": [
         {
             "resources": [

@@ -1,4 +1,4 @@
-export class NlpApiClient {
+export class ReadingTools {
     private readonly apiUrl: string;
     private readonly endpoints: {
         ADD_READINGS: string;
