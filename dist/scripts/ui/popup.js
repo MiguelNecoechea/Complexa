@@ -181,7 +181,7 @@ class PopupViewModel {
     async init() {
         this.settings = await this.settingsService.getSettings();
         if (this.settings.enableReadings) {
-            await this.injectReadingScript();
+            await this.injectManagerScript();
         }
         return this.settings;
     }
@@ -192,7 +192,7 @@ class PopupViewModel {
         await this.settingsService.updateSetting(key, value);
         if (key === "enableReadings") {
             if (value) {
-                await this.injectReadingScript();
+                await this.injectManagerScript();
             }
             else {
             }
@@ -221,11 +221,11 @@ class PopupViewModel {
     /**
      * Ensures the content script is loaded into the active tab for annotation.
      */
-    async injectReadingScript() {
+    async injectManagerScript() {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id)
             return false;
-        await this.tabService.injectScript(tab.id, "dist/scripts/content/JapaneseReadingContent.js");
+        await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
         return true;
     }
 }

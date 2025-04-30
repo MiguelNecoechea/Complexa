@@ -28,7 +28,7 @@ export class PopupViewModel {
     async init(): Promise<PopupSettings> {
         this.settings = await this.settingsService.getSettings();
         if (this.settings.enableReadings) {
-            await this.injectReadingScript();
+            await this.injectManagerScript();
         }
         return this.settings;
     }
@@ -44,7 +44,7 @@ export class PopupViewModel {
 
         if (key === "enableReadings") {
             if (value) {
-                await this.injectReadingScript();
+                await this.injectManagerScript();
             } else {
             }
         }
@@ -74,12 +74,12 @@ export class PopupViewModel {
     /**
      * Ensures the content script is loaded into the active tab for annotation.
      */
-    private async injectReadingScript(): Promise<boolean> {
+    private async injectManagerScript(): Promise<boolean> {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id) return false;
         await this.tabService.injectScript(
             tab.id,
-            "dist/scripts/content/JapaneseReadingContent.js",
+            "dist/scripts/content/linguisticsFunctionsManager.js",
         );
         return true;
     }
