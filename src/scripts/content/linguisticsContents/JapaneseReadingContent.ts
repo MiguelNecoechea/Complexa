@@ -121,7 +121,6 @@ export class KanjiReadingsProcessor {
 
     changeReadingType(mode: ReadingMode): void {
         this.readingMode = mode;
-        console.log(this.readingsAdded);
         if (!this.readingsAdded) {
             return;
         }

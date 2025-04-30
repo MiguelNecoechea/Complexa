@@ -2,6 +2,7 @@ import { TextExtractionManager } from "./textExtractionManager";
 import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
 import { Token } from "../models/JapaneseTokens";
 import { APIHandler } from "../api/server/apiHandler";
+import { SettingsService } from "../services/SettingsService";
 
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
@@ -18,13 +19,15 @@ export class LingusticsManager {
 
     constructor() {
         this.rawPageTextNodes = TextExtractionManager.extract(document.body);
-
         this.apiHandler = new APIHandler();
-
-        this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
-
         this.initPromise = this.apiHandler.tokenizeNodes(this.rawPageTextNodes);
+        this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
+        this.init();
+    }
 
+    private async init() {
+        const mode = await SettingsService.getSetting("readingType");
+        this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
     }
 
