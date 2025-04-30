@@ -24,24 +24,13 @@ __webpack_require__.r(__webpack_exports__);
  * for all settings and ensures type safety when accessing or modifying them.
  */
 class SettingsService {
-    constructor() {
-        this.defaultSettings = {
-            enableDictionary: false,
-            enableReadings: true,
-            enableTextSegmentation: false,
-            enableWordFilters: false,
-            enableQuiz: false,
-            enableKanjiExtraction: false,
-            readingType: "hiragana",
-        };
-    }
     /**
      * Retrieves the current popup settings from Chrome's synchronized storage.
      *
      * @returns A promise that resolves to the current PopupSettings object.
      *          If a setting is not found in storage, its default value is used.
      */
-    async getSettings() {
+    static async getSettings() {
         return new Promise((resolve) => {
             chrome.storage.sync.get(this.defaultSettings, (settings) => {
                 resolve(settings);
@@ -56,13 +45,33 @@ class SettingsService {
      * @param value - The new value to assign to the setting
      * @returns A promise that resolves when the update operation completes
      */
-    async updateSetting(key, value) {
+    static async updateSetting(key, value) {
         const settings = await this.getSettings();
         return new Promise((resolve) => {
             chrome.storage.sync.set({ ...settings, [key]: value }, resolve);
         });
     }
+    /**
+     * Generic getter for any single setting by key.
+     *
+     * @template K - Type parameter constrained to keys of PopupSettings
+     * @param key - The setting key to retrieve
+     * @returns A promise that resolves to the value of the setting
+     */
+    static async getSetting(key) {
+        const settings = await this.getSettings();
+        return settings[key];
+    }
 }
+SettingsService.defaultSettings = {
+    enableDictionary: false,
+    enableReadings: true,
+    enableTextSegmentation: false,
+    enableWordFilters: false,
+    enableQuiz: false,
+    enableKanjiExtraction: false,
+    readingType: "hiragana",
+};
 
 
 /***/ }),
@@ -170,8 +179,7 @@ class PopupViewModel {
      * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
      * @param tabService - allows injecting a custom TabService (e.g. for testing)
      */
-    constructor(settingsService = new _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService(), tabService = new _services_TabService__WEBPACK_IMPORTED_MODULE_1__.TabService()) {
-        this.settingsService = settingsService;
+    constructor(tabService = new _services_TabService__WEBPACK_IMPORTED_MODULE_1__.TabService()) {
         this.tabService = tabService;
     }
     /**
@@ -179,7 +187,7 @@ class PopupViewModel {
      * injects the content script immediately.
      */
     async init() {
-        this.settings = await this.settingsService.getSettings();
+        this.settings = await _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService.getSettings();
         if (this.settings.enableReadings) {
             await this.injectManagerScript();
         }
@@ -189,7 +197,7 @@ class PopupViewModel {
      * Updates one setting, persists it, and notifies content script if needed.
      */
     async updateSetting(key, value) {
-        await this.settingsService.updateSetting(key, value);
+        await _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService.updateSetting(key, value);
         if (key === "enableReadings") {
             if (value) {
                 await this.injectManagerScript();

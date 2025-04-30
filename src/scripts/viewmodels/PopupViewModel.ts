@@ -5,7 +5,6 @@ import { SettingsService } from "../services/SettingsService";
 import { TabService } from "../services/TabService";
 
 export class PopupViewModel {
-    private settingsService: SettingsService;
     private tabService: TabService;
     public settings!: PopupSettings;
 
@@ -13,11 +12,7 @@ export class PopupViewModel {
      * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
      * @param tabService - allows injecting a custom TabService (e.g. for testing)
      */
-    constructor(
-        settingsService: SettingsService = new SettingsService(),
-        tabService: TabService = new TabService(),
-    ) {
-        this.settingsService = settingsService;
+    constructor(tabService: TabService = new TabService()) {
         this.tabService = tabService;
     }
 
@@ -26,7 +21,7 @@ export class PopupViewModel {
      * injects the content script immediately.
      */
     async init(): Promise<PopupSettings> {
-        this.settings = await this.settingsService.getSettings();
+        this.settings = await SettingsService.getSettings();
         if (this.settings.enableReadings) {
             await this.injectManagerScript();
         }
@@ -40,7 +35,7 @@ export class PopupViewModel {
         key: K,
         value: PopupSettings[K],
     ): Promise<void> {
-        await this.settingsService.updateSetting(key, value);
+        await SettingsService.updateSetting(key, value);
 
         if (key === "enableReadings") {
             if (value) {
