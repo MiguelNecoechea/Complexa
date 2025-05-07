@@ -90,20 +90,18 @@ export class KanjiReadingsProcessor {
     }
 
     /* ─────────────────────  RUBY ANNOTATION FLOW  ─────────────────── */
-    /**
-     * Annotate each text node with ruby readings based on tokens.
-     */
-    addReadings(textNodes: Text[], tokens: Token[][]): void {
+    public addReadings(): void {
         if (this.readingsAdded) return;
 
-        textNodes.forEach((node, nodeIdx) => {
-            const tokenList = tokens[nodeIdx] || [];
-            const html = tokenList
-                .map((tok) =>
-                    addReading(tok.surface, tok.reading, this.readingMode),
-                )
-                .join("");
-            this.annotateNode(node, html);
+        const spans =
+            document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
+
+        spans.forEach((span) => {
+            const surface = span.textContent || "";
+            const reading = span.dataset.reading || "";
+
+            const rubyHtml = addReading(surface, reading, this.readingMode);
+            span.innerHTML = rubyHtml;
         });
 
         this.readingsAdded = true;

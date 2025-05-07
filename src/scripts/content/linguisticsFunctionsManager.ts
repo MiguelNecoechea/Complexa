@@ -1,5 +1,6 @@
 import { TextExtractionManager } from "./textExtractionManager";
 import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
+import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { Token } from "../models/JapaneseTokens";
 import { APIHandler } from "../api/server/apiHandler";
 import { SettingsService } from "../services/SettingsService";
@@ -12,21 +13,26 @@ const MESSAGE_TYPES = {
 
 export class LingusticsManager {
     private rawPageTextNodes: Text[];
-    private tokenizedTextNodes: Token[][] = [];
+    private tokenizedArrays: Token[][] = [];
+    private tokenizedDOM: HTMLElement[][] = [];
+
     private initPromise: Promise<Token[][]>;
     private apiHandler: APIHandler;
     private kanjiReadingProcessor: KanjiReadingsProcessor;
+    private textColorizer: JapaneseTextColoring;
 
     constructor() {
         this.rawPageTextNodes = TextExtractionManager.extract(document.body);
         this.apiHandler = new APIHandler();
         this.initPromise = this.apiHandler.tokenizeNodes(this.rawPageTextNodes);
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
+        this.textColorizer = new JapaneseTextColoring();
         this.init();
     }
 
     private async init() {
         const mode = await SettingsService.getSetting("readingType");
+
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
     }
@@ -36,17 +42,12 @@ export class LingusticsManager {
             (message: any, sender, sendResponse) => {
                 switch (message.action) {
                     case MESSAGE_TYPES.ADD_READINGS:
-                        // fire off an async IIFE so we can use await
                         (async () => {
                             try {
-                                this.tokenizedTextNodes =
-                                    await this.initPromise;
+                                await this.wrapTokens();
+                                this.textColorizer.addPOSAnnotations();
 
-                                this.kanjiReadingProcessor.addReadings(
-                                    this.rawPageTextNodes,
-                                    this.tokenizedTextNodes,
-                                );
-
+                                this.kanjiReadingProcessor.addReadings();
                                 sendResponse({ success: true });
                             } catch (err: any) {
                                 sendResponse({
@@ -56,7 +57,6 @@ export class LingusticsManager {
                             }
                         })();
                         return true;
-
                     case MESSAGE_TYPES.CHANGE_READING_TYPE:
                         this.kanjiReadingProcessor.changeReadingType(
                             message.readingType,
@@ -72,6 +72,29 @@ export class LingusticsManager {
                 }
             },
         );
+    }
+
+    private async wrapTokens() {
+        if (this.tokenizedDOM.length) return; // only once
+        this.tokenizedArrays = await this.initPromise;
+
+        this.rawPageTextNodes.forEach((node, idx) => {
+            const tokens = this.tokenizedArrays[idx] || [];
+            const frag = document.createDocumentFragment();
+            const row: HTMLElement[] = [];
+
+            tokens.forEach((tok) => {
+                const span = document.createElement("span");
+                span.textContent = tok.surface;
+                span.dataset.pos = tok.pos;
+                if (tok.reading) span.dataset.reading = tok.reading;
+                frag.appendChild(span);
+                row.push(span);
+            });
+
+            node.parentNode?.replaceChild(frag, node);
+            this.tokenizedDOM.push(row);
+        });
     }
 }
 
