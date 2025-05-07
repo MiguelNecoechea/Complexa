@@ -5,7 +5,7 @@ const DOM_IDS = {
     LAUNCH_APP: "launch-app",
     ENABLE_READINGS: "enable-readings",
     ENABLE_DICTIONARY: "enable-dictionary",
-    ENABLE_TEXT_SEGMENTATION: "enable-text-segmentation",
+    ENABLE_READING_HELPERS: "enable-readings-helpers",
     ENABLE_WORD_FILTERS: "enable-word-filters",
     ENABLE_QUIZ: "enable-quiz",
     ENABLE_KANJI_EXTRACTION: "enable-kanji-extraction",
@@ -45,6 +45,7 @@ export class PopupView {
     async init() {
         const settings = await this.viewModel.init();
         this.setupUI(settings);
+        this.injectReadingControls(settings);
         this.attachEventListeners();
     }
 
@@ -59,8 +60,8 @@ export class PopupView {
             settings.enableReadings,
         );
         this.initializeCheckbox(
-            DOM_IDS.ENABLE_TEXT_SEGMENTATION,
-            settings.enableTextSegmentation,
+            DOM_IDS.ENABLE_READING_HELPERS,
+            settings.enableReadingHelpers,
         );
         this.initializeCheckbox(
             DOM_IDS.ENABLE_WORD_FILTERS,
@@ -71,11 +72,6 @@ export class PopupView {
             DOM_IDS.ENABLE_KANJI_EXTRACTION,
             settings.enableKanjiExtraction,
         );
-
-        // Handle reading selector if readings are enabled
-        if (settings.enableReadings) {
-            this.createReadingSelector(settings.readingType);
-        }
     }
 
     private attachEventListeners(): void {
@@ -94,8 +90,8 @@ export class PopupView {
         // Attach event listeners to all checkboxes
         this.addSettingListener(DOM_IDS.ENABLE_DICTIONARY, "enableDictionary");
         this.addSettingListener(
-            DOM_IDS.ENABLE_TEXT_SEGMENTATION,
-            "enableTextSegmentation",
+            DOM_IDS.ENABLE_READING_HELPERS,
+            "enableReadingHelpers",
         );
         this.addSettingListener(
             DOM_IDS.ENABLE_WORD_FILTERS,
@@ -111,29 +107,26 @@ export class PopupView {
         const enableReadingsCheckbox = document.getElementById(
             DOM_IDS.ENABLE_READINGS,
         ) as HTMLInputElement;
+
+        const enableReadingHelpersCheckbox = document.getElementById(
+            DOM_IDS.ENABLE_READING_HELPERS,
+        ) as HTMLInputElement;
+
         if (enableReadingsCheckbox) {
             enableReadingsCheckbox.addEventListener("click", async () => {
-                const isChecked = enableReadingsCheckbox.checked;
-                await this.viewModel.updateSetting("enableReadings", isChecked);
+                await this.controlListener(
+                    enableReadingsCheckbox,
+                    enableReadingHelpersCheckbox,
+                );
+            });
+        }
 
-                const configsContainer = document.querySelector(
-                    `.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`,
+        if (enableReadingHelpersCheckbox) {
+            enableReadingHelpersCheckbox.addEventListener("click", async () => {
+                await this.controlListener(
+                    enableReadingsCheckbox,
+                    enableReadingHelpersCheckbox,
                 );
-                const existingSelector = document.getElementById(
-                    DOM_IDS.READING_SELECTOR_WRAPPER,
-                );
-                const buttonContainer = document.getElementById(
-                    DOM_IDS.ADD_READINGS_BUTTON_CONTAINER,
-                );
-
-                if (isChecked && !existingSelector && configsContainer) {
-                    const settings = await this.viewModel.init();
-                    this.createReadingSelector(settings.readingType);
-                } else if (!isChecked && existingSelector && configsContainer) {
-                    configsContainer.removeChild(existingSelector);
-                    if (buttonContainer)
-                        configsContainer.removeChild(buttonContainer);
-                }
             });
         }
     }
@@ -157,29 +150,20 @@ export class PopupView {
         }
     }
 
-    private createReadingSelector(activeType: string): void {
+    private createReadingSelector(activeType: string): HTMLDivElement {
         const katakana: ReadingTypes = "katakana";
         const hiragana: ReadingTypes = "hiragana";
         const romaji: ReadingTypes = "romaji";
 
-        const configsContainer = document.querySelector(
-            `.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`,
-        );
-
-        if (!configsContainer) return;
-
-        // Create the selector wrapper
         const selectorWrapper = document.createElement("div");
         selectorWrapper.className = CSS_CLASSES.GENERAL_CONFIGS_ITEM;
         selectorWrapper.id = DOM_IDS.READING_SELECTOR_WRAPPER;
 
-        // Add label
         const selectorLabel = document.createElement("div");
         selectorLabel.className = CSS_CLASSES.READING_SELECTOR_LABEL;
         selectorLabel.textContent = STRINGS.READING_TYPE_LABEL;
         selectorWrapper.appendChild(selectorLabel);
 
-        // Create options container
         const optionsContainer = document.createElement("div");
         optionsContainer.className = CSS_CLASSES.READING_OPTIONS;
 
@@ -212,8 +196,11 @@ export class PopupView {
 
         selectorWrapper.appendChild(optionsContainer);
 
-        // Create add readings button
-        const buttonContainer = document.createElement("div");
+        return selectorWrapper;
+    }
+
+    private createAddReadingsButton(): HTMLDivElement {
+        const buttonContainer: HTMLDivElement = document.createElement("div");
         buttonContainer.className = CSS_CLASSES.GENERAL_CONFIGS_ITEM;
         buttonContainer.id = DOM_IDS.ADD_READINGS_BUTTON_CONTAINER;
 
@@ -224,32 +211,72 @@ export class PopupView {
         addReadingsButton.style.width = "100%";
 
         addReadingsButton.addEventListener("click", async () => {
-            console.log(STRINGS.ADD_READINGS_CLICKED);
-            const kanji = await this.viewModel.requestAddReadings();
+            await this.viewModel.requestAddReadings();
         });
 
-        buttonContainer.appendChild(addReadingsButton);
+        buttonContainer.append(addReadingsButton);
+        return buttonContainer;
+    }
 
-        // Insert elements in the correct order
-        const enableReadingsCheckbox = document.getElementById(
-            DOM_IDS.ENABLE_READINGS,
-        ) as HTMLInputElement;
-        const enableReadingsElement = enableReadingsCheckbox?.closest(
-            `.${CSS_CLASSES.GENERAL_CONFIGS_ITEM}`,
+    private injectReadingControls(settings: PopupSettings): void {
+        const container = document.querySelector(
+            `.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`,
+        );
+        if (!container) return;
+
+        if (settings.enableReadings) {
+            container.appendChild(
+                this.createReadingSelector(settings.readingType),
+            );
+        }
+
+        if (settings.enableReadings || settings.enableReadingHelpers) {
+            container.appendChild(this.createAddReadingsButton());
+        }
+    }
+
+    private async controlListener(
+        enableReadingsCheckbox: HTMLInputElement,
+        enableReadingHelpersCheckbox: HTMLInputElement,
+    ): Promise<void> {
+        const readingIsChecked = enableReadingsCheckbox.checked;
+        const helpersChecked = enableReadingHelpersCheckbox.checked;
+
+        await this.viewModel.updateSetting("enableReadings", readingIsChecked);
+        await this.viewModel.updateSetting(
+            "enableReadingHelpers",
+            helpersChecked,
+        );
+        const configsContainer = document.querySelector(
+            `.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`,
         );
 
-        if (enableReadingsElement && enableReadingsElement.nextSibling) {
-            configsContainer.insertBefore(
-                selectorWrapper,
-                enableReadingsElement.nextSibling,
+        const existingSelector = document.getElementById(
+            DOM_IDS.READING_SELECTOR_WRAPPER,
+        );
+
+        const buttonContainer = document.getElementById(
+            DOM_IDS.ADD_READINGS_BUTTON_CONTAINER,
+        );
+
+        if (configsContainer) {
+            if (buttonContainer) configsContainer.removeChild(buttonContainer);
+            if (existingSelector)
+                configsContainer.removeChild(existingSelector);
+        }
+
+        const settings = await this.viewModel.init();
+
+        if (readingIsChecked && configsContainer) {
+            const newSelector = this.createReadingSelector(
+                settings.readingType,
             );
-            configsContainer.insertBefore(
-                buttonContainer,
-                selectorWrapper.nextSibling,
-            );
-        } else {
-            configsContainer.appendChild(selectorWrapper);
-            configsContainer.appendChild(buttonContainer);
+            configsContainer.appendChild(newSelector);
+        }
+
+        if ((readingIsChecked || helpersChecked) && configsContainer) {
+            const newButton = this.createAddReadingsButton();
+            configsContainer.appendChild(newButton);
         }
     }
 }
