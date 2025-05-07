@@ -15,7 +15,7 @@ export class SettingsService {
     private static defaultSettings: PopupSettings = {
         enableDictionary: false,
         enableReadings: true,
-        enableTextSegmentation: false,
+        enableReadingHelpers: false,
         enableWordFilters: false,
         enableQuiz: false,
         enableKanjiExtraction: false,
