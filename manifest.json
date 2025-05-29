@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Japanese Learning Tool",
+    "name": "Complexa",
     "version": "1.0.0",
     "description": "A Chrome extension for learning Japanese with reading and dictionary features",
     "action": {

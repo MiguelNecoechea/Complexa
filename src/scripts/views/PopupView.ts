@@ -33,7 +33,7 @@ const STRINGS = {
     ADD_READINGS: "Add Readings",
     ADD_READINGS_CLICKED: "Add readings button clicked",
     SETTINGS_UPDATED: "Settings updated:",
-    APP_HTML_PATH: "src/views/app.html",
+    APP_HTML_PATH: "static/views/app.html",
     KANJI_REQUESTED: "Requesting extracted kanji from the current tab",
     KANJI_RECEIVED: "Received kanji from content script:",
     GETTING_KANJI_ERROR: "Error getting kanji from content script:",
