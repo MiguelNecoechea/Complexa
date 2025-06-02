@@ -1,21 +1,42 @@
-import { Token } from "../../models/JapaneseTokens";
+import { Token, MorphFeatures } from "../../models/JapaneseTokens";
+import { TextProcessedColor } from "../../models/TextColors";
+import DetermineTextColor from "./DetermineTextColor";
 
 export class JapaneseTextColoring {
-    private posColorMap: Record<string, string> = {
-        NOUN: "#1f77b4",
-        VERB: "#d62728",
-        ADJ: "#2ca02c",
-        ADV: "#ff7f0e",
-    };
+    constructor() {}
 
     public addPOSAnnotations(): void {
-        // select all spans that you previously decorated with data-pos
         const spans =
             document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
         spans.forEach((span) => {
-            const pos = span.dataset.pos!;
-            const color = this.posColorMap[pos] || "#000000";
-            span.style.color = color;
+            const token: Token = {
+                surface: span.textContent || "",
+                reading: span.dataset.reading || "",
+                lemma: span.dataset.lemma || "",
+                pos: span.dataset.pos!,
+                tag: span.dataset.tag || "",
+                dep: span.dataset.dep || "",
+                head: span.dataset.head || "",
+                morph: span.dataset.morph
+                    ? (JSON.parse(span.dataset.morph) as MorphFeatures)
+                    : ({} as MorphFeatures),
+                offset: span.dataset.offset
+                    ? parseInt(span.dataset.offset, 10)
+                    : 0,
+                ent_iob: span.dataset.ent_iob || "",
+                ent_type: span.dataset.ent_type || "",
+            };
+
+            // Determine the colors
+            const { posColor, tagColor }: TextProcessedColor =
+                DetermineTextColor.determineColorToken(token);
+
+            span.style.color = posColor;
+
+            if (token.pos === "VERB" || token.pos === "ADV") {
+                span.style.textDecoration = "underline";
+                span.style.textDecorationColor = tagColor;
+            }
         });
     }
 }
