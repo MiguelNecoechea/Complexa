@@ -1,9 +1,13 @@
+// Functionality Imports
 import { TextExtractionManager } from "./textExtractionManager";
 import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { Token } from "../models/JapaneseTokens";
 import { APIHandler } from "../api/server/apiHandler";
 import { SettingsService } from "../services/SettingsService";
+
+// UI imports
+import HoverTokenView from "../views/HoverTokenView";
 
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
@@ -20,6 +24,8 @@ export class LingusticsManager {
     private apiHandler: APIHandler;
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
+
+    private tooltipReady: Boolean = false;
 
     constructor() {
         this.rawPageTextNodes = TextExtractionManager.extract(document.body);
@@ -75,7 +81,8 @@ export class LingusticsManager {
     }
 
     private async wrapTokens() {
-        if (this.tokenizedDOM.length) return; // only once
+        if (this.tokenizedDOM.length) return; // only once (Not working i think)
+
         this.tokenizedArrays = await this.initPromise;
 
         this.rawPageTextNodes.forEach((node, idx) => {
@@ -95,6 +102,22 @@ export class LingusticsManager {
             node.parentNode?.replaceChild(frag, node);
             this.tokenizedDOM.push(row);
         });
+
+        await this.mountHoverToolTip();
+    }
+
+    private async mountHoverToolTip(): Promise<void> {
+        if (this.tooltipReady) return;
+
+        const hoverHTML = await fetch(
+            chrome.runtime.getURL("static/views/hoverView.html"),
+        ).then((r) => r.text());
+
+        document.body.insertAdjacentHTML("beforeend", hoverHTML);
+
+        new HoverTokenView();
+
+        this.tooltipReady = true;
     }
 }
 
