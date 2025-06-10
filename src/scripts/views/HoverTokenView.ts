@@ -1,5 +1,6 @@
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
+import { finalization } from "node:process";
 
 const BINDINGS = {
     SURFACE: "jp-surface",
@@ -20,6 +21,7 @@ export default class HoverTokenView {
     private activeSpan: HTMLSpanElement | null = null;
     private mouseX = 0;
     private mouseY = 0;
+    private isLocked = false;
 
     constructor() {
         this.attachListeners();
@@ -27,6 +29,8 @@ export default class HoverTokenView {
 
     private attachListeners(): void {
         document.addEventListener("pointerover", (e) => {
+            if (this.isLocked) return;
+
             const span = (e.target as HTMLElement).closest(
                 "span[data-pos]",
             ) as HTMLSpanElement | null;
@@ -40,8 +44,11 @@ export default class HoverTokenView {
         });
 
         document.addEventListener("pointerout", (e) => {
-            if (!(e.relatedTarget as Element | null)) this.hide();
+            if (!(e.relatedTarget as Element | null) && !this.isLocked)
+                this.hide();
         });
+
+        document.addEventListener("click", (e) => this.handleClick(e));
 
         window.addEventListener("scroll", () => this.trackUnderCursor(), true);
         window.addEventListener("resize", () => this.trackUnderCursor());
@@ -54,7 +61,17 @@ export default class HoverTokenView {
         this.reposition();
     }
 
+    private hide() {
+        if (this.isLocked) return;
+
+        this.activeSpan = null;
+        this.tooltip.style.opacity = "0";
+        this.tooltip.style.transform = "translateY(6px)";
+    }
+
     private trackUnderCursor() {
+        if (this.isLocked) return;
+
         const elem = document.elementFromPoint(
             this.mouseX,
             this.mouseY,
@@ -69,10 +86,22 @@ export default class HoverTokenView {
         else this.reposition();
     }
 
-    private hide() {
-        this.activeSpan = null;
-        this.tooltip.style.opacity = "0";
-        this.tooltip.style.transform = "translateY(6px)";
+    private handleClick(e: MouseEvent) {
+        const clickedSpan = (e.target as HTMLElement).closest(
+            "span[data-pos]",
+        ) as HTMLSpanElement | null;
+
+        if (this.isLocked) {
+            this.hide();
+            this.isLocked = false;
+            return;
+        }
+
+        if (clickedSpan && clickedSpan === this.activeSpan) {
+            this.isLocked = !this.isLocked;
+            this.tooltip.style.opacity = "1";
+            this.reposition();
+        }
     }
 
     private reposition() {
