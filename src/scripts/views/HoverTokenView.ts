@@ -1,6 +1,6 @@
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
-import { finalization } from "node:process";
+import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
 
 const BINDINGS = {
     SURFACE: "jp-surface",
@@ -87,18 +87,20 @@ export default class HoverTokenView {
     }
 
     private handleClick(e: MouseEvent) {
-        const clickedSpan = (e.target as HTMLElement).closest(
-            "span[data-pos]",
-        ) as HTMLSpanElement | null;
+        const clickedInsideTooltip =
+            (e.target as HTMLElement).closest("#tooltip") !== null;
 
-        if (this.isLocked) {
-            this.hide();
+        if (this.isLocked && !clickedInsideTooltip) {
             this.isLocked = false;
+            this.hide();
             return;
         }
 
-        if (clickedSpan && clickedSpan === this.activeSpan) {
-            this.isLocked = !this.isLocked;
+        const clickedSpan = (e.target as HTMLElement).closest(
+            "span[data-pos]",
+        ) as HTMLSpanElement | null;
+        if (!this.isLocked && clickedSpan === this.activeSpan) {
+            this.isLocked = true;
             this.tooltip.style.opacity = "1";
             this.reposition();
         }
@@ -156,6 +158,19 @@ export default class HoverTokenView {
         id(BINDINGS.IOB).textContent = vm.iob;
         id(BINDINGS.ENTITY).textContent = vm.entity;
         id(BINDINGS.MORPH).textContent = vm.morph;
+
+        const btn = document.getElementById(
+            "jp-exclude-btn",
+        ) as HTMLButtonElement;
+        btn.onclick = async () => {
+            await FilterTokens.instance.add(vm.surface);
+            if (this.activeSpan) {
+                this.activeSpan.replaceWith(
+                    document.createTextNode(vm.surface),
+                );
+            }
+            this.hide();
+        };
     }
 }
 

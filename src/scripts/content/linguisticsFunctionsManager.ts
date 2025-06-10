@@ -8,6 +8,7 @@ import { SettingsService } from "../services/SettingsService";
 
 // UI imports
 import HoverTokenView from "../views/HoverTokenView";
+import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
 
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
@@ -26,6 +27,7 @@ export class LingusticsManager {
     private textColorizer: JapaneseTextColoring;
 
     private tooltipReady: Boolean = false;
+    private tokenFilter = FilterTokens.instance;
 
     constructor() {
         this.rawPageTextNodes = TextExtractionManager.extract(document.body);
@@ -38,7 +40,7 @@ export class LingusticsManager {
 
     private async init() {
         const mode = await SettingsService.getSetting("readingType");
-
+        await this.tokenFilter.init();
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
     }
@@ -91,7 +93,13 @@ export class LingusticsManager {
             const row: HTMLElement[] = [];
 
             tokens.forEach((tok) => {
+                const textNode = document.createTextNode(tok.surface);
                 const span = document.createElement("span");
+
+                if (this.tokenFilter.shouldExclude(tok)) {
+                    frag.appendChild(textNode);
+                    return;
+                }
 
                 // All token data into the span.
                 span.textContent = tok.surface;
