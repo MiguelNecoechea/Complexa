@@ -10,7 +10,14 @@
             "128": "static/assets/icons/Modular128.png"
         }
     },
-    "permissions": ["storage", "activeTab", "tabs", "scripting"],
+    "permissions": [
+        "storage",
+        "activeTab",
+        "tabs",
+        "scripting",
+        "contextMenus",
+        "commands"
+    ],
     "background": {
         "service_worker": "dist/scripts/background/backgroundWorker.js"
     },
