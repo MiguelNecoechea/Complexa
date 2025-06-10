@@ -1,10 +1,6 @@
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
 
-const HOVER_ELEMENTS = {
-    TOOLTIP: "tooltip",
-};
-
 const BINDINGS = {
     SURFACE: "jp-surface",
     LEMMA: "jp-lemma",
