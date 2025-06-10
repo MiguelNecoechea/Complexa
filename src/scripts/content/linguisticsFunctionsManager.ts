@@ -92,8 +92,25 @@ export class LingusticsManager {
 
             tokens.forEach((tok) => {
                 const span = document.createElement("span");
+
+                // All token data into the span.
                 span.textContent = tok.surface;
+                span.dataset.surface = tok.surface;
                 span.dataset.pos = tok.pos;
+                span.dataset.lemma = tok.lemma;
+                span.dataset.tag = tok.tag;
+                span.dataset.dep = tok.dep;
+                span.dataset.head = tok.head;
+
+                span.dataset.offset = tok.offset.toString();
+                span.dataset.ent_obj = tok.ent_iob;
+                span.dataset.ent_type = tok.ent_type;
+
+                // if (tok.morph != null) {
+                //     const inflection: string = tok.morph["Inflection"];
+                //     if (inflection) span.dataset.morph = inflection;
+                // }
+
                 if (tok.reading) span.dataset.reading = tok.reading;
                 frag.appendChild(span);
                 row.push(span);

@@ -20,84 +20,90 @@ const BINDINGS = {
 };
 
 export default class HoverTokenView {
-    private tooltip = document.getElementById(HOVER_ELEMENTS.TOOLTIP);
+    private tooltip = ensureTooltip();
+    private activeSpan: HTMLSpanElement | null = null;
+    private mouseX = 0;
+    private mouseY = 0;
 
     constructor() {
-        if (!this.tooltip) {
-            throw new Error(
-                "HoverView.html must be injected before HoverTokenView loads",
-            );
-        }
-
         this.attachListeners();
     }
 
     private attachListeners(): void {
-        // Hover in
-        document.addEventListener("mouseover", (e) => {
+        document.addEventListener("pointerover", (e) => {
             const span = (e.target as HTMLElement).closest(
                 "span[data-pos]",
             ) as HTMLSpanElement | null;
-            if (!span) return;
-            this.show(span);
+            if (span) this.activate(span);
         });
 
-        // Hover out
-        document.addEventListener("mouseout", (e) => {
-            const intoTooltip = (
-                e.relatedTarget as HTMLElement | null
-            )?.closest(`#${HOVER_ELEMENTS.TOOLTIP}`);
-
-            if (!intoTooltip) this.hide();
+        document.addEventListener("pointermove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
+            this.trackUnderCursor();
         });
+
+        document.addEventListener("pointerout", (e) => {
+            if (!(e.relatedTarget as Element | null)) this.hide();
+        });
+
+        window.addEventListener("scroll", () => this.trackUnderCursor(), true);
+        window.addEventListener("resize", () => this.trackUnderCursor());
     }
 
-    private show(span: HTMLSpanElement): void {
-        const vm = new HoverTokenViewModel(this.spanToToken(span));
-        this.bind(vm);
-
-        requestAnimationFrame(() => {
-            if (this.tooltip != null) {
-                const { left, top, width } = span.getBoundingClientRect();
-                const ttW = this.tooltip.offsetWidth,
-                    ttH = this.tooltip.offsetHeight;
-
-                let x = left + width / 2 - ttW / 2 + window.scrollX;
-                let y = top - ttH - 8 + window.scrollY;
-
-                x = Math.max(
-                    4,
-                    Math.min(
-                        x,
-                        window.scrollX +
-                            document.documentElement.clientWidth -
-                            ttW -
-                            4,
-                    ),
-                );
-                y = Math.max(window.scrollY + 4, y);
-                Object.assign(this.tooltip.style, {
-                    left: `${x}px`,
-                    top: `${y}px`,
-                    opacity: "1",
-                    transform: "translateY(0)",
-                });
-            }
-        });
+    private activate(span: HTMLSpanElement) {
+        this.activeSpan = span;
+        this.bind(new HoverTokenViewModel(this.spanToToken(span)));
+        this.tooltip.style.opacity = "1";
+        this.reposition();
     }
 
-    private hide(): void {
-        if (this.tooltip != null) {
-            Object.assign(this.tooltip.style, {
-                opacity: "0",
-                transform: "translateY(6px)",
-            });
-        }
+    private trackUnderCursor() {
+        const elem = document.elementFromPoint(
+            this.mouseX,
+            this.mouseY,
+        ) as HTMLElement | null;
+        const newSpan = elem?.closest(
+            "span[data-pos]",
+        ) as HTMLSpanElement | null;
+
+        if (!newSpan) return this.hide();
+        if (newSpan !== this.activeSpan || !newSpan.isConnected)
+            this.activate(newSpan);
+        else this.reposition();
+    }
+
+    private hide() {
+        this.activeSpan = null;
+        this.tooltip.style.opacity = "0";
+        this.tooltip.style.transform = "translateY(6px)";
+    }
+
+    private reposition() {
+        if (!this.activeSpan) return;
+
+        const { left, top, width, height } =
+            this.activeSpan.getBoundingClientRect();
+        if (height === 0) return this.hide();
+
+        const w = this.tooltip.offsetWidth;
+        const h = this.tooltip.offsetHeight;
+
+        let x = left + width / 2 - w / 2;
+        let y = top - h - 8;
+
+        const vw = document.documentElement.clientWidth;
+        x = Math.max(4, Math.min(x, vw - w - 4));
+        y = y < 4 ? top + height + 8 : y;
+
+        this.tooltip.style.left = `${x}px`;
+        this.tooltip.style.top = `${y}px`;
+        this.tooltip.style.transform = "translateY(0)";
     }
 
     private spanToToken(span: HTMLSpanElement): Token {
         return {
-            surface: span.textContent || "",
+            surface: span.dataset.surface || "",
             reading: span.dataset.reading || "",
             lemma: span.dataset.lemma || "",
             pos: span.dataset.pos || "",
@@ -131,4 +137,17 @@ export default class HoverTokenView {
 // Helper for the binding.
 function id<T extends HTMLElement>(s: string): T {
     return document.getElementById(s) as T;
+}
+
+// Helper for injecting
+function ensureTooltip(): HTMLElement {
+    let node = document.getElementById("tooltip");
+    if (!node) {
+        node = document.createElement("div");
+        node.id = "tooltip";
+        node.className = "jp-tooltip";
+        node.innerHTML = /* html */ `<table><tbody>…your <tr>s…</tbody></table>`;
+        document.body.appendChild(node);
+    }
+    return node;
 }

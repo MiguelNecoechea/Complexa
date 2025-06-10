@@ -107,14 +107,6 @@ export class KanjiReadingsProcessor {
         this.readingsAdded = true;
     }
 
-    /**
-     * Replace a text node with a fragment of annotated HTML.
-     */
-    private annotateNode(node: Text, html: string): void {
-        const frag = document.createRange().createContextualFragment(html);
-        node.replaceWith(frag);
-    }
-
     /* ─────────────────── RE-ANNOTATE ─────────────────── */
 
     changeReadingType(mode: ReadingMode): void {
