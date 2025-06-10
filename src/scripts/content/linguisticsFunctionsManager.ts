@@ -3,7 +3,7 @@ import { TextExtractionManager } from "./textExtractionManager";
 import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { Token } from "../models/JapaneseTokens";
-import { APIHandler } from "../api/server/apiHandler";
+import { APIHandler } from "../api/apiHandler";
 import { SettingsService } from "../services/SettingsService";
 
 // UI imports

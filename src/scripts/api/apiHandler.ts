@@ -1,4 +1,4 @@
-import { Token } from "../../models/JapaneseTokens";
+import { Token } from "../models/JapaneseTokens";
 export class APIHandler {
     private readonly apiUrl: string;
     private readonly endpoints: {
