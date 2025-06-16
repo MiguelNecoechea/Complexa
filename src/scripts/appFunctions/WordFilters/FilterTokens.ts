@@ -72,8 +72,7 @@ export class FilterTokens {
 
     shouldExclude(token: Token): boolean {
         const s = normalise(token.surface);
-        const l = normalise(token.lemma);
-        return this.excluded.has(s) || this.excluded.has(l);
+        return this.excluded.has(s);
     }
 
     async add(...words: string[]): Promise<void> {
