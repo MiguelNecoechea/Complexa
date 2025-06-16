@@ -85,6 +85,7 @@ export class LingusticsManager {
     private async wrapTokens() {
         if (this.tokenizedDOM.length) return; // only once (Not working i think)
 
+        // this.tokenizedDOM = []; // TODO: Check if works
         this.tokenizedArrays = await this.initPromise;
 
         this.rawPageTextNodes.forEach((node, idx) => {
@@ -97,7 +98,7 @@ export class LingusticsManager {
                 const span = document.createElement("span");
 
                 if (this.tokenFilter.shouldExclude(tok)) {
-                    frag.appendChild(textNode);
+                    frag.appendChild(document.createTextNode(tok.surface));
                     return;
                 }
 
