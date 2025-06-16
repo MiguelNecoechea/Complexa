@@ -22,6 +22,7 @@ export default class HoverTokenView {
     private mouseX = 0;
     private mouseY = 0;
     private isLocked = false;
+    private skipNextMove = false;
 
     constructor() {
         this.attachListeners();
@@ -38,14 +39,36 @@ export default class HoverTokenView {
         });
 
         document.addEventListener("pointermove", (e) => {
+            if (this.skipNextMove) {
+                this.skipNextMove = false;
+                return;
+            }
+
             this.mouseX = e.clientX;
             this.mouseY = e.clientY;
+
+            if (this.skipNextMove) {
+                this.skipNextMove;
+                return;
+            }
+
             this.trackUnderCursor();
         });
 
         document.addEventListener("pointerout", (e) => {
-            if (!(e.relatedTarget as Element | null) && !this.isLocked)
-                this.hide();
+            if (this.isLocked) return;
+
+            const fromSpan = (e.target as HTMLElement).closest(
+                "span[data-pos]",
+            );
+            const toSpan = (e.relatedTarget as HTMLElement | null)?.closest(
+                "span[data-pos]",
+            );
+            const intoTip = (e.relatedTarget as HTMLElement | null)?.closest(
+                "#tooltip",
+            );
+
+            if (fromSpan && !toSpan && !intoTip) this.hide();
         });
 
         document.addEventListener("click", (e) => this.handleClick(e));
@@ -72,10 +95,21 @@ export default class HoverTokenView {
     private trackUnderCursor() {
         if (this.isLocked) return;
 
+        if (this.skipNextMove) {
+            this.skipNextMove = false;
+            return;
+        }
+
         const elem = document.elementFromPoint(
             this.mouseX,
             this.mouseY,
         ) as HTMLElement | null;
+
+        if (elem?.closest("#tooltip")) {
+            this.reposition();
+            return;
+        }
+
         const newSpan = elem?.closest(
             "span[data-pos]",
         ) as HTMLSpanElement | null;
@@ -90,16 +124,21 @@ export default class HoverTokenView {
         const clickedInsideTooltip =
             (e.target as HTMLElement).closest("#tooltip") !== null;
 
+        const clickedSpan = (e.target as HTMLElement).closest(
+            "span[data-pos]",
+        ) as HTMLElement | null;
+
         if (this.isLocked && !clickedInsideTooltip) {
             this.isLocked = false;
             this.hide();
+            if (clickedSpan && clickedSpan === this.activeSpan) {
+                this.activate(clickedSpan);
+            }
+            this.skipNextMove = true;
             return;
         }
 
-        const clickedSpan = (e.target as HTMLElement).closest(
-            "span[data-pos]",
-        ) as HTMLSpanElement | null;
-        if (!this.isLocked && clickedSpan === this.activeSpan) {
+        if (!this.isLocked && clickedSpan && clickedSpan === this.activeSpan) {
             this.isLocked = true;
             this.tooltip.style.opacity = "1";
             this.reposition();
@@ -162,7 +201,8 @@ export default class HoverTokenView {
         const btn = document.getElementById(
             "jp-exclude-btn",
         ) as HTMLButtonElement;
-        btn.onclick = async () => {
+        btn.onclick = async (e) => {
+            e.stopPropagation();
             await FilterTokens.instance.add(vm.surface);
             if (this.activeSpan) {
                 this.activeSpan.replaceWith(
