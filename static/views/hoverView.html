@@ -55,14 +55,15 @@
 </div>
 
 <style>
-    /* Light‐mode */
+    /* Light-mode variables */
     :root {
         --tooltip-bg: rgba(255, 255, 255, 0.4);
         --tooltip-border: rgba(255, 255, 255, 0.6);
         --tooltip-text: #000;
         --tooltip-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
     }
-    /* Dark‐mode */
+
+    /* Dark-mode overrides */
     @media (prefers-color-scheme: dark) {
         :root {
             --tooltip-bg: rgba(32, 32, 32, 0.4);
@@ -71,6 +72,7 @@
             --tooltip-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
         }
     }
+
     .jp-tooltip {
         position: fixed;
         z-index: 2147483647;
@@ -108,15 +110,32 @@
         border-collapse: collapse;
     }
 
-    .jp-tooltip th {
+    .jp-tooltip th,
+    .jp-tooltip td {
         padding: 4px 6px;
+    }
+
+    .jp-tooltip th {
         text-align: left;
         white-space: nowrap;
         font-weight: 600;
     }
 
-    .jp-tooltip td {
-        padding: 4px 6px;
-        word-break: break-word;
+    #jp-exclude-btn {
+        width: 100%;
+        padding: 8px 0;
+        margin-top: 8px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 8px 8px 8px 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        transition: background-color 0.2s ease;
+    }
+
+    #jp-exclude-btn:hover {
+        background-color: #0056b3;
     }
 </style>
