@@ -48,7 +48,7 @@ export default class HoverTokenView {
             this.mouseY = e.clientY;
 
             if (this.skipNextMove) {
-                this.skipNextMove;
+                this.skipNextMove = false;
                 return;
             }
 

@@ -13,12 +13,11 @@ export class APIHandler {
         };
     }
 
-    async tokenizeNodes(textNodes: Text[]): Promise<Token[][]> {
-        const texts = textNodes
-            .map((node) => node.textContent?.trim() || "")
-            .filter((text) => text.length > 0);
+    async tokenize(texts: string[]): Promise<Token[][]> {
+        const clean = texts.map((t) => t.trim()).filter(Boolean);
+        if (!clean.length) return [];
 
-        return await this.fetchBatch(texts);
+        return this.fetchBatch(clean);
     }
 
     private async fetchBatch(texts: string[]): Promise<Token[][]> {

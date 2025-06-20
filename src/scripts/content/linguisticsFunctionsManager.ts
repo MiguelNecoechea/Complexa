@@ -5,7 +5,7 @@ import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring
 import { Token } from "../models/JapaneseTokens";
 import { APIHandler } from "../api/apiHandler";
 import { SettingsService } from "../services/SettingsService";
-
+import { Paragraph } from "../models/Paragraph";
 // UI imports
 import HoverTokenView from "../views/HoverTokenView";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
@@ -17,7 +17,7 @@ const MESSAGE_TYPES = {
 };
 
 export class LingusticsManager {
-    private rawPageTextNodes: Text[];
+    private paragraphs: Paragraph[];
     private tokenizedArrays: Token[][] = [];
     private tokenizedDOM: HTMLElement[][] = [];
 
@@ -30,9 +30,13 @@ export class LingusticsManager {
     private tokenFilter = FilterTokens.instance;
 
     constructor() {
-        this.rawPageTextNodes = TextExtractionManager.extract(document.body);
+        this.paragraphs = TextExtractionManager.extract(
+            document.querySelector("main") ?? document.body,
+        );
         this.apiHandler = new APIHandler();
-        this.initPromise = this.apiHandler.tokenizeNodes(this.rawPageTextNodes);
+        this.initPromise = this.apiHandler.tokenize(
+            this.paragraphs.map((p) => p.text),
+        );
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
         this.textColorizer = new JapaneseTextColoring();
         this.init();
@@ -83,49 +87,49 @@ export class LingusticsManager {
     }
 
     private async wrapTokens() {
-        if (this.tokenizedDOM.length) return; // only once (Not working i think)
+        if (this.tokenizedDOM.length) return;
 
-        // this.tokenizedDOM = []; // TODO: Check if works
         this.tokenizedArrays = await this.initPromise;
+        let tokenIdx = 0; // keeps position in tokenizedArrays
 
-        this.rawPageTextNodes.forEach((node, idx) => {
-            const tokens = this.tokenizedArrays[idx] || [];
+        this.paragraphs.forEach((para) => {
+            const tokens = this.tokenizedArrays[tokenIdx++] || [];
+
+            /* 1 — assemble replacement fragment ------------------------ */
             const frag = document.createDocumentFragment();
             const row: HTMLElement[] = [];
 
             tokens.forEach((tok) => {
-                const textNode = document.createTextNode(tok.surface);
-                const span = document.createElement("span");
-
                 if (this.tokenFilter.shouldExclude(tok)) {
                     frag.appendChild(document.createTextNode(tok.surface));
                     return;
                 }
-
-                // All token data into the span.
+                const span = document.createElement("span");
                 span.textContent = tok.surface;
                 span.dataset.surface = tok.surface;
                 span.dataset.pos = tok.pos;
                 span.dataset.lemma = tok.lemma;
                 span.dataset.tag = tok.tag;
                 span.dataset.dep = tok.dep;
-                span.dataset.head = tok.head;
-
+                span.dataset.head = tok.head.toString();
                 span.dataset.offset = tok.offset.toString();
                 span.dataset.ent_obj = tok.ent_iob;
                 span.dataset.ent_type = tok.ent_type;
-
-                // if (tok.morph != null) {
-                //     const inflection: string = tok.morph["Inflection"];
-                //     if (inflection) span.dataset.morph = inflection;
-                // }
-
                 if (tok.reading) span.dataset.reading = tok.reading;
                 frag.appendChild(span);
                 row.push(span);
             });
 
-            node.parentNode?.replaceChild(frag, node);
+            /* 2 — replace the old text nodes safely -------------------- */
+            const firstNode = para.textNodes[0];
+            const lastNode = para.textNodes[para.textNodes.length - 1];
+
+            const range = document.createRange();
+            range.setStartBefore(firstNode); // start before first text
+            range.setEndAfter(lastNode); // end after last text
+            range.deleteContents(); // drop original nodes
+            range.insertNode(frag); // inject our fragment
+
             this.tokenizedDOM.push(row);
         });
 
