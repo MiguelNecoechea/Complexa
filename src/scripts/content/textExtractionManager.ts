@@ -83,9 +83,8 @@ export class TextExtractionManager {
                     buf += (n as Text).data;
                 }
 
-                const cleaned = buf.replace(/\s+/g, " ").trim();
-                if (cleaned)
-                    out.push({ container: el, textNodes, text: cleaned });
+                const text = buf;
+                if (text.trim()) out.push({ container: el, textNodes, text });
             } else {
                 queue.push(...Array.from(el.children));
             }

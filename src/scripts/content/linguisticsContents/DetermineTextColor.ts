@@ -49,9 +49,10 @@ const DARK_INFLECTION_COLORS: ColorMap = {
 
 export class DetermineTextColor {
     private isDarkMode(): boolean {
-        return (
-            window.matchMedia?.("(prefers-color-scheme: dark)").matches === true
-        );
+        if (typeof window.matchMedia !== "function") {
+            return false;
+        }
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
 
     public determineColorToken(token: Token): TextProcessedColor {
