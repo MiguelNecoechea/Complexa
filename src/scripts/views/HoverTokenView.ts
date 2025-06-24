@@ -1,6 +1,9 @@
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import { ReadingMode } from "../content/linguisticsContents/JapaneseReadingContent";
+
+import * as wanakana from "wanakana";
 
 const BINDINGS = {
     SURFACE: "jp-surface",
@@ -15,6 +18,24 @@ const BINDINGS = {
     ENTITY: "jp-entity",
     MORPH: "jp-morph",
 };
+
+// Helping functions
+
+function getReadingMode(): ReadingMode {
+    return ((window as any).readingMode as ReadingMode) || "hiragana";
+}
+
+function convertReading(reading: string): string {
+    const mode = getReadingMode();
+    switch (mode) {
+        case "katakana":
+            return wanakana.toKatakana(reading);
+        case "romaji":
+            return wanakana.toRomaji(reading);
+        default:
+            return wanakana.toHiragana(reading);
+    }
+}
 
 export default class HoverTokenView {
     private tooltip = ensureTooltip();
@@ -135,6 +156,7 @@ export default class HoverTokenView {
                 this.activate(clickedSpan);
             }
             this.skipNextMove = true;
+            this.trackUnderCursor();
             return;
         }
 
@@ -182,12 +204,15 @@ export default class HoverTokenView {
             offset: span.dataset.offset ? parseInt(span.dataset.offset, 10) : 0,
             ent_iob: span.dataset.ent_iob || "",
             ent_type: span.dataset.ent_type || "",
+            index: span.dataset.index
+                ? parseInt(span.dataset.index, 10)
+                : undefined,
         };
     }
 
     private bind(vm: HoverTokenViewModel): void {
         id(BINDINGS.SURFACE).textContent = vm.surface;
-        id(BINDINGS.READING).textContent = vm.reading;
+        id(BINDINGS.READING).textContent = convertReading(vm.reading);
         id(BINDINGS.LEMMA).textContent = vm.lemma;
         id(BINDINGS.POS).textContent = vm.pos;
         id(BINDINGS.TAG).textContent = vm.tag;

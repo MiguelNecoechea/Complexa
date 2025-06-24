@@ -1,6 +1,9 @@
 // Functionality Imports
 import { TextExtractionManager } from "./textExtractionManager";
-import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
+import {
+    KanjiReadingsProcessor,
+    ReadingMode,
+} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { APIHandler } from "../api/apiHandler";
 import { SettingsService } from "../services/SettingsService";
@@ -29,6 +32,7 @@ export class LingusticsManager {
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
 
+    private readingMode: ReadingMode = "hiragana";
     private tooltipReady: Boolean = false;
     private tokenFilter = FilterTokens.instance;
 
@@ -49,6 +53,8 @@ export class LingusticsManager {
         const mode = await SettingsService.getSetting("readingType");
         await this.tokenFilter.init();
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
+        this.readingMode = mode;
+        (window as any).readingMode = mode;
         this.setupMessageListeners();
     }
 
@@ -76,6 +82,8 @@ export class LingusticsManager {
                         this.kanjiReadingProcessor.changeReadingType(
                             message.readingType,
                         );
+                        this.readingMode = message.readingType as ReadingMode;
+                        (window as any).readingMode = this.readingMode;
                         sendResponse({ success: true });
                         return false;
                     default:
@@ -123,13 +131,17 @@ export class LingusticsManager {
                             );
                         }
 
-                        if (this.tokenFilter.shouldExclude(tok)) {
+                        if (
+                            this.tokenFilter.shouldExclude(tok) ||
+                            !this.isJapanese(tok.surface)
+                        ) {
                             frag.appendChild(
                                 document.createTextNode(tok.surface),
                             );
                         } else {
                             const span = document.createElement("span");
                             span.textContent = tok.surface;
+                            span.dataset.index = tIdx.toString();
                             span.dataset.surface = tok.surface;
                             span.dataset.pos = tok.pos;
                             span.dataset.lemma = tok.lemma;
@@ -139,7 +151,12 @@ export class LingusticsManager {
                             span.dataset.offset = tok.offset.toString();
                             span.dataset.ent_obj = tok.ent_iob;
                             span.dataset.ent_type = tok.ent_type;
+
+                            if (tok.morph)
+                                span.dataset.morph = JSON.stringify(tok.morph);
+
                             if (tok.reading) span.dataset.reading = tok.reading;
+
                             frag.appendChild(span);
                             row.push(span);
                         }
@@ -163,6 +180,10 @@ export class LingusticsManager {
         });
 
         await this.mountHoverToolTip();
+    }
+
+    private isJapanese(text: string): boolean {
+        return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9faf]/.test(text);
     }
 
     private async mountHoverToolTip(): Promise<void> {
