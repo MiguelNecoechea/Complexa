@@ -1,8 +1,8 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
-/*!****************************************************!*\
-  !*** ./src/scripts/background/backgroundWorker.ts ***!
-  \****************************************************/
+/*!********************************************!*\
+  !*** ./src/background/backgroundWorker.ts ***!
+  \********************************************/
 
 const BACKGROUND_ACTIONS = {
     INITIATE_KANJI_READING_SCRIPT: "initiateKanjiReadingScript",

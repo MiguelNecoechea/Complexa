@@ -8,10 +8,10 @@ export default {
     // Entry points
     entry: {
         "scripts/background/backgroundWorker":
-            "./src/scripts/background/backgroundWorker.ts",
+            "./src/background/backgroundWorker.ts",
         "scripts/content/linguisticsFunctionsManager":
-            "./src/scripts/content/linguisticsFunctionsManager.ts",
-        "scripts/ui/popup": "./src/scripts/ui/popup.ts",
+            "./src/content/linguisticsFunctionsManager.ts",
+        "scripts/ui/popup": "./src/ui/popup.ts",
     },
 
     output: {

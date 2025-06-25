@@ -2,10 +2,10 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/scripts/services/SettingsService.ts":
-/*!*************************************************!*\
-  !*** ./src/scripts/services/SettingsService.ts ***!
-  \*************************************************/
+/***/ "./src/services/SettingsService.ts":
+/*!*****************************************!*\
+  !*** ./src/services/SettingsService.ts ***!
+  \*****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -76,10 +76,10 @@ SettingsService.defaultSettings = {
 
 /***/ }),
 
-/***/ "./src/scripts/services/TabService.ts":
-/*!********************************************!*\
-  !*** ./src/scripts/services/TabService.ts ***!
-  \********************************************/
+/***/ "./src/services/TabService.ts":
+/*!************************************!*\
+  !*** ./src/services/TabService.ts ***!
+  \************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -159,18 +159,18 @@ class TabService {
 
 /***/ }),
 
-/***/ "./src/scripts/viewmodels/PopupViewModel.ts":
-/*!**************************************************!*\
-  !*** ./src/scripts/viewmodels/PopupViewModel.ts ***!
-  \**************************************************/
+/***/ "./src/viewmodels/PopupViewModel.ts":
+/*!******************************************!*\
+  !*** ./src/viewmodels/PopupViewModel.ts ***!
+  \******************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   PopupViewModel: () => (/* binding */ PopupViewModel)
 /* harmony export */ });
-/* harmony import */ var _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/SettingsService */ "./src/scripts/services/SettingsService.ts");
-/* harmony import */ var _services_TabService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/TabService */ "./src/scripts/services/TabService.ts");
+/* harmony import */ var _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/SettingsService */ "./src/services/SettingsService.ts");
+/* harmony import */ var _services_TabService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/TabService */ "./src/services/TabService.ts");
 // ViewModel for the extension popup, with clear separation of concerns and OOP-friendly services
 
 
@@ -241,17 +241,17 @@ class PopupViewModel {
 
 /***/ }),
 
-/***/ "./src/scripts/views/PopupView.ts":
-/*!****************************************!*\
-  !*** ./src/scripts/views/PopupView.ts ***!
-  \****************************************/
+/***/ "./src/views/PopupView.ts":
+/*!********************************!*\
+  !*** ./src/views/PopupView.ts ***!
+  \********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   PopupView: () => (/* binding */ PopupView)
 /* harmony export */ });
-/* harmony import */ var _viewmodels_PopupViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/PopupViewModel */ "./src/scripts/viewmodels/PopupViewModel.ts");
+/* harmony import */ var _viewmodels_PopupViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/PopupViewModel */ "./src/viewmodels/PopupViewModel.ts");
 
 const DOM_IDS = {
     LAUNCH_APP: "launch-app",
@@ -504,11 +504,11 @@ class PopupView {
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!*********************************!*\
-  !*** ./src/scripts/ui/popup.ts ***!
-  \*********************************/
+/*!*************************!*\
+  !*** ./src/ui/popup.ts ***!
+  \*************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _views_PopupView__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../views/PopupView */ "./src/scripts/views/PopupView.ts");
+/* harmony import */ var _views_PopupView__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../views/PopupView */ "./src/views/PopupView.ts");
 /**
  * Imports the PopupView class from the PopupView.js module.
  *
