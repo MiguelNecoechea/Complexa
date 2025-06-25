@@ -3,6 +3,10 @@ import { TextProcessedColor } from "../../models/TextColors";
 
 type ColorMap = Record<string, string>;
 
+function defaultColour(dark: boolean): string {
+    return dark ? "#e0e0e0" : "#202124"; // contrast-safe defaults
+}
+
 // Light mode TextColors
 const LIGHT_POS_COLORS: ColorMap = {
     NOUN: "#1f77b4", // blue
@@ -10,6 +14,7 @@ const LIGHT_POS_COLORS: ColorMap = {
     ADJ: "#2ca02c", // green
     ADV: "#ff7f0e", // orange
     PRON: "#9467bd", // purple
+    PROPN: "#63A2B0", // aqua
     PART: "#8c564b", // brown
     AUX: "#e377c2", // pink
     ADP: "#7f7f7f", // grey
@@ -48,26 +53,28 @@ const DARK_INFLECTION_COLORS: ColorMap = {
 };
 
 export class DetermineTextColor {
-    private isDarkMode(): boolean {
-        if (typeof window.matchMedia !== "function") {
-            return false;
-        }
-        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    private static matchDark = window.matchMedia?.(
+        "(prefers-color-scheme: dark)",
+    );
+
+    private static isDark(): boolean {
+        return this.matchDark?.matches ?? false;
     }
 
     public determineColorToken(token: Token): TextProcessedColor {
-        const darkModeEnabled = this.isDarkMode();
-        const posPalette = darkModeEnabled ? DARK_POS_COLORS : LIGHT_POS_COLORS;
-        const infPalette = darkModeEnabled
+        const dark = DetermineTextColor.isDark();
+        const posPalette = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
+        const infPalette = dark
             ? DARK_INFLECTION_COLORS
             : LIGHT_INFLECTION_COLORS;
 
-        const posColor =
-            posPalette[token.pos] ?? (darkModeEnabled ? "#ffffff" : "#000000");
-        let tagColor = posColor;
-        if (token.pos === "VERB" || token.pos === "ADV") {
-            tagColor = infPalette[token.tag] ?? posColor;
-        }
+        // normalise tag names so "noun" or "Noun" both work
+        const posKey = token.pos?.toUpperCase() ?? "";
+        const tagKey = token.tag ?? "";
+
+        const posColor = posPalette[posKey] ?? defaultColour(dark);
+        const tagColor =
+            token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
 
         return { posColor, tagColor };
     }

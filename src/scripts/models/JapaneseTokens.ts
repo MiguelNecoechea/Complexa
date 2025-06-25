@@ -47,5 +47,4 @@ export interface Token {
     offset: number;
     ent_iob: string;
     ent_type: string;
-    index?: number;
 }
