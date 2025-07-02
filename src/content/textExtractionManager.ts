@@ -43,13 +43,21 @@ export class TextExtractionManager {
         if (n.nodeType !== doc.defaultView!.Node.TEXT_NODE)
             return NF.FILTER_REJECT;
 
-        if (!(n as Text).data.trim()) return NF.FILTER_REJECT;
+        const data = (n as Text).data.trim();
+
+        if (!data) return NF.FILTER_REJECT;
 
         const tag = n.parentElement?.tagName ?? "";
+        if (["SCRIPT", "STYLE", "RUBY", "RT", "RB"].includes(tag))
+            return NF.FILTER_REJECT;
 
-        return ["SCRIPT", "STYLE", "RUBY", "RT", "RB"].includes(tag)
-            ? NF.FILTER_REJECT
-            : NF.FILTER_ACCEPT;
+        const JAPANESE_RE = /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF]/;
+        const DIGIT_RE = /\d/;
+
+        if (!JAPANESE_RE.test(data) && !DIGIT_RE.test(data))
+            return NF.FILTER_REJECT;
+
+        return NF.FILTER_ACCEPT;
     }
 
     private static isLeafBlock(el: Element): boolean {
