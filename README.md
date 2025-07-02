@@ -1,71 +1,75 @@
-# Japanese Learning Tool Chrome Extension
+# Complexa
 
-A Chrome extension for learning Japanese with reading and dictionary features. This extension uses a glassmorphic design with custom CSS for the UI.
+Complexa is a Chrome extension that helps you read and understand Japanese text on any web page. It provides on‑page readings, dictionary lookups and other tools that can be toggled from a compact popup.
+
+![Popup screenshot](static/assets/icons/Modular128.png)
 
 ## Features
 
-- Enable readings for Japanese text
-- Enable dictionary lookups
-- Open a dedicated app page for more features
+- **Readings** – Overlay furigana or romaji above each token on the page.
+- **Dictionary** – Highlight a word to see definitions in a floating tooltip.
+- **Reading helpers** – Colour coded part-of-speech hints and morphological data on hover.
+- **Word filters** – Exclude specific words from annotation and persist the list across browsers.
+- **Kanji extraction** – Collect a list of unique kanji found on the current tab.
+- **Quiz support** – (coming soon) review vocabulary you encounter.
+- **Custom reading type** – Choose between *hiragana*, *katakana* or *romaji*.
 
-## Development Setup
+All features can be toggled from the popup and settings are saved using Chrome sync.
 
-1. Install dependencies:
-   ```
+### How It Works
+
+Complexa injects content scripts that send page text to a tokenizer service. Each
+token is wrapped in a `<span>` with metadata for readings, part of speech and
+offset. When you click **Add Readings** the extension converts these readings
+using Wanakana and displays them inline. The dictionary tooltip uses a bundled
+JMdict database to show definitions for the token under your cursor. Word
+filters prevent specific tokens from being wrapped, and kanji extraction pulls a
+unique list of characters for quick reference.
+
+## Getting Started
+
+1. Install dependencies
+   ```bash
    npm install
    ```
-
-2. Compile TypeScript files:
-   ```
+2. Build the TypeScript source
+   ```bash
    npm run build
    ```
-
-3. For continuous development:
-   ```
+3. (Optional) Rebuild automatically on changes
+   ```bash
    npm run watch
    ```
 
-## Loading the Extension in Chrome
+### Load in Chrome
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in the top right corner)
-3. Click "Load unpacked" and select the root directory of this project
-4. The extension should now appear in your Chrome toolbar
+1. Open `chrome://extensions/` and enable **Developer mode**.
+2. Click **Load unpacked** and select this project folder.
+3. The Complexa icon will appear in your toolbar.
 
-## Project Structure
-
-This project follows the MVVM (Model-View-ViewModel) architecture:
+## Repository Layout
 
 ```
-├── assets/
-│   └── icons/
-│       ├── Modular48.png
-│       └── Modular128.png
-├── dist/            # Compiled JavaScript files
-│   └── scripts/
-│       ├── content/ # Content scripts
-│       ├── models/  # Data models
-│       └── ui/      # UI-related scripts
-├── src/
-│   ├── scripts/     # TypeScript source files
-│   │   ├── content/ # Content scripts
-│   │   ├── models/  # Data models
-│   │   └── ui/      # UI-related scripts
-│   ├── styles/      # CSS files
-│   │   ├── colors.css      # Color scheme
-│   │   ├── glassmorphism.css # Glassmorphism effects
-│   │   ├── popup.css       # Popup-specific styles
-│   │   └── app.css         # App-specific styles
-│   └── views/       # HTML files
-│       ├── app.html
-│       └── popup.html
-├── manifest.json    # Extension configuration
-├── package.json     # Project dependencies
-└── tsconfig.json    # TypeScript configuration
+├── dist/                # Compiled JavaScript
+├── src/                 # TypeScript source
+│   ├── background/      # Service worker
+│   ├── content/         # Content scripts
+│   ├── models/          # Data models
+│   ├── services/        # Chrome APIs wrappers
+│   ├── ui/              # Popup and app logic
+│   ├── viewmodels/      # MVVM view-models
+│   └── views/           # UI components
+├── static/              # HTML, CSS and icons
+├── manifest.json        # Chrome extension manifest
+├── webpack.config.js    # Webpack configuration
+└── tsconfig.json        # TypeScript configuration
 ```
 
-## Using the Extension
+## Usage
 
-1. Click on the extension icon in the Chrome toolbar to open the popup
-2. Use the provided buttons to enable readings or dictionary lookups on the current page
-3. Click "Launch App" to open the full application page 
+1. Click the Complexa icon to open the popup.
+2. Toggle the features you want and adjust the reading type.
+3. Press **Add Readings** to annotate the current tab.
+4. Launch the full page app for future features.
+
+Complexa is still under active development, but the core reading and dictionary functions are stable. Contributions and feedback are welcome!
