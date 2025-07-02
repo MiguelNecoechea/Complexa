@@ -17,7 +17,7 @@
  *
  */
 
-import { Token } from "../../scripts/models/JapaneseTokens";
+import { Token } from "../../models/JapaneseTokens";
 
 const STORAGE_KEY = "excludedTokens" as const;
 

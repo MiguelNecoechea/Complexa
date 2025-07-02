@@ -1,4 +1,4 @@
-import { Paragraph } from "../models/Paragraph";
+import { Paragraph, NodeSpan } from "../models/Paragraph";
 
 const BLOCK_TAGS = new Set<string>([
     "ADDRESS",
@@ -60,7 +60,7 @@ export class TextExtractionManager {
     }
 
     /**
-     * Walk `root`, collapse every leaf-block paragraph into **one live `Text` node**,
+     * Walk `root`, collapse every leaf-block paragraph into one live `Text` node,
      * and return the array of those nodes—ready for downstream token wrapping.
      */
     static extract(root: Node): Paragraph[] {
@@ -75,16 +75,24 @@ export class TextExtractionManager {
                 const walker = doc.createTreeWalker(el, NF.SHOW_TEXT, {
                     acceptNode: this.looseFilter,
                 });
+
                 const textNodes: Text[] = [];
+                const spans: NodeSpan[] = [];
                 let buf = "";
+                let cursor = 0;
 
                 for (let n: Node | null; (n = walker.nextNode()); ) {
-                    textNodes.push(n as Text);
-                    buf += (n as Text).data;
+                    const txt = n as Text;
+                    textNodes.push(txt);
+                    const len = txt.data.length;
+                    spans.push({ node: txt, start: cursor, end: cursor + len });
+                    buf += txt.data;
+                    cursor += len;
                 }
 
                 const text = buf;
-                if (text.trim()) out.push({ container: el, textNodes, text });
+                if (text.trim())
+                    out.push({ container: el, textNodes, spans, text });
             } else {
                 queue.push(...Array.from(el.children));
             }
