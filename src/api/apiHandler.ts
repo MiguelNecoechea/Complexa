@@ -22,6 +22,7 @@ export class APIHandler {
 
     private async fetchBatch(texts: string[]): Promise<Token[][]> {
         const payload = texts.map((t) => ({ text: t }));
+
         const res = await fetch(`${this.apiUrl}${this.endpoints.TOKENIZE}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

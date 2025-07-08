@@ -6,8 +6,8 @@ export class JapaneseTextColoring {
     constructor() {}
 
     public addPOSAnnotations(): void {
-        const spans =
-            document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+        const spans = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+
         spans.forEach((span) => {
             const token: Token = {
                 surface: span.textContent || "",
@@ -17,20 +17,14 @@ export class JapaneseTextColoring {
                 tag: span.dataset.tag || "",
                 dep: span.dataset.dep || "",
                 head: span.dataset.head || "",
-                morph: span.dataset.morph
-                    ? (JSON.parse(span.dataset.morph) as MorphFeatures)
-                    : ({} as MorphFeatures),
-                offset: span.dataset.offset
-                    ? parseInt(span.dataset.offset, 10)
-                    : 0,
+                morph: span.dataset.morph ? (JSON.parse(span.dataset.morph) as MorphFeatures) : ({} as MorphFeatures),
+                offset: span.dataset.offset ? parseInt(span.dataset.offset, 10) : 0,
                 ent_iob: span.dataset.ent_iob || "",
                 ent_type: span.dataset.ent_type || "",
                 is_japanese: span.dataset.is_japanese || "false",
             };
 
-            // Determine the colors
-            const { posColor, tagColor }: TextProcessedColor =
-                DetermineTextColor.determineColorToken(token);
+            const { posColor, tagColor }: TextProcessedColor = DetermineTextColor.determineColorToken(token);
 
             span.style.color = posColor;
 
@@ -39,5 +33,6 @@ export class JapaneseTextColoring {
                 span.style.textDecorationColor = tagColor;
             }
         });
+
     }
 }

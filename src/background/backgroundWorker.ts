@@ -6,15 +6,12 @@ function setupMessageListeners(): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log("Received message:", message);
 
-        if (
-            message.action === BACKGROUND_ACTIONS.INITIATE_KANJI_READING_SCRIPT
-        ) {
+        if (message.action === BACKGROUND_ACTIONS.INITIATE_KANJI_READING_SCRIPT) {
             console.log("Initiating kanji reading script");
 
             if (message.tabId) {
                 console.log("Target tab ID:", message.tabId);
 
-                // Execute the content script
                 try {
                     chrome.scripting
                         .executeScript({
@@ -37,8 +34,6 @@ function setupMessageListeners(): void {
                                 error: error.message,
                             });
                         });
-
-                    // Return true to indicate we will send a response asynchronously
                     return true;
                 } catch (error) {
                     console.error(
@@ -53,7 +48,6 @@ function setupMessageListeners(): void {
             }
         }
 
-        // Return false for synchronously handled messages or when there's an error
         return false;
     });
 }
@@ -66,13 +60,12 @@ interface Settings {
     enableKanjiExtraction: boolean;
     enableQuiz: boolean;
     readingType: string;
-    [key: string]: boolean | string; // Index signature to allow string indexing
+    [key: string]: boolean | string;
 }
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated");
 
-    // Set default settings when the extension is installed
     chrome.storage.sync.get(null, (items) => {
         const defaults: Settings = {
             enableReadings: false,
@@ -81,10 +74,9 @@ chrome.runtime.onInstalled.addListener(() => {
             enableWordFilters: false,
             enableKanjiExtraction: false,
             enableQuiz: false,
-            readingType: "romaji",
+            readingType: "hiragana",
         };
 
-        // Only set values that aren't already set
         const newSettings: Settings = { ...defaults };
         for (const key in items) {
             if (key in newSettings) {

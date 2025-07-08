@@ -43,10 +43,7 @@ export class TokenWrapper {
      * @returns               2‑D matrix: one row per paragraph, each containing
      *                        the <span> elements we created for that paragraph.
      */
-    async wrap(
-        paragraphs: Paragraph[],
-        tokenizedArrays: Token[][],
-    ): Promise<HTMLElement[][]> {
+    async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
 
         for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {

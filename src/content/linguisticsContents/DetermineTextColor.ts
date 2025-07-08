@@ -4,7 +4,7 @@ import { TextProcessedColor } from "../../models/TextColors";
 type ColorMap = Record<string, string>;
 
 function defaultColour(dark: boolean): string {
-    return dark ? "#e0e0e0" : "#202124"; // contrast-safe defaults
+    return dark ? "#e0e0e0" : "#202124";
 }
 
 // Light mode TextColors
@@ -53,9 +53,7 @@ const DARK_INFLECTION_COLORS: ColorMap = {
 };
 
 export class DetermineTextColor {
-    private static matchDark = window.matchMedia?.(
-        "(prefers-color-scheme: dark)",
-    );
+    private static matchDark = window.matchMedia?.("(prefers-color-scheme: dark)");
 
     private static isDark(): boolean {
         return this.matchDark?.matches ?? false;
@@ -64,17 +62,13 @@ export class DetermineTextColor {
     public determineColorToken(token: Token): TextProcessedColor {
         const dark = DetermineTextColor.isDark();
         const posPalette = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
-        const infPalette = dark
-            ? DARK_INFLECTION_COLORS
-            : LIGHT_INFLECTION_COLORS;
+        const infPalette = dark ? DARK_INFLECTION_COLORS : LIGHT_INFLECTION_COLORS;
 
-        // normalise tag names so "noun" or "Noun" both work
         const posKey = token.pos?.toUpperCase() ?? "";
         const tagKey = token.tag ?? "";
 
         const posColor = posPalette[posKey] ?? defaultColour(dark);
-        const tagColor =
-            token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
+        const tagColor = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
 
         return { posColor, tagColor };
     }

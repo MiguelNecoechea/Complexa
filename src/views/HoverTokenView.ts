@@ -54,9 +54,8 @@ export default class HoverTokenView {
         document.addEventListener("pointerover", (e) => {
             if (this.isLocked) return;
 
-            const span = (e.target as HTMLElement).closest(
-                "span[data-pos]",
-            ) as HTMLSpanElement | null;
+            const span = (e.target as HTMLElement).closest("span[data-pos]") as HTMLSpanElement | null;
+
             if (span) this.activate(span);
         });
 
@@ -80,15 +79,9 @@ export default class HoverTokenView {
         document.addEventListener("pointerout", (e) => {
             if (this.isLocked) return;
 
-            const fromSpan = (e.target as HTMLElement).closest(
-                "span[data-pos]",
-            );
-            const toSpan = (e.relatedTarget as HTMLElement | null)?.closest(
-                "span[data-pos]",
-            );
-            const intoTip = (e.relatedTarget as HTMLElement | null)?.closest(
-                "#tooltip",
-            );
+            const fromSpan = (e.target as HTMLElement).closest("span[data-pos]");
+            const toSpan = (e.relatedTarget as HTMLElement | null)?.closest("span[data-pos]");
+            const intoTip = (e.relatedTarget as HTMLElement | null)?.closest("#tooltip");
 
             if (fromSpan && !toSpan && !intoTip) this.hide();
         });
@@ -122,40 +115,30 @@ export default class HoverTokenView {
             return;
         }
 
-        const elem = document.elementFromPoint(
-            this.mouseX,
-            this.mouseY,
-        ) as HTMLElement | null;
+        const elem = document.elementFromPoint(this.mouseX, this.mouseY) as HTMLElement | null;
 
         if (elem?.closest("#tooltip")) {
             this.reposition();
             return;
         }
 
-        const newSpan = elem?.closest(
-            "span[data-pos]",
-        ) as HTMLSpanElement | null;
+        const newSpan = elem?.closest("span[data-pos]") as HTMLSpanElement | null;
 
         if (!newSpan) return this.hide();
-        if (newSpan !== this.activeSpan || !newSpan.isConnected)
-            this.activate(newSpan);
+        if (newSpan !== this.activeSpan || !newSpan.isConnected) this.activate(newSpan);
         else this.reposition();
     }
 
     private handleClick(e: MouseEvent) {
-        const clickedInsideTooltip =
-            (e.target as HTMLElement).closest("#tooltip") !== null;
+        const clickedInsideTooltip: boolean = (e.target as HTMLElement).closest("#tooltip") !== null;
 
-        const clickedSpan = (e.target as HTMLElement).closest(
-            "span[data-pos]",
-        ) as HTMLElement | null;
+        const clickedSpan = (e.target as HTMLElement).closest("span[data-pos]") as HTMLElement | null;
 
         if (this.isLocked && !clickedInsideTooltip) {
             this.isLocked = false;
             this.hide();
-            if (clickedSpan && clickedSpan === this.activeSpan) {
-                this.activate(clickedSpan);
-            }
+            if (clickedSpan && clickedSpan === this.activeSpan) this.activate(clickedSpan);
+
             this.skipNextMove = true;
             this.trackUnderCursor();
             return;
@@ -171,8 +154,8 @@ export default class HoverTokenView {
     private reposition() {
         if (!this.activeSpan) return;
 
-        const { left, top, width, height } =
-            this.activeSpan.getBoundingClientRect();
+        const { left, top, width, height } = this.activeSpan.getBoundingClientRect();
+
         if (height === 0) return this.hide();
 
         const w = this.tooltip.offsetWidth;
@@ -199,9 +182,7 @@ export default class HoverTokenView {
             tag: span.dataset.tag || "",
             dep: span.dataset.dep || "",
             head: span.dataset.head || "",
-            morph: span.dataset.morph
-                ? (JSON.parse(span.dataset.morph) as MorphFeatures)
-                : ({} as MorphFeatures),
+            morph: span.dataset.morph ? (JSON.parse(span.dataset.morph) as MorphFeatures) : ({} as MorphFeatures),
             offset: span.dataset.offset ? parseInt(span.dataset.offset, 10) : 0,
             ent_iob: span.dataset.ent_iob || "",
             ent_type: span.dataset.ent_type || "",
@@ -222,17 +203,11 @@ export default class HoverTokenView {
         id(BINDINGS.ENTITY).textContent = vm.entity;
         id(BINDINGS.MORPH).textContent = vm.morph;
 
-        const btn = document.getElementById(
-            "jp-exclude-btn",
-        ) as HTMLButtonElement;
-        btn.onclick = async (e) => {
+        const btn = document.getElementById("jp-exclude-btn") as HTMLButtonElement;
+        btn.onclick = async (e: MouseEvent): Promise<void> => {
             e.stopPropagation();
             await FilterTokens.instance.add(vm.surface);
-            if (this.activeSpan) {
-                this.activeSpan.replaceWith(
-                    document.createTextNode(vm.surface),
-                );
-            }
+            if (this.activeSpan) this.activeSpan.replaceWith(document.createTextNode(vm.surface));
             this.hide();
         };
 
@@ -240,9 +215,10 @@ export default class HoverTokenView {
         const allowed = ["NOUN", "VERB", "ADJ"];
         if (allowed.includes(vm.pos)) {
             searchBtn.style.display = "inline-block";
-            searchBtn.onclick = (e) => {
+            searchBtn.onclick = (e: MouseEvent): void => {
                 e.stopPropagation();
                 const query = vm.lemma || vm.surface;
+                // Temporal implementation
                 const url = `https://jisho.org/search/${encodeURIComponent(query)}`;
                 window.open(url, "_blank");
             };

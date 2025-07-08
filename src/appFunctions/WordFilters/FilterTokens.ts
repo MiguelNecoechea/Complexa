@@ -36,6 +36,7 @@ export class FilterTokens {
 
     static get instance(): FilterTokens {
         if (!this._instance) this._instance = new FilterTokens();
+
         return this._instance;
     }
 
@@ -53,6 +54,7 @@ export class FilterTokens {
             if (Array.isArray(list)) list.forEach((t) => this.excluded.add(t));
             this.loaded = true;
         }
+
     }
 
     // Private functionality

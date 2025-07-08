@@ -14,7 +14,6 @@ function setupMessageListeners() {
             console.log("Initiating kanji reading script");
             if (message.tabId) {
                 console.log("Target tab ID:", message.tabId);
-                // Execute the content script
                 try {
                     chrome.scripting
                         .executeScript({
@@ -32,7 +31,6 @@ function setupMessageListeners() {
                             error: error.message,
                         });
                     });
-                    // Return true to indicate we will send a response asynchronously
                     return true;
                 }
                 catch (error) {
@@ -45,13 +43,11 @@ function setupMessageListeners() {
                 sendResponse({ success: false, error: "No tabId provided" });
             }
         }
-        // Return false for synchronously handled messages or when there's an error
         return false;
     });
 }
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated");
-    // Set default settings when the extension is installed
     chrome.storage.sync.get(null, (items) => {
         const defaults = {
             enableReadings: false,
@@ -60,9 +56,8 @@ chrome.runtime.onInstalled.addListener(() => {
             enableWordFilters: false,
             enableKanjiExtraction: false,
             enableQuiz: false,
-            readingType: "romaji",
+            readingType: "hiragana",
         };
-        // Only set values that aren't already set
         const newSettings = { ...defaults };
         for (const key in items) {
             if (key in newSettings) {

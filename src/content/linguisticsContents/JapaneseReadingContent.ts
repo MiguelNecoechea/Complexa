@@ -1,18 +1,11 @@
 // Handles DOM traversal, messaging, and style injection
 import * as wanakana from "wanakana";
 
-import { Token } from "../../models/JapaneseTokens";
-
-// Regex to detect any CJK Unified Ideographs (Kanji)
 const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
 export type ReadingMode = "romaji" | "hiragana" | "katakana";
 
-/* ─────────────────────────  HELPER FUNCTIONS  ───────────────────────── */
 
-/**
- * Escape HTML special characters to prevent injection.
- */
 function escapeHtml(str: string): string {
     return str
         .replace(/&/g, "&amp;")
@@ -48,9 +41,8 @@ function addReading(
         if (mode === "katakana") final = wanakana.toKatakana(final);
         else if (mode === "romaji") final = wanakana.toRomaji(final);
 
-        out.push(
-            `<ruby><rb>${escapeHtml(core)}</rb><rt>${escapeHtml(final)}</rt></ruby>`,
-        );
+        out.push(`<ruby><rb>${escapeHtml(core)}</rb><rt>${escapeHtml(final)}</rt></ruby>`);
+
         kanjiBuf.length = 0;
         rIdx = upTo;
     };
@@ -84,12 +76,10 @@ export class KanjiReadingsProcessor {
         this.initialize();
     }
 
-    /* ─────────────────────────  BOOTSTRAP  ───────────────────────── */
-    private async initialize(): Promise<void> {
+    private initialize(): void {
         this.addRubyStyles();
     }
 
-    /* ─────────────────────  RUBY ANNOTATION FLOW  ─────────────────── */
     public addReadings(): void {
         if (this.readingsAdded) return;
 
@@ -100,24 +90,22 @@ export class KanjiReadingsProcessor {
             const surface = span.textContent || "";
             const reading = span.dataset.reading || "";
 
-            const rubyHtml = addReading(surface, reading, this.readingMode);
-            span.innerHTML = rubyHtml;
+            span.innerHTML = addReading(surface, reading, this.readingMode);
         });
 
         this.readingsAdded = true;
     }
 
-    /* ─────────────────── RE-ANNOTATE ─────────────────── */
-
     changeReadingType(mode: ReadingMode): void {
         this.readingMode = mode;
-        if (!this.readingsAdded) {
-            return;
-        }
+
+        if (!this.readingsAdded) return;
+
 
         document.querySelectorAll("ruby rt").forEach((rt) => {
             const base = rt.textContent || "";
             let converted: string;
+
             switch (mode) {
                 case "katakana":
                     converted = wanakana.toKatakana(base);
@@ -132,7 +120,6 @@ export class KanjiReadingsProcessor {
         });
     }
 
-    /* ─────────────────────────  STYLES  ───────────────────────── */
     private addRubyStyles(): void {
         const style = document.createElement("style");
         style.textContent = `ruby { line-height: 1.65; } ruby rt { font-size: .55em; white-space: nowrap; }`;

@@ -31,26 +31,17 @@ export class PopupViewModel {
     /**
      * Updates one setting, persists it, and notifies content script if needed.
      */
-    async updateSetting<K extends keyof PopupSettings>(
-        key: K,
-        value: PopupSettings[K],
-    ): Promise<void> {
+    async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         await SettingsService.updateSetting(key, value);
 
         if (key === "enableReadings") {
-            if (value) {
-                await this.injectManagerScript();
-            } else {
-            }
+            if (value) await this.injectManagerScript();
         }
 
         if (key === "readingType" && this.settings.enableReadings) {
             const tab = await this.tabService.getActiveTab();
             if (tab?.id) {
-                await this.tabService.sendMessageToTab(tab.id, {
-                    action: "changeReadingType",
-                    readingType: value,
-                });
+                await this.tabService.sendMessageToTab(tab.id, {action: "changeReadingType", readingType: value});
             }
         }
     }
@@ -61,9 +52,7 @@ export class PopupViewModel {
     async requestAddReadings(): Promise<void> {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id) return;
-        await this.tabService.sendMessageToTab(tab.id, {
-            action: "addReadings",
-        });
+        await this.tabService.sendMessageToTab(tab.id, {action: "addReadings"});
     }
 
     /**
@@ -72,10 +61,7 @@ export class PopupViewModel {
     private async injectManagerScript(): Promise<boolean> {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id) return false;
-        await this.tabService.injectScript(
-            tab.id,
-            "dist/scripts/content/linguisticsFunctionsManager.js",
-        );
+        await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
         return true;
     }
 }

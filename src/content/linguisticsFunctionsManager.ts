@@ -20,11 +20,11 @@ const MESSAGE_TYPES = {
 };
 
 export class LingusticsManager {
-    private paragraphs: Paragraph[];
+    private readonly paragraphs: Paragraph[];
     private tokenizedArrays: Token[][] = [];
     private tokenizedDOM: HTMLElement[][] = [];
 
-    private initPromise: Promise<Token[][]>;
+    private readonly initPromise: Promise<Token[][]>;
     private apiHandler: APIHandler;
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
@@ -35,20 +35,16 @@ export class LingusticsManager {
     private tokenWrapper: TokenWrapper;
 
     constructor() {
-        this.paragraphs = TextExtractionManager.extract(
-            document.querySelector("main") ?? document.body,
-        );
+        this.paragraphs = TextExtractionManager.extract(document.querySelector("main") ?? document.body);
         this.apiHandler = new APIHandler();
-        this.initPromise = this.apiHandler.tokenize(
-            this.paragraphs.map((p) => p.text),
-        );
+        this.initPromise = this.apiHandler.tokenize(this.paragraphs.map((p) => p.text));
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
         this.textColorizer = new JapaneseTextColoring();
         this.tokenWrapper = new TokenWrapper(this.tokenFilter);
         this.init();
     }
 
-    private async init() {
+    private async init(): Promise<void> {
         const mode = await SettingsService.getSetting("readingType");
         await this.tokenFilter.init();
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
@@ -63,43 +59,31 @@ export class LingusticsManager {
                         (async () => {
                             try {
                                 await this.ensureWrapped();
-
                                 this.textColorizer.addPOSAnnotations();
                                 this.kanjiReadingProcessor.addReadings();
                                 sendResponse({ success: true });
                             } catch (err: any) {
-                                sendResponse({
-                                    success: false,
-                                    error: err.message || err,
-                                });
+                                sendResponse({success: false, error: err.message || err});
                             }
                         })();
                         return true;
                     case MESSAGE_TYPES.CHANGE_READING_TYPE:
-                        this.kanjiReadingProcessor.changeReadingType(
-                            message.readingType,
-                        );
+                        this.kanjiReadingProcessor.changeReadingType(message.readingType);
                         sendResponse({ success: true });
                         return false;
                     default:
-                        sendResponse({
-                            success: false,
-                            error: "Unknown action",
-                        });
+                        sendResponse({success: false, error: "Unknown action"});
                         return false;
                 }
             },
         );
     }
 
-    private async ensureWrapped() {
+    private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
 
         this.tokenizedArrays = await this.initPromise;
-        this.tokenizedDOM = await this.tokenWrapper.wrap(
-            this.paragraphs,
-            this.tokenizedArrays,
-        );
+        this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays);
     }
 }
 
