@@ -47,4 +47,5 @@ export interface Token {
     offset: number;
     ent_iob: string;
     ent_type: string;
+    is_japanese: string;
 }

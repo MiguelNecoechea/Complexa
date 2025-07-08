@@ -25,6 +25,7 @@ export class JapaneseTextColoring {
                     : 0,
                 ent_iob: span.dataset.ent_iob || "",
                 ent_type: span.dataset.ent_type || "",
+                is_japanese: span.dataset.is_japanese || "false",
             };
 
             // Determine the colors

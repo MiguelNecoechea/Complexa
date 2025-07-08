@@ -116,7 +116,10 @@ export class TokenWrapper {
                 );
             }
 
-            if (this.tokenFilter.shouldExclude(tok)) {
+            if (
+                this.tokenFilter.shouldExclude(tok) ||
+                tok.is_japanese == "false"
+            ) {
                 frag.append(node.ownerDocument!.createTextNode(tok.surface));
             } else {
                 const span = this.buildSpan(tok);
@@ -158,6 +161,7 @@ export class TokenWrapper {
         span.dataset.offset = String(tok.offset);
         span.dataset.ent_obj = tok.ent_iob;
         span.dataset.ent_type = tok.ent_type;
+        span.dataset.is_japanese = tok.is_japanese;
         if (tok.reading) span.dataset.reading = tok.reading;
 
         return span;

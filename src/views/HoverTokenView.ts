@@ -205,6 +205,7 @@ export default class HoverTokenView {
             offset: span.dataset.offset ? parseInt(span.dataset.offset, 10) : 0,
             ent_iob: span.dataset.ent_iob || "",
             ent_type: span.dataset.ent_type || "",
+            is_japanese: span.dataset.is_japanese || "false",
         };
     }
 
