@@ -8,6 +8,9 @@ node_modules/
 # macos files
 .DS_Store
 
+# Webstorm files
+.idea
+
 #json dict files
 dictsJson/
 
