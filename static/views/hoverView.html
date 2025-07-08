@@ -46,8 +46,15 @@
                 <td id="jp-morph"></td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: center; padding-top: 8px">
-                    <button id="jp-exclude-btn">Exclude word</button>
+                <td colspan="2" style="padding-top: 8px">
+                    <div class="jp-btn-row">
+                        <button id="jp-exclude-btn" class="jp-btn blue">
+                            Exclude word
+                        </button>
+                        <button id="jp-search-btn" class="jp-btn green">
+                            Look meaning
+                        </button>
+                    </div>
                 </td>
             </tr>
         </tbody>
@@ -137,5 +144,28 @@
 
     #jp-exclude-btn:hover {
         background-color: #0056b3;
+    }
+
+    .jp-btn-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    #jp-search-btn {
+        width: 100%;
+        padding: 8px 0;
+        margin-top: 8px;
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        transition: background-color 0.2s ease;
+    }
+
+    #jp-search-btn:hover {
+        background-color: #1e7e34;
     }
 </style>

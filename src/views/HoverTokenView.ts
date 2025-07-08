@@ -17,6 +17,7 @@ const BINDINGS = {
     IOB: "jp-iob",
     ENTITY: "jp-entity",
     MORPH: "jp-morph",
+    SEARCH_BTN: "jp-search-btn",
 };
 
 // Helping functions
@@ -233,6 +234,20 @@ export default class HoverTokenView {
             }
             this.hide();
         };
+
+        const searchBtn = id<HTMLButtonElement>(BINDINGS.SEARCH_BTN);
+        const allowed = ["NOUN", "VERB", "ADJ"];
+        if (allowed.includes(vm.pos)) {
+            searchBtn.style.display = "inline-block";
+            searchBtn.onclick = (e) => {
+                e.stopPropagation();
+                const query = vm.lemma || vm.surface;
+                const url = `https://jisho.org/search/${encodeURIComponent(query)}`;
+                window.open(url, "_blank");
+            };
+        } else {
+            searchBtn.style.display = "none";
+        }
     }
 }
 
@@ -248,8 +263,23 @@ function ensureTooltip(): HTMLElement {
         node = document.createElement("div");
         node.id = "tooltip";
         node.className = "jp-tooltip";
-        node.innerHTML = /* html */ `<table><tbody>…your <tr>s…</tbody></table>`;
+        node.innerHTML = `
+            <table class="jp-table"><tbody><!-- existing <tr>s here --></tbody></table>
+            <div class="jp-actions">
+                <button id="jp-exclude-btn" class="jp-btn exclude-btn">✕</button>
+                <button id="jp-search-btn" class="jp-btn search-btn">意味を見る</button>
+            </div>`;
         document.body.appendChild(node);
+
+        /* Inject minimal style only once */
+        const style = document.createElement("style");
+        style.textContent = `
+            .jp-actions { margin-top: 6px; text-align: right; }
+            .jp-btn { padding: 4px 6px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+            .exclude-btn { background: #cccccc; color: #000; }
+            .search-btn { background: #28a745; color: #ffffff; }
+        `;
+        document.head.appendChild(style);
     }
     return node;
 }
