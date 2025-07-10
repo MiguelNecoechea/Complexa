@@ -19,11 +19,7 @@ function escapeHtml(str: string): string {
  * Annotate a single token's surface with its reading.
  * Mirrors the Python _add_reading logic.
  */
-function addReading(
-    surface: string,
-    reading: string,
-    mode: ReadingMode,
-): string {
+function addReading(surface: string, reading: string, mode: ReadingMode): string {
     const rawReading = typeof reading === "string" ? reading : "";
 
     const readingHira = wanakana.toHiragana(rawReading);

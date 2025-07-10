@@ -176,7 +176,6 @@ __webpack_require__.r(__webpack_exports__);
 
 class PopupViewModel {
     /**
-     * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
      * @param tabService - allows injecting a custom TabService (e.g. for testing)
      */
     constructor(tabService = new _services_TabService__WEBPACK_IMPORTED_MODULE_1__.TabService()) {
@@ -199,19 +198,13 @@ class PopupViewModel {
     async updateSetting(key, value) {
         await _services_SettingsService__WEBPACK_IMPORTED_MODULE_0__.SettingsService.updateSetting(key, value);
         if (key === "enableReadings") {
-            if (value) {
+            if (value)
                 await this.injectManagerScript();
-            }
-            else {
-            }
         }
         if (key === "readingType" && this.settings.enableReadings) {
             const tab = await this.tabService.getActiveTab();
             if (tab?.id) {
-                await this.tabService.sendMessageToTab(tab.id, {
-                    action: "changeReadingType",
-                    readingType: value,
-                });
+                await this.tabService.sendMessageToTab(tab.id, { action: "changeReadingType", readingType: value });
             }
         }
     }
@@ -222,9 +215,7 @@ class PopupViewModel {
         const tab = await this.tabService.getActiveTab();
         if (!tab?.id)
             return;
-        await this.tabService.sendMessageToTab(tab.id, {
-            action: "addReadings",
-        });
+        await this.tabService.sendMessageToTab(tab.id, { action: "addReadings" });
     }
     /**
      * Ensures the content script is loaded into the active tab for annotation.
@@ -308,7 +299,6 @@ class PopupView {
         this.initializeCheckbox(DOM_IDS.ENABLE_KANJI_EXTRACTION, settings.enableKanjiExtraction);
     }
     attachEventListeners() {
-        // Launch app button
         const launchAppBtn = document.getElementById(DOM_IDS.LAUNCH_APP);
         if (launchAppBtn) {
             launchAppBtn.addEventListener("click", () => {
@@ -317,13 +307,11 @@ class PopupView {
                 });
             });
         }
-        // Attach event listeners to all checkboxes
         this.addSettingListener(DOM_IDS.ENABLE_DICTIONARY, "enableDictionary");
         this.addSettingListener(DOM_IDS.ENABLE_READING_HELPERS, "enableReadingHelpers");
         this.addSettingListener(DOM_IDS.ENABLE_WORD_FILTERS, "enableWordFilters");
         this.addSettingListener(DOM_IDS.ENABLE_QUIZ, "enableQuiz");
         this.addSettingListener(DOM_IDS.ENABLE_KANJI_EXTRACTION, "enableKanjiExtraction");
-        // Special handling for enable readings due to UI dependencies
         const enableReadingsCheckbox = document.getElementById(DOM_IDS.ENABLE_READINGS);
         const enableReadingHelpersCheckbox = document.getElementById(DOM_IDS.ENABLE_READING_HELPERS);
         if (enableReadingsCheckbox) {
@@ -339,9 +327,8 @@ class PopupView {
     }
     initializeCheckbox(id, checked) {
         const checkbox = document.getElementById(id);
-        if (checkbox) {
+        if (checkbox)
             checkbox.checked = checked;
-        }
     }
     addSettingListener(id, settingKey) {
         const checkbox = document.getElementById(id);
@@ -371,15 +358,12 @@ class PopupView {
         ];
         options.forEach((option) => {
             const optionElement = document.createElement("div");
-            optionElement.className =
-                CSS_CLASSES.READING_OPTION +
-                    (option.value === activeType ? ` ${CSS_CLASSES.ACTIVE}` : "");
             optionElement.dataset.value = option.value;
             optionElement.textContent = option.label;
+            optionElement.className = CSS_CLASSES.READING_OPTION +
+                (option.value === activeType ? ` ${CSS_CLASSES.ACTIVE}` : "");
             optionElement.addEventListener("click", () => {
-                document
-                    .querySelectorAll(`.${CSS_CLASSES.READING_OPTION}`)
-                    .forEach((opt) => {
+                document.querySelectorAll(`.${CSS_CLASSES.READING_OPTION}`).forEach((opt) => {
                     opt.classList.remove(CSS_CLASSES.ACTIVE);
                 });
                 optionElement.classList.add(CSS_CLASSES.ACTIVE);

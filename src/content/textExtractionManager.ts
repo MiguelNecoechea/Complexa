@@ -60,7 +60,7 @@ export class TextExtractionManager {
 
     private static isLeafBlock(el: Element): boolean {
         return (BLOCK_TAGS.has(el.tagName) &&
-            !Array.from(el.children).some((c) => BLOCK_TAGS.has(c.tagName))
+            !Array.from(el.children).some((c: Element): boolean => BLOCK_TAGS.has(c.tagName))
         );
     }
 
@@ -75,9 +75,9 @@ export class TextExtractionManager {
         const NF = doc.defaultView!.NodeFilter;
 
         while (queue.length) {
-            const el = queue.shift()!;
+            const el: Element = queue.shift()!;
             if (this.isLeafBlock(el)) {
-                const walker = doc.createTreeWalker(el, NF.SHOW_TEXT, {acceptNode: this.looseFilter});
+                const walker: TreeWalker = doc.createTreeWalker(el, NF.SHOW_TEXT, {acceptNode: this.looseFilter});
 
                 const textNodes: Text[] = [];
                 const spans: NodeSpan[] = [];
@@ -93,7 +93,7 @@ export class TextExtractionManager {
                     cursor += len;
                 }
 
-                const text = buf;
+                const text:string = buf;
                 if (text.trim()) out.push({ container: el, textNodes, spans, text });
             } else {
                 queue.push(...Array.from(el.children));

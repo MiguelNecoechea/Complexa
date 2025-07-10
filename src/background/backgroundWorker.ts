@@ -1,6 +1,10 @@
+import {Settings} from "../models/Settings";
+
 const BACKGROUND_ACTIONS = {
     INITIATE_KANJI_READING_SCRIPT: "initiateKanjiReadingScript",
 };
+
+
 
 function setupMessageListeners(): void {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -13,26 +17,15 @@ function setupMessageListeners(): void {
                 console.log("Target tab ID:", message.tabId);
 
                 try {
-                    chrome.scripting
-                        .executeScript({
+                    chrome.scripting.executeScript({
                             target: { tabId: message.tabId, allFrames: true },
                             files: ["dist/scripts/content/kanjiReading.js"],
-                        })
-                        .then(() => {
-                            console.log(
-                                "Kanji reading script injected successfully",
-                            );
+                        }).then(() => {
+                            console.log("Kanji reading script injected successfully");
                             sendResponse({ success: true });
-                        })
-                        .catch((error) => {
-                            console.error(
-                                "Error injecting kanji reading script:",
-                                error,
-                            );
-                            sendResponse({
-                                success: false,
-                                error: error.message,
-                            });
+                        }).catch((error) => {
+                            console.error("Error injecting kanji reading script:", error);
+                            sendResponse({success: false, error: error.message});
                         });
                     return true;
                 } catch (error) {
@@ -46,22 +39,15 @@ function setupMessageListeners(): void {
                 console.error("No tabId provided in message");
                 sendResponse({ success: false, error: "No tabId provided" });
             }
+        } else if (message.action === "JISHO_LOOKUP") {
+            console.log("Trying to search :p")
         }
 
         return false;
     });
 }
 
-interface Settings {
-    enableReadings: boolean;
-    enableDictionary: boolean;
-    enableTextSegmentation: boolean;
-    enableWordFilters: boolean;
-    enableKanjiExtraction: boolean;
-    enableQuiz: boolean;
-    readingType: string;
-    [key: string]: boolean | string;
-}
+
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log("Extension installed or updated");

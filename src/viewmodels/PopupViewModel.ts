@@ -9,7 +9,6 @@ export class PopupViewModel {
     public settings!: PopupSettings;
 
     /**
-     * @param settingsService - allows injecting a custom SettingsService (e.g. for testing)
      * @param tabService - allows injecting a custom TabService (e.g. for testing)
      */
     constructor(tabService: TabService = new TabService()) {

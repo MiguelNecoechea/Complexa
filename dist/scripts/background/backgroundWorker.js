@@ -1,9 +1,26 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
+/******/ 	// The require scope
+/******/ 	var __webpack_require__ = {};
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
 /*!********************************************!*\
   !*** ./src/background/backgroundWorker.ts ***!
   \********************************************/
-
+__webpack_require__.r(__webpack_exports__);
 const BACKGROUND_ACTIONS = {
     INITIATE_KANJI_READING_SCRIPT: "initiateKanjiReadingScript",
 };
@@ -15,21 +32,15 @@ function setupMessageListeners() {
             if (message.tabId) {
                 console.log("Target tab ID:", message.tabId);
                 try {
-                    chrome.scripting
-                        .executeScript({
+                    chrome.scripting.executeScript({
                         target: { tabId: message.tabId, allFrames: true },
                         files: ["dist/scripts/content/kanjiReading.js"],
-                    })
-                        .then(() => {
+                    }).then(() => {
                         console.log("Kanji reading script injected successfully");
                         sendResponse({ success: true });
-                    })
-                        .catch((error) => {
+                    }).catch((error) => {
                         console.error("Error injecting kanji reading script:", error);
-                        sendResponse({
-                            success: false,
-                            error: error.message,
-                        });
+                        sendResponse({ success: false, error: error.message });
                     });
                     return true;
                 }
@@ -42,6 +53,9 @@ function setupMessageListeners() {
                 console.error("No tabId provided in message");
                 sendResponse({ success: false, error: "No tabId provided" });
             }
+        }
+        else if (message.action === "JISHO_LOOKUP") {
+            console.log("Trying to search :p");
         }
         return false;
     });
@@ -73,6 +87,7 @@ chrome.runtime.onStartup.addListener(() => {
     console.log("Extension started");
 });
 setupMessageListeners();
+
 
 /******/ })()
 ;

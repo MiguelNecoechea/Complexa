@@ -3,7 +3,18 @@ import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
 import { ReadingMode } from "../content/linguisticsContents/JapaneseReadingContent";
 
+import JishoDetailView from "../views/JishoDetailView";
+
 import * as wanakana from "wanakana";
+import {JishoEntry} from "../models/Jisho";
+
+interface JishoLookupRequest {
+    type: "JISHO_LOOKUP";
+    query: string;
+}
+
+type JishoLookupResponse = | { ok: true;  data: { data: JishoEntry[] } } | { ok: false; err: unknown };
+
 
 const BINDINGS = {
     SURFACE: "jp-surface",
@@ -20,23 +31,6 @@ const BINDINGS = {
     SEARCH_BTN: "jp-search-btn",
 };
 
-// Helping functions
-
-function getReadingMode(): ReadingMode {
-    return ((window as any).readingMode as ReadingMode) || "hiragana";
-}
-
-function convertReading(reading: string): string {
-    const mode = getReadingMode();
-    switch (mode) {
-        case "katakana":
-            return wanakana.toKatakana(reading);
-        case "romaji":
-            return wanakana.toRomaji(reading);
-        default:
-            return wanakana.toHiragana(reading);
-    }
-}
 
 export default class HoverTokenView {
     private tooltip = ensureTooltip();
@@ -45,6 +39,14 @@ export default class HoverTokenView {
     private mouseY = 0;
     private isLocked = false;
     private skipNextMove = false;
+
+    private jishoView: JishoDetailView = new JishoDetailView((): void => {
+        if (this.activeSpan) {
+            this.tooltip.style.opacity = "1";
+            this.reposition();
+        }
+    });
+
 
     constructor() {
         this.attachListeners();
@@ -204,6 +206,9 @@ export default class HoverTokenView {
         id(BINDINGS.MORPH).textContent = vm.morph;
 
         const btn = document.getElementById("jp-exclude-btn") as HTMLButtonElement;
+        const allowed: string[] = ["NOUN", "VERB", "ADJ"];
+        const searchBtn: HTMLButtonElement = id<HTMLButtonElement>(BINDINGS.SEARCH_BTN);
+
         btn.onclick = async (e: MouseEvent): Promise<void> => {
             e.stopPropagation();
             await FilterTokens.instance.add(vm.surface);
@@ -211,37 +216,76 @@ export default class HoverTokenView {
             this.hide();
         };
 
-        const searchBtn = id<HTMLButtonElement>(BINDINGS.SEARCH_BTN);
-        const allowed = ["NOUN", "VERB", "ADJ"];
-        if (allowed.includes(vm.pos)) {
-            searchBtn.style.display = "inline-block";
-            searchBtn.onclick = (e: MouseEvent): void => {
-                e.stopPropagation();
-                const query = vm.lemma || vm.surface;
-                // Temporal implementation
-                const url = `https://jisho.org/search/${encodeURIComponent(query)}`;
-                window.open(url, "_blank");
-            };
-        } else {
-            searchBtn.style.display = "none";
-        }
+
+        allowed.includes(vm.pos) ? (searchBtn.style.display = "inline-block") : (searchBtn.style.display = "none");
+
+        searchBtn.onclick = async (e: MouseEvent): Promise<void> => {
+            e.stopPropagation();
+            try {
+                this.tooltip.style.opacity = "0";
+                const entry = await this.lookupJisho(vm.lemma || vm.surface);
+                this.jishoView.show(entry);
+            } catch (err) {
+                console.error(err);
+                alert("Lookup failed.");
+            }
+        };
+    }
+
+    private lookupJisho(word: string): Promise<JishoEntry> {
+        return new Promise<JishoEntry>((resolve, reject) => {
+            const req: JishoLookupRequest = { type: "JISHO_LOOKUP", query: word };
+
+            chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(
+                req,
+                (resp) => {
+                    if (chrome.runtime.lastError) {
+                        /* Typing chrome.runtime errors requires lib.dom.d.ts or @types/chrome */
+                        return reject(chrome.runtime.lastError);
+                    }
+                    if (resp?.ok) {
+                        const first = resp.data.data[0];
+                        return first ? resolve(first) : reject(new Error("No definition"));
+                    }
+                    return reject(resp?.err ?? new Error("Unknown error"));
+                },
+            );
+        });
+    }
+
+}
+
+// Helping functions
+function getReadingMode(): ReadingMode {
+    return ((window as any).readingMode as ReadingMode) || "hiragana";
+}
+
+function convertReading(reading: string): string {
+    const mode: ReadingMode = getReadingMode();
+    switch (mode) {
+        case "katakana":
+            return wanakana.toKatakana(reading);
+        case "romaji":
+            return wanakana.toRomaji(reading);
+        default:
+            return wanakana.toHiragana(reading);
     }
 }
+
 
 // Helper for the binding.
 function id<T extends HTMLElement>(s: string): T {
     return document.getElementById(s) as T;
 }
 
-// Helper for injecting
 function ensureTooltip(): HTMLElement {
-    let node = document.getElementById("tooltip");
+    let node: HTMLElement | null = document.getElementById("tooltip");
     if (!node) {
         node = document.createElement("div");
         node.id = "tooltip";
         node.className = "jp-tooltip";
         node.innerHTML = `
-            <table class="jp-table"><tbody><!-- existing <tr>s here --></tbody></table>
+            <table class="jp-table"><tbody></tbody></table>
             <div class="jp-actions">
                 <button id="jp-exclude-btn" class="jp-btn exclude-btn">✕</button>
                 <button id="jp-search-btn" class="jp-btn search-btn">意味を見る</button>
@@ -249,7 +293,7 @@ function ensureTooltip(): HTMLElement {
         document.body.appendChild(node);
 
         /* Inject minimal style only once */
-        const style = document.createElement("style");
+        const style: HTMLStyleElement = document.createElement("style");
         style.textContent = `
             .jp-actions { margin-top: 6px; text-align: right; }
             .jp-btn { padding: 4px 6px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }

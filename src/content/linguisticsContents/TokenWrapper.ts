@@ -27,9 +27,9 @@ import { FilterTokens } from "../../appFunctions/WordFilters/FilterTokens";
 import HoverTokenView from "../../views/HoverTokenView";
 
 export class TokenWrapper {
-    private tooltipReady = false;
+    private tooltipReady: boolean = false;
 
-    constructor(private readonly tokenFilter = FilterTokens.instance) {}
+    constructor(private readonly tokenFilter: FilterTokens = FilterTokens.instance) {}
 
     /**
      * Public entry point – wrap the whole page (or selection).
@@ -45,10 +45,12 @@ export class TokenWrapper {
      */
     async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
+        let tokIdx: number = 0;
+        let paraOffset: number = 0;
 
-        for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
-            const paragraph = paragraphs[pIdx];
-            const tokens = tokenizedArrays[pIdx] ?? [];
+        for (let pIdx: number = 0; pIdx < paragraphs.length; pIdx++) {
+            const paragraph: Paragraph = paragraphs[pIdx];
+            const tokens: Token[] = tokenizedArrays[pIdx] ?? [];
             const row: HTMLElement[] = [];
 
             if (!tokens.length) {
@@ -56,8 +58,8 @@ export class TokenWrapper {
                 continue;
             }
 
-            let tokIdx = 0;
-            let paraOffset = 0;
+            tokIdx = 0;
+            paraOffset = 0;
             for (const node of paragraph.textNodes) {
                 const { fragment, consumed } = this.wrapTextNode(
                     node,
@@ -87,39 +89,26 @@ export class TokenWrapper {
      * @param paraOffset  Absolute paragraph offset of node.data[0].
      * @param row         Collects <span> references for caller.
      */
-    private wrapTextNode(
-        node: Text,
-        tokens: Token[],
-        startIdx: number,
-        paraOffset: number,
-        row: HTMLElement[],
+    private wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[]
     ): { fragment: DocumentFragment; consumed: number } {
-        const frag = node.ownerDocument!.createDocumentFragment();
-        const text = node.data;
-        const nodeEnd = paraOffset + text.length;
+        const frag: DocumentFragment = node.ownerDocument!.createDocumentFragment();
+        const text: string = node.data;
+        const nodeEnd: number = paraOffset + text.length;
 
-        let localPos = 0;
-        let idx = startIdx;
+        let localPos: number = 0;
+        let idx: number = startIdx;
 
         while (idx < tokens.length && tokens[idx].offset < nodeEnd) {
-            const tok = tokens[idx];
-            const relStart = tok.offset - paraOffset;
+            const tok: Token = tokens[idx];
+            const relStart: number = tok.offset - paraOffset;
 
-            if (relStart > localPos) {
-                frag.append(
-                    node.ownerDocument!.createTextNode(
-                        text.slice(localPos, relStart),
-                    ),
-                );
-            }
+            if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
 
-            if (
-                this.tokenFilter.shouldExclude(tok) ||
-                tok.is_japanese == "false"
-            ) {
+
+            if (this.tokenFilter.shouldExclude(tok) || !tok.is_japanese) {
                 frag.append(node.ownerDocument!.createTextNode(tok.surface));
             } else {
-                const span = this.buildSpan(tok);
+                const span: HTMLSpanElement = this.buildSpan(tok);
                 frag.append(span);
                 row.push(span);
             }
@@ -128,11 +117,7 @@ export class TokenWrapper {
             idx++;
         }
 
-        if (localPos < text.length) {
-            frag.append(
-                node.ownerDocument!.createTextNode(text.slice(localPos)),
-            );
-        }
+        if (localPos < text.length) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos)));
 
         return { fragment: frag, consumed: idx - startIdx };
     }
@@ -145,7 +130,7 @@ export class TokenWrapper {
      * @param tok Token metadata from the backend (surface, reading, pos, ...).
      */
     private buildSpan(tok: Token): HTMLSpanElement {
-        const span = document.createElement("span");
+        const span: HTMLSpanElement = document.createElement("span");
         span.textContent = tok.surface;
         span.classList.add("lingua-token", "mw-no-invert", "notheme");
 
@@ -171,9 +156,8 @@ export class TokenWrapper {
     private async mountHoverToolTip(): Promise<void> {
         if (this.tooltipReady) return;
 
-        const hoverHTML = await fetch(
-            chrome.runtime.getURL("static/views/hoverView.html"),
-        ).then((r) => r.text());
+        const hoverHTML: string = await fetch(chrome.runtime.getURL("static/views/hoverView.html"))
+            .then((r: Response): Promise<string> => r.text());
 
         document.body.insertAdjacentHTML("beforeend", hoverHTML);
         new HoverTokenView();

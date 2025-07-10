@@ -8,7 +8,7 @@ export class JapaneseTextColoring {
     public addPOSAnnotations(): void {
         const spans = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
 
-        spans.forEach((span) => {
+        spans.forEach((span: HTMLSpanElement): void => {
             const token: Token = {
                 surface: span.textContent || "",
                 reading: span.dataset.reading || "",
