@@ -20,37 +20,35 @@ function escapeHtml(str: string): string {
  * Mirrors the Python _add_reading logic.
  */
 function addReading(surface: string, reading: string, mode: ReadingMode): string {
-    const rawReading = typeof reading === "string" ? reading : "";
 
-    const readingHira = wanakana.toHiragana(rawReading);
+    const readingHira: string = wanakana.toHiragana(reading);
     const out: string[] = [];
     const kanjiBuf: string[] = [];
-    let sIdx = 0;
-    let rIdx = 0;
+    let sIdx: number = 0;
+    let rIdx: number = 0;
 
     const flush = (upTo: number) => {
         if (kanjiBuf.length === 0) return;
 
-        const core = kanjiBuf.join("");
-        let final = readingHira.slice(rIdx, upTo);
+        const core: string = kanjiBuf.join("");
+        let final: string = readingHira.slice(rIdx, upTo);
 
         if (mode === "katakana") final = wanakana.toKatakana(final);
         else if (mode === "romaji") final = wanakana.toRomaji(final);
 
-        out.push(`<ruby><rb>${escapeHtml(core)}</rb><rt>${escapeHtml(final)}</rt></ruby>`);
-
+        out.push(`<ruby>${escapeHtml(core)}<rt>${escapeHtml(final)}</rt></ruby>`);
         kanjiBuf.length = 0;
         rIdx = upTo;
     };
 
     while (sIdx < surface.length) {
-        const ch = surface[sIdx];
+        const ch: string = surface[sIdx];
         if (KANJI_RE.test(ch)) {
             kanjiBuf.push(ch);
         } else {
-            const kana = wanakana.toHiragana(ch);
-            const start = kanjiBuf.length ? rIdx + 1 : rIdx;
-            let nextPos = readingHira.indexOf(kana, start);
+            const kana: string = wanakana.toHiragana(ch);
+            const start: number = kanjiBuf.length ? rIdx + 1 : rIdx;
+            let nextPos: number = readingHira.indexOf(kana, start);
             if (nextPos === -1) nextPos = readingHira.length;
 
             flush(nextPos);
@@ -79,12 +77,12 @@ export class KanjiReadingsProcessor {
     public addReadings(): void {
         if (this.readingsAdded) return;
 
-        const spans =
+        const spans: NodeListOf<HTMLSpanElement> =
             document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
 
-        spans.forEach((span) => {
-            const surface = span.textContent || "";
-            const reading = span.dataset.reading || "";
+        spans.forEach((span: HTMLSpanElement): void => {
+            const surface: string = span.textContent || "";
+            const reading : string= span.dataset.reading || "";
 
             span.innerHTML = addReading(surface, reading, this.readingMode);
         });
@@ -98,7 +96,7 @@ export class KanjiReadingsProcessor {
         if (!this.readingsAdded) return;
 
 
-        document.querySelectorAll("ruby rt").forEach((rt) => {
+        document.querySelectorAll("ruby rt").forEach((rt: Element): void => {
             const base = rt.textContent || "";
             let converted: string;
 
@@ -117,7 +115,7 @@ export class KanjiReadingsProcessor {
     }
 
     private addRubyStyles(): void {
-        const style = document.createElement("style");
+        const style: HTMLStyleElement = document.createElement("style");
         style.textContent = `ruby { line-height: 1.65; } ruby rt { font-size: .55em; white-space: nowrap; }`;
         document.head.appendChild(style);
     }
