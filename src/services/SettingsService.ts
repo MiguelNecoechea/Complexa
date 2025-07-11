@@ -44,11 +44,8 @@ export class SettingsService {
      * @param value - The new value to assign to the setting
      * @returns A promise that resolves when the update operation completes
      */
-    static async updateSetting<K extends keyof PopupSettings>(
-        key: K,
-        value: PopupSettings[K],
-    ): Promise<void> {
-        const settings = await this.getSettings();
+    static async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
+        const settings: PopupSettings = await this.getSettings();
         return new Promise((resolve) => {
             chrome.storage.sync.set({ ...settings, [key]: value }, resolve);
         });
@@ -61,9 +58,7 @@ export class SettingsService {
      * @param key - The setting key to retrieve
      * @returns A promise that resolves to the value of the setting
      */
-    static async getSetting<K extends keyof PopupSettings>(
-        key: K,
-    ): Promise<PopupSettings[K]> {
+    static async getSetting<K extends keyof PopupSettings>(key: K): Promise<PopupSettings[K]> {
         const settings = await this.getSettings();
         return settings[key];
     }
