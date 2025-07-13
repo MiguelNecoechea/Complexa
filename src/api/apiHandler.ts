@@ -14,24 +14,24 @@ export class APIHandler {
     }
 
     async tokenize(texts: string[]): Promise<Token[][]> {
-        const clean = texts.map((t) => t.trim()).filter(Boolean);
+        const clean: string[] = texts.map((t: string): string => t.trim()).filter(Boolean);
+
         if (!clean.length) return [];
 
         return this.fetchBatch(clean);
     }
 
     private async fetchBatch(texts: string[]): Promise<Token[][]> {
-        const payload = texts.map((t) => ({ text: t }));
+        const payload: {text: string}[] = texts.map((t: string): {text: string} => ({ text: t }));
 
-        const res = await fetch(`${this.apiUrl}${this.endpoints.TOKENIZE}`, {
+        const res: Response = await fetch(`${this.apiUrl}${this.endpoints.TOKENIZE}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
 
-        if (!res.ok) {
-            throw new Error(`Batch tokenize failed: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Batch tokenize failed: ${res.status}`);
+
         return (await res.json()) as Token[][];
     }
 }

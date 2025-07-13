@@ -23,7 +23,9 @@ export default class JishoDetailView {
         this.panel.classList.add("show");
     }
 
-    hide() { this.panel.classList.remove("show"); }
+    hide(): void {
+        this.panel.classList.remove("show");
+    }
 }
 
 function ensureJishoPanel(): HTMLElement {

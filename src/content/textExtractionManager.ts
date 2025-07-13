@@ -86,14 +86,17 @@ export class TextExtractionManager {
 
                 for (let n: Node | null; (n = walker.nextNode()); ) {
                     const txt = n as Text;
+                    const len: number = txt.data.length;
+
                     textNodes.push(txt);
-                    const len = txt.data.length;
                     spans.push({ node: txt, start: cursor, end: cursor + len });
+
                     buf += txt.data;
                     cursor += len;
                 }
 
                 const text:string = buf;
+
                 if (text.trim()) out.push({ container: el, textNodes, spans, text });
             } else {
                 queue.push(...Array.from(el.children));

@@ -28,10 +28,6 @@ export class JapaneseTextColoring {
 
             span.style.color = posColor;
 
-            if (token.pos === "VERB" || token.pos === "ADV") {
-                span.style.textDecoration = "underline";
-                span.style.textDecorationColor = tagColor;
-            }
         });
 
     }

@@ -61,13 +61,8 @@ export class TokenWrapper {
             tokIdx = 0;
             paraOffset = 0;
             for (const node of paragraph.textNodes) {
-                const { fragment, consumed } = this.wrapTextNode(
-                    node,
-                    tokens,
-                    tokIdx,
-                    paraOffset,
-                    row,
-                );
+                const { fragment, consumed } = this.wrapTextNode(node, tokens, tokIdx, paraOffset, row);
+
                 node.parentNode!.replaceChild(fragment, node);
                 tokIdx += consumed;
                 paraOffset += node.data.length;

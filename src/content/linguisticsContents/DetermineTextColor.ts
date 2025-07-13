@@ -1,3 +1,10 @@
+/*
+ * DetermineTextColor.ts
+ * This file is responsible for handling all the colors that the users sees when adding color to the text.
+ * this file is essential given that mostly we have colors definitions and a small function to create the CSS
+ * elements that the webpage text is going to have.
+ */
+
 import { Token } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
 
@@ -53,22 +60,22 @@ const DARK_INFLECTION_COLORS: ColorMap = {
 };
 
 export class DetermineTextColor {
-    private static matchDark = window.matchMedia?.("(prefers-color-scheme: dark)");
+    private static matchDark: MediaQueryList = window.matchMedia?.("(prefers-color-scheme: dark)");
 
     private static isDark(): boolean {
         return this.matchDark?.matches ?? false;
     }
 
     public determineColorToken(token: Token): TextProcessedColor {
-        const dark = DetermineTextColor.isDark();
-        const posPalette = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
-        const infPalette = dark ? DARK_INFLECTION_COLORS : LIGHT_INFLECTION_COLORS;
+        const dark: boolean = DetermineTextColor.isDark();
+        const posPalette: ColorMap = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
+        const infPalette: ColorMap = dark ? DARK_INFLECTION_COLORS : LIGHT_INFLECTION_COLORS;
 
-        const posKey = token.pos?.toUpperCase() ?? "";
-        const tagKey = token.tag ?? "";
+        const posKey: string = token.pos?.toUpperCase() ?? "";
+        const tagKey: string = token.tag ?? "";
 
-        const posColor = posPalette[posKey] ?? defaultColour(dark);
-        const tagColor = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
+        const posColor: string = posPalette[posKey] ?? defaultColour(dark);
+        const tagColor: string = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
 
         return { posColor, tagColor };
     }

@@ -11,7 +11,7 @@
  * (e.g. on Chromium without Google account), we transparently fall back to
  * `chrome.storage.local`. Nothing in the public API changes.
  *
- * The class is designed as a **lazy singleton** with an asynchronous `init()`
+ * The class is designed as a lazy singleton with an asynchronous init()
  * method so it can be safely imported and used it from anywhere in the content
  * scripts without worrying about race conditions.
  *
@@ -28,8 +28,8 @@ function normalise(value: string): TokenString {
 }
 
 export class FilterTokens {
-    private excluded = new Set<TokenString>();
-    private loaded = false;
+    private excluded: Set<string> = new Set<TokenString>();
+    private loaded: boolean = false;
     private static _instance: FilterTokens | null = null;
 
     private constructor() {}
@@ -44,14 +44,18 @@ export class FilterTokens {
         if (this.loaded) return;
 
         try {
-            const result = await chrome.storage.sync.get(STORAGE_KEY);
+            const result: {[key: string]: any} = await chrome.storage.sync.get(STORAGE_KEY);
             const list = result[STORAGE_KEY] as TokenString[] | undefined;
-            if (Array.isArray(list)) list.forEach((t) => this.excluded.add(t));
+
+            if (Array.isArray(list)) list.forEach((t: string): Set<string> => this.excluded.add(t));
+
             this.loaded = true;
         } catch (err) {
-            const result = await chrome.storage.local.get(STORAGE_KEY);
+            const result: {[key: string]: any} = await chrome.storage.local.get(STORAGE_KEY);
             const list = result[STORAGE_KEY] as TokenString[] | undefined;
-            if (Array.isArray(list)) list.forEach((t) => this.excluded.add(t));
+
+            if (Array.isArray(list)) list.forEach((t: string): Set<string> => this.excluded.add(t));
+
             this.loaded = true;
         }
 
@@ -73,17 +77,17 @@ export class FilterTokens {
     }
 
     shouldExclude(token: Token): boolean {
-        const s = normalise(token.surface);
-        return this.excluded.has(s);
+        const str: string = normalise(token.surface);
+        return this.excluded.has(str);
     }
 
     async add(...words: string[]): Promise<void> {
-        words.forEach((w) => this.excluded.add(normalise(w)));
+        words.forEach((word: string): Set<string> => this.excluded.add(normalise(word)));
         await this.persist();
     }
 
     async remove(...words: string[]): Promise<void> {
-        words.forEach((w) => this.excluded.delete(normalise(w)));
+        words.forEach((word: string): boolean => this.excluded.delete(normalise(word)));
         await this.persist();
     }
 

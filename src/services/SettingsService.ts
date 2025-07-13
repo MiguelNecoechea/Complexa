@@ -29,8 +29,8 @@ export class SettingsService {
      *          If a setting is not found in storage, its default value is used.
      */
     static async getSettings(): Promise<PopupSettings> {
-        return new Promise((resolve) => {
-            chrome.storage.sync.get(this.defaultSettings, (settings) => {
+        return new Promise((resolve): void => {
+            chrome.storage.sync.get(this.defaultSettings, (settings: {[key: string]: any}): void => {
                 resolve(settings as PopupSettings);
             });
         });
@@ -46,7 +46,8 @@ export class SettingsService {
      */
     static async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         const settings: PopupSettings = await this.getSettings();
-        return new Promise((resolve) => {
+
+        return new Promise((resolve): void => {
             chrome.storage.sync.set({ ...settings, [key]: value }, resolve);
         });
     }
@@ -59,7 +60,7 @@ export class SettingsService {
      * @returns A promise that resolves to the value of the setting
      */
     static async getSetting<K extends keyof PopupSettings>(key: K): Promise<PopupSettings[K]> {
-        const settings = await this.getSettings();
+        const settings: PopupSettings = await this.getSettings();
         return settings[key];
     }
 }

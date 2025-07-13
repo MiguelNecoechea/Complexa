@@ -3,6 +3,7 @@
 import { PopupSettings } from "../models/PopupSettings";
 import { SettingsService } from "../services/SettingsService";
 import { TabService } from "../services/TabService";
+import Tab = chrome.tabs.Tab;
 
 export class PopupViewModel {
     private tabService: TabService;
@@ -21,9 +22,8 @@ export class PopupViewModel {
      */
     async init(): Promise<PopupSettings> {
         this.settings = await SettingsService.getSettings();
-        if (this.settings.enableReadings) {
-            await this.injectManagerScript();
-        }
+        if (this.settings.enableReadings) await this.injectManagerScript();
+
         return this.settings;
     }
 
@@ -33,15 +33,12 @@ export class PopupViewModel {
     async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         await SettingsService.updateSetting(key, value);
 
-        if (key === "enableReadings") {
-            if (value) await this.injectManagerScript();
-        }
+        if (key === "enableReadings" && value) await this.injectManagerScript();
 
         if (key === "readingType" && this.settings.enableReadings) {
-            const tab = await this.tabService.getActiveTab();
-            if (tab?.id) {
-                await this.tabService.sendMessageToTab(tab.id, {action: "changeReadingType", readingType: value});
-            }
+            const tab: Tab | null = await this.tabService.getActiveTab();
+            if (tab?.id) await this.tabService.sendMessageToTab(tab.id, {action: "changeReadingType", readingType: value});
+
         }
     }
 
@@ -49,8 +46,9 @@ export class PopupViewModel {
      * Requests kanji readings from the content script, injecting it first if necessary.
      */
     async requestAddReadings(): Promise<void> {
-        const tab = await this.tabService.getActiveTab();
+        const tab: Tab | null = await this.tabService.getActiveTab();
         if (!tab?.id) return;
+
         await this.tabService.sendMessageToTab(tab.id, {action: "addReadings"});
     }
 
@@ -58,8 +56,9 @@ export class PopupViewModel {
      * Ensures the content script is loaded into the active tab for annotation.
      */
     private async injectManagerScript(): Promise<boolean> {
-        const tab = await this.tabService.getActiveTab();
+        const tab: Tab | null = await this.tabService.getActiveTab();
         if (!tab?.id) return false;
+
         await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
         return true;
     }

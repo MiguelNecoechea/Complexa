@@ -1,5 +1,5 @@
 import { TextExtractionManager } from "./textExtractionManager";
-import { KanjiReadingsProcessor } from "./linguisticsContents/JapaneseReadingContent";
+import {KanjiReadingsProcessor, ReadingMode} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { APIHandler } from "../api/apiHandler";
 import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
@@ -10,8 +10,9 @@ import { Paragraph } from "../models/Paragraph";
 import { Token } from "../models/JapaneseTokens";
 
 // UI imports
-import HoverTokenView from "../views/HoverTokenView";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import {ReadingTypes} from "../models/PopupSettings";
+import MessageSender = chrome.runtime.MessageSender;
 
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
@@ -29,9 +30,7 @@ export class LingusticsManager {
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
 
-    private tooltipReady: Boolean = false;
-
-    private tokenFilter = FilterTokens.instance;
+    private tokenFilter: FilterTokens = FilterTokens.instance;
     private tokenWrapper: TokenWrapper;
 
     constructor() {
@@ -45,7 +44,7 @@ export class LingusticsManager {
     }
 
     private async init(): Promise<void> {
-        const mode = await SettingsService.getSetting("readingType");
+        const mode: ReadingTypes = await SettingsService.getSetting("readingType");
         await this.tokenFilter.init();
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
@@ -53,38 +52,47 @@ export class LingusticsManager {
 
     private setupMessageListeners(): void {
         chrome.runtime.onMessage.addListener(
-            (message: any, sender, sendResponse) => {
+            (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
                 switch (message.action) {
                     case MESSAGE_TYPES.ADD_READINGS:
-                        (async () => {
-                            try {
-                                await this.ensureWrapped();
-                                this.textColorizer.addPOSAnnotations();
-                                this.kanjiReadingProcessor.addReadings();
-                                sendResponse({ success: true });
-                            } catch (err: any) {
-                                sendResponse({success: false, error: err.message || err});
-                            }
-                        })();
+                        this.handleAddReadings(sendResponse);
                         return true;
+
                     case MESSAGE_TYPES.CHANGE_READING_TYPE:
-                        this.kanjiReadingProcessor.changeReadingType(message.readingType);
-                        sendResponse({ success: true });
+                        this.handleChangeReadingType(message.readingType, sendResponse);
                         return false;
+
                     default:
-                        sendResponse({success: false, error: "Unknown action"});
+                        sendResponse({ success: false, error: "Unknown action" });
                         return false;
                 }
             },
         );
     }
-
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
 
         this.tokenizedArrays = await this.initPromise;
         this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays);
     }
+
+    // Listener functions
+    private async handleAddReadings(sendResponse: (response: any) => void): Promise<void> {
+        try {
+            await this.ensureWrapped();
+            this.textColorizer.addPOSAnnotations();
+            this.kanjiReadingProcessor.addReadings();
+            sendResponse({ success: true });
+        } catch (err: any) {
+            sendResponse({ success: false, error: err.message || err });
+        }
+    }
+
+    private handleChangeReadingType(readingType: ReadingMode, sendResponse: (response: any) => void): void {
+        this.kanjiReadingProcessor.changeReadingType(readingType);
+        sendResponse({ success: true });
+    }
+
 }
 
 console.log("Linguistcs Manager Injected");

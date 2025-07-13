@@ -27,7 +27,7 @@ function addReading(surface: string, reading: string, mode: ReadingMode): string
     let sIdx: number = 0;
     let rIdx: number = 0;
 
-    const flush = (upTo: number) => {
+    const flush = (upTo: number): void => {
         if (kanjiBuf.length === 0) return;
 
         const core: string = kanjiBuf.join("");
@@ -57,6 +57,7 @@ function addReading(surface: string, reading: string, mode: ReadingMode): string
         }
         sIdx++;
     }
+
     flush(readingHira.length);
     return out.join("");
 }
@@ -97,7 +98,7 @@ export class KanjiReadingsProcessor {
 
 
         document.querySelectorAll("ruby rt").forEach((rt: Element): void => {
-            const base = rt.textContent || "";
+            const base: string = rt.textContent || "";
             let converted: string;
 
             switch (mode) {

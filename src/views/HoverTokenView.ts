@@ -33,12 +33,12 @@ const BINDINGS = {
 
 
 export default class HoverTokenView {
-    private tooltip = ensureTooltip();
+    private tooltip: HTMLElement = ensureTooltip();
     private activeSpan: HTMLSpanElement | null = null;
-    private mouseX = 0;
-    private mouseY = 0;
-    private isLocked = false;
-    private skipNextMove = false;
+    private mouseX: number = 0;
+    private mouseY: number = 0;
+    private isLocked: boolean = false;
+    private skipNextMove: boolean = false;
 
     private jishoView: JishoDetailView = new JishoDetailView((): void => {
         if (this.activeSpan) {
@@ -53,7 +53,7 @@ export default class HoverTokenView {
     }
 
     private attachListeners(): void {
-        document.addEventListener("pointerover", (e) => {
+        document.addEventListener("pointerover", (e: PointerEvent): void => {
             if (this.isLocked) return;
 
             const span = (e.target as HTMLElement).closest("span[data-pos]") as HTMLSpanElement | null;
@@ -61,7 +61,7 @@ export default class HoverTokenView {
             if (span) this.activate(span);
         });
 
-        document.addEventListener("pointermove", (e) => {
+        document.addEventListener("pointermove", (e: PointerEvent): void => {
             if (this.skipNextMove) {
                 this.skipNextMove = false;
                 return;
@@ -81,9 +81,9 @@ export default class HoverTokenView {
         document.addEventListener("pointerout", (e) => {
             if (this.isLocked) return;
 
-            const fromSpan = (e.target as HTMLElement).closest("span[data-pos]");
-            const toSpan = (e.relatedTarget as HTMLElement | null)?.closest("span[data-pos]");
-            const intoTip = (e.relatedTarget as HTMLElement | null)?.closest("#tooltip");
+            const fromSpan: Element | null = (e.target as HTMLElement).closest("span[data-pos]");
+            const toSpan: Element | null | undefined = (e.relatedTarget as HTMLElement | null)?.closest("span[data-pos]");
+            const intoTip: Element | null | undefined = (e.relatedTarget as HTMLElement | null)?.closest("#tooltip");
 
             if (fromSpan && !toSpan && !intoTip) this.hide();
         });
@@ -94,14 +94,14 @@ export default class HoverTokenView {
         window.addEventListener("resize", () => this.trackUnderCursor());
     }
 
-    private activate(span: HTMLSpanElement) {
+    private activate(span: HTMLSpanElement): void {
         this.activeSpan = span;
         this.bind(new HoverTokenViewModel(this.spanToToken(span)));
         this.tooltip.style.opacity = "1";
         this.reposition();
     }
 
-    private hide() {
+    private hide(): void {
         if (this.isLocked) return;
 
         this.activeSpan = null;
@@ -109,7 +109,7 @@ export default class HoverTokenView {
         this.tooltip.style.transform = "translateY(6px)";
     }
 
-    private trackUnderCursor() {
+    private trackUnderCursor(): void {
         if (this.isLocked) return;
 
         if (this.skipNextMove) {
@@ -131,7 +131,7 @@ export default class HoverTokenView {
         else this.reposition();
     }
 
-    private handleClick(e: MouseEvent) {
+    private handleClick(e: MouseEvent): void {
         const clickedInsideTooltip: boolean = (e.target as HTMLElement).closest("#tooltip") !== null;
 
         const clickedSpan = (e.target as HTMLElement).closest("span[data-pos]") as HTMLElement | null;
@@ -153,20 +153,21 @@ export default class HoverTokenView {
         }
     }
 
-    private reposition() {
+    private reposition(): void {
         if (!this.activeSpan) return;
 
         const { left, top, width, height } = this.activeSpan.getBoundingClientRect();
 
         if (height === 0) return this.hide();
 
-        const w = this.tooltip.offsetWidth;
-        const h = this.tooltip.offsetHeight;
+        const w: number = this.tooltip.offsetWidth;
+        const h: number = this.tooltip.offsetHeight;
 
-        let x = left + width / 2 - w / 2;
-        let y = top - h - 8;
+        let x: number = left + width / 2 - w / 2;
+        let y: number = top - h - 8;
 
-        const vw = document.documentElement.clientWidth;
+        const vw: number = document.documentElement.clientWidth;
+
         x = Math.max(4, Math.min(x, vw - w - 4));
         y = y < 4 ? top + height + 8 : y;
 
@@ -223,7 +224,7 @@ export default class HoverTokenView {
             e.stopPropagation();
             try {
                 this.tooltip.style.opacity = "0";
-                const entry = await this.lookupJisho(vm.lemma || vm.surface);
+                const entry: JishoEntry = await this.lookupJisho(vm.lemma || vm.surface);
                 this.jishoView.show(entry);
             } catch (err) {
                 console.error(err);
@@ -236,15 +237,13 @@ export default class HoverTokenView {
         return new Promise<JishoEntry>((resolve, reject) => {
             const req: JishoLookupRequest = { type: "JISHO_LOOKUP", query: word };
 
-            chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(
-                req,
-                (resp) => {
-                    if (chrome.runtime.lastError) {
-                        /* Typing chrome.runtime errors requires lib.dom.d.ts or @types/chrome */
-                        return reject(chrome.runtime.lastError);
-                    }
+            chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(req,
+                (resp: JishoLookupResponse): void => {
+
+                    if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
+
                     if (resp?.ok) {
-                        const first = resp.data.data[0];
+                        const first: JishoEntry = resp.data.data[0];
                         return first ? resolve(first) : reject(new Error("No definition"));
                     }
                     return reject(resp?.err ?? new Error("Unknown error"));

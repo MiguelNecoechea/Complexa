@@ -4,7 +4,7 @@ export default class HoverTokenViewModel {
     private readonly DEFAULT_MESSAGE: string = "Data not found.";
     constructor(private readonly token: Token) {}
 
-    get surface() {
+    get surface(): string {
         return this.token.surface;
     }
 
@@ -46,8 +46,6 @@ export default class HoverTokenViewModel {
 
     get morph(): string {
         const m: MorphFeatures = this.token.morph;
-        return m && Object.keys(m).length
-            ? JSON.stringify(m)
-            : this.DEFAULT_MESSAGE;
+        return m && Object.keys(m).length ? JSON.stringify(m) : this.DEFAULT_MESSAGE;
     }
 }
