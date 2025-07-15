@@ -1,7 +1,6 @@
 import { TextExtractionManager } from "./textExtractionManager";
 import {KanjiReadingsProcessor, ReadingMode} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
-import { APIHandler } from "../api/apiHandler";
 import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
 import { SettingsService } from "../services/SettingsService";
 
@@ -18,15 +17,16 @@ const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
     ADD_POS_ANOTATIONS: "addPosAnnotations",
     CHANGE_READING_TYPE: "changeReadingType",
+    JISHO_LOOKUP: "JISHO_LOOKUP",
 };
 
 export class LingusticsManager {
     private readonly paragraphs: Paragraph[];
+    private readonly initPromise: Promise<Token[][]>;
+
     private tokenizedArrays: Token[][] = [];
     private tokenizedDOM: HTMLElement[][] = [];
 
-    private readonly initPromise: Promise<Token[][]>;
-    private apiHandler: APIHandler;
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
 
@@ -35,12 +35,20 @@ export class LingusticsManager {
 
     constructor() {
         this.paragraphs = TextExtractionManager.extract(document.querySelector("main") ?? document.body);
-        this.apiHandler = new APIHandler();
-        this.initPromise = this.apiHandler.tokenize(this.paragraphs.map((p) => p.text));
+        this.initPromise = this.remoteTokenize(this.paragraphs.map((p: Paragraph): string => p.text));
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
         this.textColorizer = new JapaneseTextColoring();
         this.tokenWrapper = new TokenWrapper(this.tokenFilter);
         this.init();
+    }
+
+    private async remoteTokenize(paragraphs: string[]): Promise<Token[][]> {
+        const resp = await chrome.runtime.sendMessage<{ action: string; paragraphs: string[]; },
+            { ok: boolean; tokens?: Token[][]; err?: any; }>(
+            {action: "TOKENIZE_PARAGRAPHS", paragraphs}
+        );
+        if (!resp.ok) throw resp.err ?? new Error("Tokenize failed");
+        return resp.tokens!;
     }
 
     private async init(): Promise<void> {
@@ -55,13 +63,14 @@ export class LingusticsManager {
             (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
                 switch (message.action) {
                     case MESSAGE_TYPES.ADD_READINGS:
-                        this.handleAddReadings(sendResponse);
+                        this.handleAddReadings().then(
+                            (): void => sendResponse({ ok: true }),
+                            (err: any): void => sendResponse({ ok: false, err }),
+                        );
                         return true;
-
                     case MESSAGE_TYPES.CHANGE_READING_TYPE:
                         this.handleChangeReadingType(message.readingType, sendResponse);
                         return false;
-
                     default:
                         sendResponse({ success: false, error: "Unknown action" });
                         return false;
@@ -69,6 +78,7 @@ export class LingusticsManager {
             },
         );
     }
+
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
 
@@ -77,14 +87,12 @@ export class LingusticsManager {
     }
 
     // Listener functions
-    private async handleAddReadings(sendResponse: (response: any) => void): Promise<void> {
+    private async handleAddReadings(): Promise<void> {
         try {
             await this.ensureWrapped();
             this.textColorizer.addPOSAnnotations();
             this.kanjiReadingProcessor.addReadings();
-            sendResponse({ success: true });
         } catch (err: any) {
-            sendResponse({ success: false, error: err.message || err });
         }
     }
 
