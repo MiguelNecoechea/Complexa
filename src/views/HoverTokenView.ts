@@ -9,8 +9,8 @@ import * as wanakana from "wanakana";
 import {JishoEntry} from "../models/Jisho";
 
 interface JishoLookupRequest {
-    type: "JISHO_LOOKUP";
-    query: string;
+    action: "JISHO_LOOKUP";
+    word: string;
 }
 
 type JishoLookupResponse = | { ok: true;  data: { data: JishoEntry[] } } | { ok: false; err: unknown };
@@ -234,19 +234,20 @@ export default class HoverTokenView {
     }
 
     private lookupJisho(word: string): Promise<JishoEntry> {
-        return new Promise<JishoEntry>((resolve, reject) => {
-            const req: JishoLookupRequest = { type: "JISHO_LOOKUP", query: word };
+        return new Promise((resolve, reject) => {
+            const req: JishoLookupRequest = { action: "JISHO_LOOKUP", word };
 
-            chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(req,
-                (resp: JishoLookupResponse): void => {
-
+            chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(
+                req,
+                (resp: JishoLookupResponse) => {
                     if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
-
                     if (resp?.ok) {
-                        const first: JishoEntry = resp.data.data[0];
-                        return first ? resolve(first) : reject(new Error("No definition"));
+                        // @ts-ignore
+                        const first = resp.data[0];
+                        return first ? resolve(first)
+                            : reject(new Error("No definition"));
                     }
-                    return reject(resp?.err ?? new Error("Unknown error"));
+                    reject(resp?.err ?? new Error("Unknown error"));
                 },
             );
         });
