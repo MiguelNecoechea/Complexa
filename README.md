@@ -72,4 +72,7 @@ unique list of characters for quick reference.
 3. Press **Add Readings** to annotate the current tab.
 4. Launch the full page app for future features.
 
+## Acknowledgments
+*  Kim, Miwa and Andrew for [Jisho](https://jisho.org)
+
 Complexa is still under active development, but the core reading and dictionary functions are stable. Contributions and feedback are welcome!
