@@ -1,8 +1,37 @@
 import {Settings} from "../models/Settings";
+import { fetchJishoMeaning, tokenizeBatch }  from  "../api/apiHandler"
+import { JishoLookupResponse, JishoEntry } from "../models/Jisho";
+import MessageSender = chrome.runtime.MessageSender;
+import {Token} from "../models/JapaneseTokens";
 
-const BACKGROUND_ACTIONS = {
-    INITIATE_KANJI_READING_SCRIPT: "initiateKanjiReadingScript",
-};
+const ACTIONS = {
+    TOKENIZE_PARAGRAPHS: "TOKENIZE_PARAGRAPHS",
+    JISHO_LOOKUP:       "JISHO_LOOKUP",
+} as const;
+
+chrome.runtime.onMessage.addListener((msg: { action: string; [k: string]: any }, _sender: MessageSender, sendResponse): boolean | void => {
+
+    switch (msg.action) {
+        case ACTIONS.TOKENIZE_PARAGRAPHS: {
+            tokenizeBatch(msg.paragraphs as string[])
+                .then((tokens: Token[][]): void => sendResponse({ ok: true, tokens }))
+                .catch((err: unknown): void    => sendResponse({ ok: false, err }));
+            return true;
+        }
+        case ACTIONS.JISHO_LOOKUP: {
+            fetchJishoMeaning(msg.word as string)
+                .then((data: JishoEntry[]): void => {
+                    const res: JishoLookupResponse = { ok: true, data };
+                    sendResponse(res);
+                })
+                .catch((err: unknown): void => sendResponse({ ok: false, err }));
+            return true;
+        }
+        default:
+            sendResponse({ ok: false, err: `Unknown action: ${msg.action}` });
+            return false;
+    }
+});
 
 chrome.runtime.onInstalled.addListener((): void => {
     console.log("Extension installed or updated");
