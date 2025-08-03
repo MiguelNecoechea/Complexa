@@ -1,26 +1,34 @@
 <div id="tooltip" class="jp-tooltip">
     <table>
         <tbody>
-            <tr><th>Surface</th><td id="jp-surface"></td></tr>
-            <tr><th>Reading</th><td id="jp-reading"></td></tr>
-            <tr><th>Lemma</th><td id="jp-lemma"></td></tr>
-            <tr><th>Part of Speech</th><td id="jp-pos"></td></tr>
-            <tr><th>Tag</th><td id="jp-tag"></td></tr>
-            <tr><th>Dependency</th><td id="jp-dep"></td></tr>
-            <tr><th>Head</th><td id="jp-head"></td></tr>
-            <tr><th>Offset</th><td id="jp-offset"></td></tr>
-            <tr><th>IOB</th><td id="jp-iob"></td></tr>
-            <tr><th>Entity</th><td id="jp-entity"></td></tr>
-            <tr><th>Morph Features</th><td id="jp-morph"></td></tr>
-            <tr>
-                <td colspan="2" style="padding-top: 8px">
+            <tr class="jp-morph-row"><th>Surface</th><td id="jp-surface"></td></tr>
+            <tr class="jp-morph-row"><th>Reading</th><td id="jp-reading"></td></tr>
+            <tr class="jp-morph-row"><th>Lemma</th><td id="jp-lemma"></td></tr>
+            <tr class="jp-morph-row"><th>Part of Speech</th><td id="jp-pos"></td></tr>
+            <tr class="jp-morph-row"><th>Tag</th><td id="jp-tag"></td></tr>
+            <tr class="jp-morph-row"><th>Dependency</th><td id="jp-dep"></td></tr>
+            <tr class="jp-morph-row"><th>Head</th><td id="jp-head"></td></tr>
+            <tr class="jp-morph-row"><th>Offset</th><td id="jp-offset"></td></tr>
+            <tr class="jp-morph-row"><th>IOB</th><td id="jp-iob"></td></tr>
+            <tr class="jp-morph-row"><th>Entity</th><td id="jp-entity"></td></tr>
+            <tr class="jp-morph-row"><th>Morph Features</th><td id="jp-morph"></td></tr>
+
+            <tr class="jp-jisho-row is-hidden" id="jp-jisho-row">
+                <td colspan="2">
+                    <div id="jp-jisho">
+                        <h3 id="jp-d-head"></h3>
+                        <p  id="jp-d-read" class="reading"></p>
+                        <ul id="jp-d-defs" class="defs"></ul>
+                        <button id="jp-back-btn" class="jp-btn">← Back</button>
+                    </div>
+                </td>
+            </tr>
+
+            <tr id="jp-action-row">
+                <td colspan="2" style="padding-top:8px">
                     <div class="jp-btn-row">
-                        <button id="jp-exclude-btn" class="jp-btn blue">
-                            Exclude word
-                        </button>
-                        <button id="jp-search-btn" class="jp-btn green">
-                            Look meaning
-                        </button>
+                        <button id="jp-exclude-btn" class="jp-btn blue">Exclude word</button>
+                        <button id="jp-search-btn"  class="jp-btn green">Look meaning</button>
                     </div>
                 </td>
             </tr>
@@ -134,5 +142,34 @@
 
     #jp-search-btn:hover {
         background-color: #1e7e34;
+    }
+
+    .jp-jisho-row { display:none; }
+    .jp-tooltip.dictionary-mode .jp-morph-row,
+    .jp-tooltip.dictionary-mode #jp-action-row { display:none; }
+    .jp-tooltip.dictionary-mode .jp-jisho-row  { display:table-row; }
+    .jp-tooltip.dictionary-mode .jp-jisho-row {
+        display:table-row;
+        max-height:999px; padding:inherit;
+    }
+
+    .jp-jisho-row, .jp-morph-row, #jp-action-row { transition:max-height .18s ease, padding .18s ease; }
+    .is-hidden { max-height:0; padding:0; }
+
+    #jp-back-btn{
+        display:block;
+        width:100%;
+        background:#068af3;
+        color:#fff;
+        border:none;
+        border-radius:8px;
+        margin-top:8px;
+        padding:8px;
+        cursor:pointer;
+        box-sizing:border-box;
+    }
+
+    #jp-back-btn:hover{
+        background:#1561ab;
     }
 </style>

@@ -3,8 +3,6 @@ import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
 import { ReadingMode } from "../content/linguisticsContents/JapaneseReadingContent";
 
-import JishoDetailView from "../views/JishoDetailView";
-
 import * as wanakana from "wanakana";
 import {JishoEntry} from "../models/Jisho";
 
@@ -33,20 +31,12 @@ const BINDINGS = {
 
 
 export default class HoverTokenView {
-    private tooltip: HTMLElement = ensureTooltip();
+    private tooltip: HTMLElement = document.getElementById("tooltip")!;
     private activeSpan: HTMLSpanElement | null = null;
     private mouseX: number = 0;
     private mouseY: number = 0;
     private isLocked: boolean = false;
     private skipNextMove: boolean = false;
-
-    private jishoView: JishoDetailView = new JishoDetailView((): void => {
-        if (this.activeSpan) {
-            this.tooltip.style.opacity = "1";
-            this.reposition();
-        }
-    });
-
 
     constructor() {
         this.attachListeners();
@@ -78,7 +68,7 @@ export default class HoverTokenView {
             this.trackUnderCursor();
         });
 
-        document.addEventListener("pointerout", (e) => {
+        document.addEventListener("pointerout", (e: PointerEvent): void => {
             if (this.isLocked) return;
 
             const fromSpan: Element | null = (e.target as HTMLElement).closest("span[data-pos]");
@@ -88,13 +78,20 @@ export default class HoverTokenView {
             if (fromSpan && !toSpan && !intoTip) this.hide();
         });
 
-        document.addEventListener("click", (e) => this.handleClick(e));
+        document.addEventListener("click", (e: MouseEvent): void => this.handleClick(e));
 
-        window.addEventListener("scroll", () => this.trackUnderCursor(), true);
-        window.addEventListener("resize", () => this.trackUnderCursor());
+        window.addEventListener("scroll", (): void => this.trackUnderCursor(), true);
+        window.addEventListener("resize", (): void => this.trackUnderCursor());
+
+
+        id("jp-back-btn").addEventListener("click", (e: MouseEvent): void => {
+            e.stopPropagation();
+            this.hideJisho();
+        });
     }
 
     private activate(span: HTMLSpanElement): void {
+        this.hideJisho();
         this.activeSpan = span;
         this.bind(new HoverTokenViewModel(this.spanToToken(span)));
         this.tooltip.style.opacity = "1";
@@ -223,27 +220,52 @@ export default class HoverTokenView {
         searchBtn.onclick = async (e: MouseEvent): Promise<void> => {
             e.stopPropagation();
             try {
-                this.tooltip.style.opacity = "0";
                 const entry: JishoEntry = await this.lookupJisho(vm.lemma || vm.surface);
-                this.jishoView.show(entry);
+                this.showJisho(entry);
             } catch (err) {
                 console.error(err);
                 alert("Lookup failed.");
             }
         };
+
     }
 
+    private showJisho(entry: JishoEntry): void {
+        this.tooltip.classList.add("dictionary-mode");
+
+        id("jp-d-head").textContent = entry.slug;
+
+        id("jp-d-read").textContent = convertReading(
+            this.activeSpan?.dataset.reading ?? entry.slug);
+
+        const defs: HTMLElement = id("jp-d-defs");
+
+        defs.innerHTML = "";
+
+        entry.senses[0].english_definitions.forEach((def: string): void =>
+            defs.insertAdjacentHTML("beforeend", `<li>${def}</li>`));
+    }
+
+    private hideJisho(): void {
+        this.tooltip.classList.remove("dictionary-mode");
+        id("jp-d-head").textContent = "";
+        id("jp-d-read").textContent = "";
+        id("jp-d-defs").innerHTML = "";
+    }
+
+
+
     private lookupJisho(word: string): Promise<JishoEntry> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject): void => {
             const req: JishoLookupRequest = { action: "JISHO_LOOKUP", word };
 
             chrome.runtime.sendMessage<JishoLookupRequest, JishoLookupResponse>(
                 req,
-                (resp: JishoLookupResponse) => {
+                (resp: JishoLookupResponse): void => {
                     if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
                     if (resp?.ok) {
                         // @ts-ignore
-                        const first = resp.data[0];
+                        const first: any = resp.data[0];
                         return first ? resolve(first)
                             : reject(new Error("No definition"));
                     }
@@ -273,34 +295,7 @@ function convertReading(reading: string): string {
 }
 
 
-// Helper for the binding.
 function id<T extends HTMLElement>(s: string): T {
     return document.getElementById(s) as T;
 }
 
-function ensureTooltip(): HTMLElement {
-    let node: HTMLElement | null = document.getElementById("tooltip");
-    if (!node) {
-        node = document.createElement("div");
-        node.id = "tooltip";
-        node.className = "jp-tooltip";
-        node.innerHTML = `
-            <table class="jp-table"><tbody></tbody></table>
-            <div class="jp-actions">
-                <button id="jp-exclude-btn" class="jp-btn exclude-btn">✕</button>
-                <button id="jp-search-btn" class="jp-btn search-btn">意味を見る</button>
-            </div>`;
-        document.body.appendChild(node);
-
-        /* Inject minimal style only once */
-        const style: HTMLStyleElement = document.createElement("style");
-        style.textContent = `
-            .jp-actions { margin-top: 6px; text-align: right; }
-            .jp-btn { padding: 4px 6px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-            .exclude-btn { background: #cccccc; color: #000; }
-            .search-btn { background: #28a745; color: #ffffff; }
-        `;
-        document.head.appendChild(style);
-    }
-    return node;
-}
