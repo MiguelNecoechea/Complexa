@@ -59,13 +59,13 @@
         position: fixed;
         z-index: 2147483647;
         max-width: 300px;
-        pointer-events: none;
+        pointer-events: auto;
         opacity: 0;
         transform: translateY(6px);
         transition:
             opacity 0.15s ease,
             transform 0.15s ease;
-
+        will-change: transform, left, top;
         background: var(--tooltip-bg);
         border: 1px solid var(--tooltip-border);
         color: var(--tooltip-text);

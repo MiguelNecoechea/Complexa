@@ -13,6 +13,8 @@ interface JishoLookupRequest {
 
 type JishoLookupResponse = | { ok: true;  data: { data: JishoEntry[] } } | { ok: false; err: unknown };
 
+const GAP = 8;
+const TIMEOUT = 69;
 
 const BINDINGS = {
     SURFACE: "jp-surface",
@@ -37,6 +39,9 @@ export default class HoverTokenView {
     private mouseY: number = 0;
     private isLocked: boolean = false;
     private skipNextMove: boolean = false;
+    private dictionaryMode: boolean = false;
+    private hideTimer: number | null = null;
+
 
     constructor() {
         this.attachListeners();
@@ -48,40 +53,68 @@ export default class HoverTokenView {
 
             const span = (e.target as HTMLElement).closest("span[data-pos]") as HTMLSpanElement | null;
 
+            if (span && this.hideTimer !== null) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
+            }
+
             if (span) this.activate(span);
         });
 
         document.addEventListener("pointermove", (e: PointerEvent): void => {
-            if (this.skipNextMove) {
-                this.skipNextMove = false;
+            if (this.hideTimer && this.isOverBridge(e.clientX, e.clientY)) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
                 return;
             }
-
-            this.mouseX = e.clientX;
-            this.mouseY = e.clientY;
-
-            if (this.skipNextMove) {
-                this.skipNextMove = false;
-                return;
+            if (
+                !this.hideTimer && !this.isLocked && !this.dictionaryMode &&
+                !(e.target as HTMLElement).closest("#tooltip") &&
+                !(e.target as HTMLElement).closest("span[data-pos]") &&
+                !this.isOverBridge(e.clientX, e.clientY)
+            ) {
+                this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
             }
-
-            this.trackUnderCursor();
         });
 
         document.addEventListener("pointerout", (e: PointerEvent): void => {
-            if (this.isLocked) return;
+
+            if (this.isLocked || this.dictionaryMode) return;
 
             const fromSpan: Element | null = (e.target as HTMLElement).closest("span[data-pos]");
-            const toSpan: Element | null | undefined = (e.relatedTarget as HTMLElement | null)?.closest("span[data-pos]");
-            const intoTip: Element | null | undefined = (e.relatedTarget as HTMLElement | null)?.closest("#tooltip");
+            const intoTip: Element | null | undefined  = (e.relatedTarget as HTMLElement | null)?.closest("#tooltip");
 
-            if (fromSpan && !toSpan && !intoTip) this.hide();
+            if (fromSpan && fromSpan === this.activeSpan && !intoTip) {
+                this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
+            }
         });
 
         document.addEventListener("click", (e: MouseEvent): void => this.handleClick(e));
-
         window.addEventListener("scroll", (): void => this.trackUnderCursor(), true);
         window.addEventListener("resize", (): void => this.trackUnderCursor());
+
+        this.tooltip.addEventListener("pointerenter", (): void => {
+            if (this.hideTimer !== null) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
+            }
+            this.isLocked = true;
+        });
+
+        this.tooltip.addEventListener("pointerleave", (e: PointerEvent): void => {
+            const intoSpan = (e.relatedTarget as HTMLElement | null)?.closest(
+                "span[data-pos]") as HTMLSpanElement | null;
+
+            if (intoSpan && intoSpan === this.activeSpan) {
+                this.isLocked = false;
+                return;
+            }
+
+            if (this.dictionaryMode) return;
+
+            this.isLocked = false;
+            this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
+        });
 
 
         id("jp-back-btn").addEventListener("click", (e: MouseEvent): void => {
@@ -96,6 +129,24 @@ export default class HoverTokenView {
         this.bind(new HoverTokenViewModel(this.spanToToken(span)));
         this.tooltip.style.opacity = "1";
         this.reposition();
+    }
+
+    private isOverBridge(cx: number, cy: number): boolean {
+        if (!this.activeSpan) return false;
+
+        const s: DOMRect = this.activeSpan.getBoundingClientRect();
+        const t: DOMRect = this.tooltip.getBoundingClientRect();
+
+        const minX: number = Math.min(s.left,  t.left ) - GAP;
+        const maxX: number = Math.max(s.right, t.right) + GAP;
+        const minY: number = Math.min(s.top,   t.top  ) - GAP;
+        const maxY: number = Math.max(s.bottom,t.bottom)+ GAP;
+
+        return cx >= minX && cx <= maxX && cy >= minY && cy <= maxY;
+    }
+
+    private tryHide(): void {
+        if (!this.isLocked && !this.dictionaryMode) this.hide();
     }
 
     private hide(): void {
@@ -244,6 +295,8 @@ export default class HoverTokenView {
 
         entry.senses[0].english_definitions.forEach((def: string): void =>
             defs.insertAdjacentHTML("beforeend", `<li>${def}</li>`));
+
+        this.dictionaryMode = true;
     }
 
     private hideJisho(): void {
@@ -251,9 +304,8 @@ export default class HoverTokenView {
         id("jp-d-head").textContent = "";
         id("jp-d-read").textContent = "";
         id("jp-d-defs").innerHTML = "";
+        this.dictionaryMode = false;
     }
-
-
 
     private lookupJisho(word: string): Promise<JishoEntry> {
         return new Promise((resolve, reject): void => {
@@ -274,7 +326,6 @@ export default class HoverTokenView {
             );
         });
     }
-
 }
 
 // Helping functions
@@ -294,8 +345,6 @@ function convertReading(reading: string): string {
     }
 }
 
-
 function id<T extends HTMLElement>(s: string): T {
     return document.getElementById(s) as T;
 }
-
