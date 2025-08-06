@@ -23,4 +23,5 @@ export interface PopupSettings {
     enableQuiz: boolean;
     enableKanjiExtraction: boolean;
     readingType: ReadingTypes;
+    darkMode?: boolean; // Optional setting for dark mode
 }

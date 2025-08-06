@@ -57,6 +57,13 @@ export class PopupView {
         this.initializeCheckbox(DOM_IDS.ENABLE_WORD_FILTERS, settings.enableWordFilters);
         this.initializeCheckbox(DOM_IDS.ENABLE_QUIZ, settings.enableQuiz);
         this.initializeCheckbox(DOM_IDS.ENABLE_KANJI_EXTRACTION, settings.enableKanjiExtraction);
+        
+        // Initialize dark mode
+        const darkModeSwitch = document.getElementById("dark-mode-switch") as HTMLInputElement;
+        if (darkModeSwitch && settings.darkMode !== undefined) {
+            darkModeSwitch.checked = settings.darkMode;
+            this.setupDarkMode(settings.darkMode);
+        }
     }
 
     private attachEventListeners(): void {
@@ -88,6 +95,37 @@ export class PopupView {
             enableReadingHelpersCheckbox.addEventListener("click", async (): Promise<void> => {
                 await this.controlListener(enableReadingsCheckbox, enableReadingHelpersCheckbox);
             });
+        }
+
+        // Dark mode switch event
+        const darkModeSwitch = document.getElementById("dark-mode-switch") as HTMLInputElement;
+        if (darkModeSwitch) {
+            darkModeSwitch.addEventListener("change", async () => {
+                await this.viewModel.updateSetting("darkMode", darkModeSwitch.checked);
+                this.setupDarkMode(darkModeSwitch.checked);
+            });
+        }
+    }
+
+    private setupDarkMode(enabled: boolean): void {
+        const body = document.body;
+        const popupContainer = document.querySelector('.popup-container');
+        const glass = document.querySelector('.glassmorphism');
+        const generalConfigs = document.querySelector('.general-configs-container');
+        const preferencesConfigs = document.querySelector('.preferences-configs-container');
+
+        if (enabled) {
+            body.classList.add('dark-mode');
+            if (popupContainer) popupContainer.classList.add('dark-mode');
+            if (glass) glass.classList.add('dark-mode');
+            if (generalConfigs) generalConfigs.classList.add('dark-mode');
+            if (preferencesConfigs) preferencesConfigs.classList.add('dark-mode');
+        } else {
+            body.classList.remove('dark-mode');
+            if (popupContainer) popupContainer.classList.remove('dark-mode');
+            if (glass) glass.classList.remove('dark-mode');
+            if (generalConfigs) generalConfigs.classList.remove('dark-mode');
+            if (preferencesConfigs) preferencesConfigs.classList.remove('dark-mode');
         }
     }
 
@@ -163,7 +201,26 @@ export class PopupView {
         const addReadingsButton: HTMLButtonElement = document.createElement("button");
         addReadingsButton.className = CSS_CLASSES.BUTTON;
         addReadingsButton.id = DOM_IDS.ADD_READINGS_BUTTON;
-        addReadingsButton.textContent = STRINGS.ADD_READINGS;
+        
+        const buttonContent = document.createElement("div");
+        buttonContent.style.display = "flex";
+        buttonContent.style.alignItems = "center";
+        buttonContent.style.justifyContent = "center";
+        buttonContent.style.gap = "8px";
+        
+        const icon = document.createElement("img");
+        icon.src = "/static/assets/icons/ui/add-reading.svg";
+        icon.alt = "";
+        icon.style.width = "20px";
+        icon.style.height = "20px";
+        icon.style.opacity = "0.9";
+        icon.style.filter = "brightness(0) invert(1)";
+        
+        const text = document.createTextNode(STRINGS.ADD_READINGS);
+        
+        buttonContent.appendChild(icon);
+        buttonContent.appendChild(text);
+        addReadingsButton.appendChild(buttonContent);
         addReadingsButton.style.width = "100%";
 
         addReadingsButton.addEventListener("click", async (): Promise<void> => {
@@ -187,9 +244,7 @@ export class PopupView {
     }
 
     private async controlListener(enableReadingsCheckbox: HTMLInputElement,
-        enableReadingHelpersCheckbox: HTMLInputElement): Promise<void>
-    {
-
+        enableReadingHelpersCheckbox: HTMLInputElement): Promise<void> {
         const readingIsChecked: boolean = enableReadingsCheckbox.checked;
         const helpersChecked: boolean = enableReadingHelpersCheckbox.checked;
 

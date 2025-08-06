@@ -20,6 +20,7 @@ export class SettingsService {
         enableQuiz: false,
         enableKanjiExtraction: false,
         readingType: "hiragana",
+        darkMode: false,
     };
 
     /**
