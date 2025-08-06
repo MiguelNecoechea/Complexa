@@ -4,6 +4,9 @@
   --primary-hover: #4f46e5;
   --primary-active: #4338ca;
   --primary-color-light: rgba(99, 102, 241, 0.15);
+  --primary-color-dark: #4f46e5;
+  --primary-hover-dark: #4338ca;
+  --primary-active-dark: #3730a3;
   
   /* Secondary colors */
   --secondary-color: #22c55e;
@@ -17,6 +20,8 @@
   /* Text colors */
   --text-primary: #1e293b;
   --text-secondary: #64748b;
+  --text-primary-dark: #f1f5f9;
+  --text-secondary-dark: #cbd5e1;
   
   /* Border colors */
   --border-color: #e2e8f0;
@@ -33,4 +38,12 @@
   /* Glass effect */
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.18);
+
+  /* Dark mode colors */
+  --bg-color-dark: #18181b;
+  --surface-color-dark: rgba(36, 36, 40, 0.95);
+  --glass-bg-dark: rgba(36, 36, 40, 0.85);
+  --text-primary-dark: #fafafa;
+  --text-secondary-dark: #a1a1aa;
+  --border-color-dark: #27272a;
 }
