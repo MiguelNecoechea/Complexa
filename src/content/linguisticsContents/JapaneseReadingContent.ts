@@ -5,7 +5,6 @@ const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
 export type ReadingMode = "romaji" | "hiragana" | "katakana";
 
-
 function escapeHtml(str: string): string {
     return str
         .replace(/&/g, "&amp;")

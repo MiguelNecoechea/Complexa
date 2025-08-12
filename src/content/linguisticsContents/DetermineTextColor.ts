@@ -16,25 +16,25 @@ function defaultColour(dark: boolean): string {
 
 // Light mode TextColors
 const LIGHT_POS_COLORS: ColorMap = {
-    NOUN: "#1f77b4", // blue
-    VERB: "#d62728", // red
-    ADJ: "#2ca02c", // green
-    ADV: "#ff7f0e", // orange
-    PRON: "#9467bd", // purple
-    PROPN: "#63A2B0", // aqua
-    PART: "#8c564b", // brown
-    AUX: "#e377c2", // pink
-    ADP: "#7f7f7f", // grey
-    CCONJ: "#bcbd22", // olive
-    SCONJ: "#17becf", // teal
+    NOUN: "#1f77b4",
+    VERB: "#d62728",
+    ADJ: "#2ca02c",
+    ADV: "#ff7f0e",
+    PRON: "#9467bd",
+    PROPN: "#63A2B0",
+    PART: "#8c564b",
+    AUX: "#e377c2",
+    ADP: "#7f7f7f",
+    CCONJ: "#bcbd22",
+    SCONJ: "#17becf",
 };
 
 const LIGHT_INFLECTION_COLORS: ColorMap = {
-    基本形: "#d62728", // dictionary form
-    過去形: "#9467bd", // past tense
-    未然形: "#8c564b", // negative stem
-    連用形: "#ff7f0e", // continuative form
-    意志形: "#e377c2", // volitional form
+    基本形: "#d62728", 
+    過去形: "#9467bd",
+    未然形: "#8c564b",
+    連用形: "#ff7f0e",
+    意志形: "#e377c2",
 };
 
 // Dark mode text colors
