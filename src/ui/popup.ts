@@ -10,7 +10,7 @@
 import { PopupView } from "../views/PopupView";
 
 // Local constants - defined directly in this file to avoid dependencies
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", (): void => {
     const popupView = new PopupView();
     popupView.init();
 });

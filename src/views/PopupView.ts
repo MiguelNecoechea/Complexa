@@ -55,8 +55,6 @@ export class PopupView {
         this.initializeCheckbox(DOM_IDS.ENABLE_READINGS, settings.enableReadings);
         this.initializeCheckbox(DOM_IDS.ENABLE_READING_HELPERS, settings.enableReadingHelpers);
         this.initializeCheckbox(DOM_IDS.ENABLE_WORD_FILTERS, settings.enableWordFilters);
-        this.initializeCheckbox(DOM_IDS.ENABLE_QUIZ, settings.enableQuiz);
-        this.initializeCheckbox(DOM_IDS.ENABLE_KANJI_EXTRACTION, settings.enableKanjiExtraction);
         
         // Initialize dark mode
         const darkModeSwitch = document.getElementById("dark-mode-switch") as HTMLInputElement;
@@ -79,8 +77,6 @@ export class PopupView {
         this.addSettingListener(DOM_IDS.ENABLE_DICTIONARY, "enableDictionary");
         this.addSettingListener(DOM_IDS.ENABLE_READING_HELPERS, "enableReadingHelpers");
         this.addSettingListener(DOM_IDS.ENABLE_WORD_FILTERS, "enableWordFilters");
-        this.addSettingListener(DOM_IDS.ENABLE_QUIZ, "enableQuiz");
-        this.addSettingListener(DOM_IDS.ENABLE_KANJI_EXTRACTION, "enableKanjiExtraction");
 
         const enableReadingsCheckbox = document.getElementById(DOM_IDS.ENABLE_READINGS) as HTMLInputElement;
         const enableReadingHelpersCheckbox = document.getElementById(DOM_IDS.ENABLE_READING_HELPERS) as HTMLInputElement;
