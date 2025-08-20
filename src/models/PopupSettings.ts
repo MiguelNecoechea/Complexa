@@ -1,6 +1,3 @@
-/*
-ReadingTypes supported by the application to make it better typed lol
-*/
 export type ReadingTypes = "romaji" | "hiragana" | "katakana";
 /**
  * Settings for the popup functionality.
@@ -20,8 +17,6 @@ export interface PopupSettings {
     enableReadings: boolean;
     enableReadingHelpers: boolean;
     enableWordFilters: boolean;
-    enableQuiz: boolean;
-    enableKanjiExtraction: boolean;
     readingType: ReadingTypes;
-    darkMode?: boolean; // Optional setting for dark mode
+    darkMode?: boolean;
 }
