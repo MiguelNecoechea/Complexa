@@ -1,9 +1,9 @@
 // Handles DOM traversal, messaging, and style injection
 import * as wanakana from "wanakana";
+import { ReadingTypes } from "../../models/PopupSettings";
+
 
 const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
-
-export type ReadingMode = "romaji" | "hiragana" | "katakana";
 
 function escapeHtml(str: string): string {
     return str
@@ -18,7 +18,7 @@ function escapeHtml(str: string): string {
  * Annotate a single token's surface with its reading.
  * Mirrors the Python _add_reading logic.
  */
-function addReading(surface: string, reading: string, mode: ReadingMode): string {
+function addReading(surface: string, reading: string, mode: ReadingTypes): string {
 
     const readingHira: string = wanakana.toHiragana(reading);
     const out: string[] = [];
@@ -63,9 +63,9 @@ function addReading(surface: string, reading: string, mode: ReadingMode): string
 
 export class KanjiReadingsProcessor {
     private readingsAdded: boolean = false;
-    private readingMode: ReadingMode;
+    private readingMode: ReadingTypes;
 
-    constructor(readingMode: ReadingMode) {
+    constructor(readingMode: ReadingTypes) {
         this.readingMode = readingMode;
         this.initialize();
     }
@@ -90,11 +90,10 @@ export class KanjiReadingsProcessor {
         this.readingsAdded = true;
     }
 
-    changeReadingType(mode: ReadingMode): void {
+    changeReadingType(mode: ReadingTypes): void {
         this.readingMode = mode;
 
         if (!this.readingsAdded) return;
-
 
         document.querySelectorAll("ruby rt").forEach((rt: Element): void => {
             const base: string = rt.textContent || "";
@@ -112,6 +111,7 @@ export class KanjiReadingsProcessor {
             }
             rt.textContent = converted;
         });
+
     }
 
     private addRubyStyles(): void {
