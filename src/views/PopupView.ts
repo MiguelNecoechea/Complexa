@@ -51,7 +51,6 @@ export class PopupView {
 
     private setupUI(settings: PopupSettings): void {
         // Initialize all checkboxes based on settings
-        this.initializeCheckbox(DOM_IDS.ENABLE_DICTIONARY, settings.enableDictionary);
         this.initializeCheckbox(DOM_IDS.ENABLE_READINGS, settings.enableReadings);
         this.initializeCheckbox(DOM_IDS.ENABLE_READING_HELPERS, settings.enableReadingHelpers);
         this.initializeCheckbox(DOM_IDS.ENABLE_WORD_FILTERS, settings.enableWordFilters);
@@ -74,7 +73,6 @@ export class PopupView {
             });
         }
 
-        this.addSettingListener(DOM_IDS.ENABLE_DICTIONARY, "enableDictionary");
         this.addSettingListener(DOM_IDS.ENABLE_READING_HELPERS, "enableReadingHelpers");
         this.addSettingListener(DOM_IDS.ENABLE_WORD_FILTERS, "enableWordFilters");
 

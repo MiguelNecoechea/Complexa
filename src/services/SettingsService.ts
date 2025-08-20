@@ -13,7 +13,6 @@ import { PopupSettings } from "../models/PopupSettings";
  */
 export class SettingsService {
     private static defaultSettings: PopupSettings = {
-        enableDictionary: false,
         enableReadings: true,
         enableReadingHelpers: false,
         enableWordFilters: false,

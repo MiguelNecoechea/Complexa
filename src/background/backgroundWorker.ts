@@ -38,7 +38,6 @@ chrome.runtime.onInstalled.addListener((): void => {
 
     chrome.storage.sync.get(null, (items): void => {
         const defaults: PopupSettings = {
-            enableDictionary: false,
             enableReadings: false,
             enableReadingHelpers: false,
             enableWordFilters: false,
