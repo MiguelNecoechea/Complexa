@@ -17,8 +17,6 @@ export class SettingsService {
         enableReadings: true,
         enableReadingHelpers: false,
         enableWordFilters: false,
-        enableQuiz: false,
-        enableKanjiExtraction: false,
         readingType: "hiragana",
         darkMode: false,
     };
