@@ -1,4 +1,4 @@
-import {Settings} from "../models/Settings";
+import {PopupSettings} from "../models/PopupSettings";
 import { fetchJishoMeaning, tokenizeBatch }  from  "../api/apiHandler"
 import { JishoLookupResponse, JishoEntry } from "../models/Jisho";
 import MessageSender = chrome.runtime.MessageSender;
@@ -37,25 +37,21 @@ chrome.runtime.onInstalled.addListener((): void => {
     console.log("Extension installed or updated");
 
     chrome.storage.sync.get(null, (items): void => {
-        const defaults: Settings = {
-            enableReadings: false,
+        const defaults: PopupSettings = {
             enableDictionary: false,
-            enableTextSegmentation: false,
+            enableReadings: false,
+            enableReadingHelpers: false,
             enableWordFilters: false,
-            enableKanjiExtraction: false,
-            enableQuiz: false,
             readingType: "hiragana",
+            darkMode: false
         };
 
-        const newSettings: Settings = { ...defaults };
-        for (const key in items) {
-            if (key in newSettings) {
-                newSettings[key] = (items as Record<string, any>)[key];
-            }
-        }
+        chrome.storage.sync.get(defaults, (stored): void => {
+            const newSettings: PopupSettings = { ...defaults, ...(stored as Partial<PopupSettings>) };
 
-        chrome.storage.sync.set(newSettings, (): void => {
-            console.log("Default settings initialized");
+            chrome.storage.sync.set(newSettings, (): void => {
+                console.log("Default settings initialized");
+            });
         });
     });
 });
