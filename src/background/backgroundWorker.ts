@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener((msg: { action: string; [k: string]: any },
 chrome.runtime.onInstalled.addListener((): void => {
     console.log("Extension installed or updated");
 
-    chrome.storage.sync.get(null, (items): void => {
+    chrome.storage.sync.get(null, (): void => {
         const defaults: PopupSettings = {
             enableReadings: false,
             enableReadingHelpers: false,
