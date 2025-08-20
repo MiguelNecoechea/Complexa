@@ -2,9 +2,12 @@ import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { JishoEntry } from "../models/Jisho";
 import { IJishoService } from "../services/JishoService";
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import * as wanakana from "wanakana";
+import {ReadingTypes} from "../models/PopupSettings";
 
 export default class HoverTokenViewModel {
-    private readonly DEFAULT_MESSAGE = "Data not found.";
+    private readonly DEFAULT_MESSAGE: string = "Data not found.";
+    private static readingMode:ReadingTypes = "katakana";
 
     private _token: Token | null = null;
 
@@ -22,7 +25,7 @@ export default class HoverTokenViewModel {
     }
 
     get surface(): string      { return this._token?.surface ?? ""; }
-    get reading(): string      { return this._token?.reading || this.DEFAULT_MESSAGE; }
+    get reading(): string      { return this.transformReading(this._token?.reading)}
     get lemma(): string        { return this._token?.lemma   || this.DEFAULT_MESSAGE; }
     get pos(): string          { return this._token?.pos     ?? ""; }
     get tag(): string          { return this._token?.tag     || this.DEFAULT_MESSAGE; }
@@ -36,6 +39,24 @@ export default class HoverTokenViewModel {
         return m && Object.keys(m).length ? JSON.stringify(m) : this.DEFAULT_MESSAGE;
     }
 
+    transformReading(rawReading: string | undefined): string {
+        let convertedReading: string;
+
+        if (rawReading === undefined) return this.DEFAULT_MESSAGE;
+
+        switch (HoverTokenViewModel.readingMode) {
+            case "hiragana":
+                convertedReading = wanakana.toHiragana(rawReading);
+                break;
+            case "romaji":
+                convertedReading = wanakana.toRomaji(rawReading);
+                break;
+            default:
+                convertedReading = wanakana.toKatakana(rawReading);
+        }
+
+        return convertedReading;
+    }
 
     async exclude(): Promise<string> {
         if (!this._token) return "";
@@ -47,6 +68,10 @@ export default class HoverTokenViewModel {
         if (!this._token) throw new Error("No token selected");
         const queryWord: string = this._token.lemma || this._token.surface;
         return this.jisho.lookup(queryWord);
+    }
+
+    public static updateReadingMode(newReadingMode: ReadingTypes): void {
+        this.readingMode = newReadingMode;
     }
 
 }

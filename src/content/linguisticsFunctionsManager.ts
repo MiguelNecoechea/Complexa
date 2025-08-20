@@ -1,8 +1,10 @@
 import { TextExtractionManager } from "./textExtractionManager";
-import {KanjiReadingsProcessor, ReadingMode} from "./linguisticsContents/JapaneseReadingContent";
+import {KanjiReadingsProcessor} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
 import { SettingsService } from "../services/SettingsService";
+import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel"
+
 
 // Custom types
 import { Paragraph } from "../models/Paragraph";
@@ -39,7 +41,11 @@ export class LingusticsManager {
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
         this.textColorizer = new JapaneseTextColoring();
         this.tokenWrapper = new TokenWrapper(this.tokenFilter);
-        this.init();
+        this.init().then(
+            (): void => {
+                console.log("Extension manager initialized.");
+            }
+        )
     }
 
     private async remoteTokenize(paragraphs: string[]): Promise<Token[][]> {
@@ -54,6 +60,7 @@ export class LingusticsManager {
     private async init(): Promise<void> {
         const mode: ReadingTypes = await SettingsService.getSetting("readingType");
         await this.tokenFilter.init();
+        HoverTokenViewModel.updateReadingMode(mode);
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
     }
@@ -69,7 +76,10 @@ export class LingusticsManager {
                         );
                         return true;
                     case MESSAGE_TYPES.CHANGE_READING_TYPE:
-                        this.handleChangeReadingType(message.readingType, sendResponse);
+                        this.handleChangeReadingType(message.readingType, sendResponse).then(
+                            (): void => sendResponse({ ok: true }),
+                            (err: any): void => sendResponse({ ok: false, err }),
+                        )
                         return false;
                     default:
                         sendResponse({ success: false, error: "Unknown action" });
@@ -96,8 +106,10 @@ export class LingusticsManager {
         }
     }
 
-    private handleChangeReadingType(readingType: ReadingMode, sendResponse: (response: any) => void): void {
+    private async handleChangeReadingType(readingType: ReadingTypes, sendResponse: (response: any) => void): Promise<void> {
         this.kanjiReadingProcessor.changeReadingType(readingType);
+        HoverTokenViewModel.updateReadingMode(readingType);
+        await SettingsService.updateSetting("readingType", readingType);
         sendResponse({ success: true });
     }
 
