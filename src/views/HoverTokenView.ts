@@ -36,6 +36,7 @@ export default class HoverTokenView {
 
     constructor() {
         this.attachListeners();
+        new ResizeObserver((): void => this.reposition()).observe(this.tooltip);
     }
 
     private attachListeners(): void {
@@ -156,21 +157,21 @@ export default class HoverTokenView {
 
     private reposition(): void {
         if (!this.activeSpan) return;
-        const { left, top, width, height } = this.activeSpan.getBoundingClientRect();
-        if (height === 0) return this.hide();
 
-        const w: number = this.tooltip.offsetWidth;
-        const h: number = this.tooltip.offsetHeight;
-
-        let x: number = left + width / 2 - w / 2;
-        let y: number = top - h - 8;
-
+        const s: DOMRect = this.activeSpan.getBoundingClientRect();
+        const t: DOMRect = this.tooltip.getBoundingClientRect();
         const vw: number = document.documentElement.clientWidth;
-        x = Math.max(4, Math.min(x, vw - w - 4));
-        y = y < 4 ? top + height + 8 : y;
+        const vh: number = document.documentElement.clientHeight;
 
-        this.tooltip.style.left = `${x}px`;
-        this.tooltip.style.top = `${y}px`;
+        let x: number = s.left + s.width / 2 - t.width / 2;
+        x = Math.max(4, Math.min(x, vw - t.width - 4));
+
+        const above: number = s.top - t.height - 8;
+        const below: number = s.bottom + 8;
+        let y: number = above >= 4 ? above : Math.min(vh - t.height - 4, below);
+
+        this.tooltip.style.left = `${Math.round(x)}px`;
+        this.tooltip.style.top  = `${Math.round(y)}px`;
         this.tooltip.style.transform = "translateY(0)";
     }
 
@@ -238,6 +239,7 @@ export default class HoverTokenView {
             defs.insertAdjacentHTML("beforeend", `<li>${def}</li>`)
         );
         this.dictionaryMode = true;
+        requestAnimationFrame((): void => this.reposition());
     }
 
     private hideJisho(): void {
@@ -246,6 +248,7 @@ export default class HoverTokenView {
         mustId("jp-d-read").textContent = "";
         mustId("jp-d-defs").innerHTML = "";
         this.dictionaryMode = false;
+        requestAnimationFrame((): void => this.reposition());
     }
 
     private spanToToken(span: HTMLSpanElement): Token {
