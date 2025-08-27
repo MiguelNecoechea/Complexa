@@ -16,7 +16,7 @@ function defaultColour(dark: boolean): string {
 
 // Light mode TextColors
 const LIGHT_POS_COLORS: ColorMap = {
-    // NOUN: "#1f77b4",
+    NOUN: "#1f77b4",
     VERB: "#d62728",
     ADJ: "#2ca02c",
     ADV: "#ff7f0e",

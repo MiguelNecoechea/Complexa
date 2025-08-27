@@ -38,8 +38,9 @@ chrome.runtime.onInstalled.addListener((): void => {
 
     chrome.storage.sync.get(null, (): void => {
         const defaults: PopupSettings = {
-            enableReadings: false,
-            enableReadingHelpers: false,
+            enableFurigana: false,
+            enableColor: false,
+            enableHover: false,
             enableWordFilters: false,
             readingType: "hiragana",
             darkMode: false

@@ -13,8 +13,9 @@ import { PopupSettings } from "../models/PopupSettings";
  */
 export class SettingsService {
     private static defaultSettings: PopupSettings = {
-        enableReadings: true,
-        enableReadingHelpers: false,
+        enableFurigana: true,
+        enableColor: true,
+        enableHover: true,
         enableWordFilters: false,
         readingType: "hiragana",
         darkMode: false,
@@ -44,7 +45,8 @@ export class SettingsService {
      */
     static async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         const settings: PopupSettings = await this.getSettings();
-
+        // Debug
+        console.log("Settings updated", settings);
         return new Promise((resolve): void => {
             chrome.storage.sync.set({ ...settings, [key]: value }, resolve);
         });

@@ -3,12 +3,10 @@ import { PopupViewModel } from "../viewmodels/PopupViewModel";
 
 const DOM_IDS = {
     LAUNCH_APP: "launch-app",
-    ENABLE_READINGS: "enable-readings",
-    ENABLE_DICTIONARY: "enable-dictionary",
-    ENABLE_READING_HELPERS: "enable-readings-helpers",
+    ENABLE_FURIGANA: "enable-text-furigana",
+    ENABLE_COLOR: "enable-text-colors",
+    ENABLE_HOVER: "enable-text-hover",
     ENABLE_WORD_FILTERS: "enable-word-filters",
-    ENABLE_QUIZ: "enable-quiz",
-    ENABLE_KANJI_EXTRACTION: "enable-kanji-extraction",
     READING_SELECTOR_WRAPPER: "reading-selector-wrapper",
     ADD_READINGS_BUTTON_CONTAINER: "add-readings-button-container",
     ADD_READINGS_BUTTON: "add-readings-button",
@@ -32,7 +30,6 @@ const STRINGS = {
     HIRAGANA_LABEL: "Hiragana",
     ADD_READINGS: "Add Readings",
     ADD_READINGS_CLICKED: "Add readings button clicked",
-    SETTINGS_UPDATED: "Settings updated:",
     APP_HTML_PATH: "static/views/app.html",
     KANJI_REQUESTED: "Requesting extracted kanji from the current tab",
     KANJI_RECEIVED: "Received kanji from content script:",
@@ -41,25 +38,32 @@ const STRINGS = {
 
 export class PopupView {
     private viewModel: PopupViewModel = new PopupViewModel();
+    private settings: PopupSettings = {
+        enableFurigana: false,
+        enableColor: false,
+        enableHover: false,
+        enableWordFilters: false,
+        readingType: "hiragana",
+        darkMode: false
+    };
 
     async init(): Promise<void> {
-        const settings: PopupSettings = await this.viewModel.init();
-        this.setupUI(settings);
-        this.injectReadingControls(settings);
+        this.settings = await this.viewModel.init();
+        this.setupUI();
+        this.injectReadingControls();
         this.attachEventListeners();
     }
 
-    private setupUI(settings: PopupSettings): void {
-        // Initialize all checkboxes based on settings
-        this.initializeCheckbox(DOM_IDS.ENABLE_READINGS, settings.enableReadings);
-        this.initializeCheckbox(DOM_IDS.ENABLE_READING_HELPERS, settings.enableReadingHelpers);
-        this.initializeCheckbox(DOM_IDS.ENABLE_WORD_FILTERS, settings.enableWordFilters);
-        
-        // Initialize dark mode
+    private setupUI(): void {
+        this.initializeCheckbox(DOM_IDS.ENABLE_WORD_FILTERS, this.settings.enableWordFilters);
+        this.initializeCheckbox(DOM_IDS.ENABLE_FURIGANA, this.settings.enableFurigana);
+        this.initializeCheckbox(DOM_IDS.ENABLE_COLOR, this.settings.enableColor);
+        this.initializeCheckbox(DOM_IDS.ENABLE_HOVER, this.settings.enableHover);
+
         const darkModeSwitch = document.getElementById("dark-mode-switch") as HTMLInputElement;
-        if (darkModeSwitch && settings.darkMode !== undefined) {
-            darkModeSwitch.checked = settings.darkMode;
-            this.setupDarkMode(settings.darkMode);
+        if (darkModeSwitch && this.settings.darkMode !== undefined) {
+            darkModeSwitch.checked = this.settings.darkMode;
+            this.setupDarkMode(this.settings.darkMode);
         }
     }
 
@@ -73,28 +77,17 @@ export class PopupView {
             });
         }
 
-        this.addSettingListener(DOM_IDS.ENABLE_READING_HELPERS, "enableReadingHelpers");
+        this.addSettingListener(DOM_IDS.ENABLE_FURIGANA, "enableFurigana");
+        this.addSettingListener(DOM_IDS.ENABLE_COLOR, "enableColor");
+        this.addSettingListener(DOM_IDS.ENABLE_HOVER, "enableHover");
         this.addSettingListener(DOM_IDS.ENABLE_WORD_FILTERS, "enableWordFilters");
 
-        const enableReadingsCheckbox = document.getElementById(DOM_IDS.ENABLE_READINGS) as HTMLInputElement;
-        const enableReadingHelpersCheckbox = document.getElementById(DOM_IDS.ENABLE_READING_HELPERS) as HTMLInputElement;
 
-        if (enableReadingsCheckbox) {
-            enableReadingsCheckbox.addEventListener("click", async (): Promise<void> => {
-                await this.controlListener(enableReadingsCheckbox, enableReadingHelpersCheckbox);
-            });
-        }
-
-        if (enableReadingHelpersCheckbox) {
-            enableReadingHelpersCheckbox.addEventListener("click", async (): Promise<void> => {
-                await this.controlListener(enableReadingsCheckbox, enableReadingHelpersCheckbox);
-            });
-        }
 
         // Dark mode switch event
         const darkModeSwitch = document.getElementById("dark-mode-switch") as HTMLInputElement;
         if (darkModeSwitch) {
-            darkModeSwitch.addEventListener("change", async () => {
+            darkModeSwitch.addEventListener("change", async (): Promise<void> => {
                 await this.viewModel.updateSetting("darkMode", darkModeSwitch.checked);
                 this.setupDarkMode(darkModeSwitch.checked);
             });
@@ -102,11 +95,11 @@ export class PopupView {
     }
 
     private setupDarkMode(enabled: boolean): void {
-        const body = document.body;
-        const popupContainer = document.querySelector('.popup-container');
-        const glass = document.querySelector('.glassmorphism');
-        const generalConfigs = document.querySelector('.general-configs-container');
-        const preferencesConfigs = document.querySelector('.preferences-configs-container');
+        const body: HTMLElement = document.body;
+        const popupContainer: Element | null = document.querySelector('.popup-container');
+        const glass: Element | null = document.querySelector('.glassmorphism');
+        const generalConfigs: Element | null = document.querySelector('.general-configs-container');
+        const preferencesConfigs: Element | null = document.querySelector('.preferences-configs-container');
 
         if (enabled) {
             body.classList.add('dark-mode');
@@ -132,8 +125,9 @@ export class PopupView {
     private addSettingListener(id: string, settingKey: keyof PopupSettings): void {
         const checkbox = document.getElementById(id) as HTMLInputElement;
         if (checkbox) {
-            checkbox.addEventListener("click", (): void => {
-                this.viewModel.updateSetting(settingKey, checkbox.checked);
+            checkbox.addEventListener("change", async (): Promise<void> => {
+                await this.viewModel.updateSetting(settingKey, checkbox.checked);
+                await this.updateSettings();
             });
         }
     }
@@ -196,13 +190,13 @@ export class PopupView {
         addReadingsButton.className = CSS_CLASSES.BUTTON;
         addReadingsButton.id = DOM_IDS.ADD_READINGS_BUTTON;
         
-        const buttonContent = document.createElement("div");
+        const buttonContent: HTMLDivElement = document.createElement("div");
         buttonContent.style.display = "flex";
         buttonContent.style.alignItems = "center";
         buttonContent.style.justifyContent = "center";
         buttonContent.style.gap = "8px";
         
-        const icon = document.createElement("img");
+        const icon: HTMLImageElement = document.createElement("img");
         icon.src = "/static/assets/icons/ui/add-reading.svg";
         icon.alt = "";
         icon.style.width = "20px";
@@ -210,7 +204,7 @@ export class PopupView {
         icon.style.opacity = "0.9";
         icon.style.filter = "brightness(0) invert(1)";
         
-        const text = document.createTextNode(STRINGS.ADD_READINGS);
+        const text: Text = document.createTextNode(STRINGS.ADD_READINGS);
         
         buttonContent.appendChild(icon);
         buttonContent.appendChild(text);
@@ -225,47 +219,26 @@ export class PopupView {
         return buttonContainer;
     }
 
-    private injectReadingControls(settings: PopupSettings): void {
+    private removeReadingControls(): void {
+        document.getElementById(DOM_IDS.READING_SELECTOR_WRAPPER)?.remove();
+        document.getElementById(DOM_IDS.ADD_READINGS_BUTTON_CONTAINER)?.remove();
+    }
+
+    private injectReadingControls(): void {
         const container: Element | null = document.querySelector(`.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`);
 
         if (!container) return;
 
-        if (settings.enableReadings) container.appendChild(this.createReadingSelector(settings.readingType));
+        if (this.settings.enableFurigana) container.appendChild(this.createReadingSelector(this.settings.readingType));
 
-        if (settings.enableReadings || settings.enableReadingHelpers) {
+        if (this.settings.enableFurigana || this.settings.enableColor || this.settings.enableHover) {
             container.appendChild(this.createAddReadingsButton());
         }
     }
 
-    private async controlListener(enableReadingsCheckbox: HTMLInputElement,
-        enableReadingHelpersCheckbox: HTMLInputElement): Promise<void> {
-        const readingIsChecked: boolean = enableReadingsCheckbox.checked;
-        const helpersChecked: boolean = enableReadingHelpersCheckbox.checked;
-
-        await this.viewModel.updateSetting("enableReadings", readingIsChecked);
-        await this.viewModel.updateSetting("enableReadingHelpers", helpersChecked);
-        const configsContainer: Element | null = document.querySelector(
-            `.${CSS_CLASSES.GENERAL_CONFIGS_CONTAINER}`,
-        );
-
-        const existingSelector: HTMLElement | null = document.getElementById(DOM_IDS.READING_SELECTOR_WRAPPER);
-        const buttonContainer: HTMLElement | null = document.getElementById(DOM_IDS.ADD_READINGS_BUTTON_CONTAINER);
-
-        if (configsContainer) {
-            if (buttonContainer) configsContainer.removeChild(buttonContainer);
-            if (existingSelector) configsContainer.removeChild(existingSelector);
-        }
-
-        const settings: PopupSettings = await this.viewModel.init();
-
-        if (readingIsChecked && configsContainer) {
-            const newSelector: HTMLDivElement = this.createReadingSelector(settings.readingType);
-            configsContainer.appendChild(newSelector);
-        }
-
-        if ((readingIsChecked || helpersChecked) && configsContainer) {
-            const newButton: HTMLDivElement = this.createAddReadingsButton();
-            configsContainer.appendChild(newButton);
-        }
+    private async updateSettings(): Promise<void> {
+        this.settings = await this.viewModel.getCurrentSettings();
+        this.removeReadingControls();
+        this.injectReadingControls();
     }
 }

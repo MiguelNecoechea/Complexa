@@ -12,12 +12,11 @@ import { Token } from "../models/JapaneseTokens";
 
 // UI imports
 import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
-import {ReadingTypes} from "../models/PopupSettings";
+import {PopupSettings, ReadingTypes} from "../models/PopupSettings";
 import MessageSender = chrome.runtime.MessageSender;
 
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
-    ADD_POS_ANOTATIONS: "addPosAnnotations",
     CHANGE_READING_TYPE: "changeReadingType",
     JISHO_LOOKUP: "JISHO_LOOKUP",
 };
@@ -65,9 +64,16 @@ export class LingusticsManager {
         this.setupMessageListeners();
     }
 
+    // Debug
+    private async debugSettings(): Promise<void> {
+        const curr: PopupSettings = await SettingsService.getSettings();
+        console.log(curr);
+    }
+
     private setupMessageListeners(): void {
         chrome.runtime.onMessage.addListener(
             (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
+                this.debugSettings();
                 switch (message.action) {
                     case MESSAGE_TYPES.ADD_READINGS:
                         this.handleAddReadings().then(

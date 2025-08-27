@@ -7,7 +7,7 @@ import Tab = chrome.tabs.Tab;
 
 export class PopupViewModel {
     private tabService: TabService;
-    public settings!: PopupSettings;
+    private settings!: PopupSettings;
 
     /**
      * @param tabService - allows injecting a custom TabService (e.g. for testing)
@@ -22,7 +22,9 @@ export class PopupViewModel {
      */
     async init(): Promise<PopupSettings> {
         this.settings = await SettingsService.getSettings();
-        if (this.settings.enableReadings) await this.injectManagerScript();
+        if ((this.settings.enableFurigana || this.settings.enableHover || this.settings.enableColor)) {
+            await this.injectManagerScript();
+        }
 
         return this.settings;
     }
@@ -33,13 +35,17 @@ export class PopupViewModel {
     async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         await SettingsService.updateSetting(key, value);
 
-        if (key === "enableReadings" && value) await this.injectManagerScript();
+        // if (true) await this.injectManagerScript();
 
-        if (key === "readingType" && this.settings.enableReadings) {
+        if (key === "readingType" && this.settings.enableFurigana) {
             const tab: Tab | null = await this.tabService.getActiveTab();
             if (tab?.id) await this.tabService.sendMessageToTab(tab.id, {action: "changeReadingType", readingType: value});
 
         }
+    }
+
+    async getCurrentSettings(): Promise<PopupSettings> {
+        return SettingsService.getSettings();
     }
 
     /**
