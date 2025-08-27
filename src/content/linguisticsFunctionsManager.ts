@@ -106,8 +106,11 @@ export class LingusticsManager {
     private async handleAddReadings(): Promise<void> {
         try {
             await this.ensureWrapped();
-            this.textColorizer.addPOSAnnotations();
-            this.kanjiReadingProcessor.addReadings();
+            const colorEnabled: boolean = await SettingsService.getSetting("enableColor");
+            const furiganaEnabled: boolean = await SettingsService.getSetting("enableFurigana");
+            if (colorEnabled) this.textColorizer.addPOSAnnotations();
+            if (furiganaEnabled) this.kanjiReadingProcessor.addReadings();
+
         } catch (err: any) {
         }
     }
