@@ -1,5 +1,5 @@
 import { TextExtractionManager } from "./textExtractionManager";
-import {KanjiReadingsProcessor} from "./linguisticsContents/JapaneseReadingContent";
+import { KanjiReadingsProcessor} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
 import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
 import { SettingsService } from "../services/SettingsService";
@@ -12,7 +12,7 @@ import { Token } from "../models/JapaneseTokens";
 
 // UI imports
 import { FilterTokensService } from "../services/FilterTokensService";
-import {PopupSettings, ReadingTypes} from "../models/PopupSettings";
+import { ReadingTypes } from "../models/PopupSettings";
 import MessageSender = chrome.runtime.MessageSender;
 
 const MESSAGE_TYPES = {
@@ -23,7 +23,7 @@ const MESSAGE_TYPES = {
 };
 
 export class LinguisticsManager {
-    private readonly paragraphs: Paragraph[];
+    private paragraphs: Paragraph[];
 
     private tokenizedArrays: Token[][] = [];
     private tokenizedDOM: HTMLElement[][] = [];
@@ -43,7 +43,7 @@ export class LinguisticsManager {
             (): void => {
                 console.log("Extension manager initialized.");
             }
-        )
+        );
     }
 
     private async remoteTokenize(paragraphs: string[]): Promise<Token[][]> {
@@ -65,7 +65,6 @@ export class LinguisticsManager {
 
     private async init(): Promise<void> {
         const mode: ReadingTypes = await SettingsService.getSetting("readingType");
-        await this.tokenFilter.init();
         HoverTokenViewModel.updateReadingMode(mode);
         this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
         this.setupMessageListeners();
@@ -109,11 +108,19 @@ export class LinguisticsManager {
         if (this.tokenizedDOM.length) return;
         if (document.querySelector("span.lingua-token")) return;
 
+        if (!this.paragraphs.length) {
+            this.paragraphs = TextExtractionManager.extract(
+                document.querySelector("main") ?? document.body,
+            );
+        }
+
+        await this.tokenFilter.init();
+
         const { enableHover, enableWordFilters } = await SettingsService.getSettings();
 
         if (!this.tokenizedArrays.length) {
             this.tokenizedArrays = await this.remoteTokenize(
-                this.paragraphs.map((p: Paragraph): string => p.text)
+                this.paragraphs.map((p: Paragraph): string => p.text),
             );
         }
 
@@ -123,7 +130,6 @@ export class LinguisticsManager {
             enableHover,
             enableWordFilters,
         );
-
     }
 
     // Listener functions
@@ -146,7 +152,7 @@ export class LinguisticsManager {
         sendResponse({ success: true });
     }
 
-    private unwrapTokens(): void {
+    private unwrapTokens(preserveTokens: boolean): void {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span.lingua-token");
 
         spans.forEach((span: HTMLSpanElement): void => {
@@ -158,6 +164,8 @@ export class LinguisticsManager {
         const tooltip: HTMLElement | null = document.getElementById('tooltip');
         if (tooltip) tooltip.remove();
         this.tokenizedDOM = [];
+        this.paragraphs = [];
+        if (!preserveTokens) this.tokenizedArrays = [];
     }
 
     private async handleRefreshSettings(): Promise<void> {
@@ -165,7 +173,7 @@ export class LinguisticsManager {
 
         this.kanjiReadingProcessor.removeReadings();
         this.textColorizer.removePOSAnnotations();
-        this.unwrapTokens();
+        this.unwrapTokens(false);
 
         if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
 
