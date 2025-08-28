@@ -104,6 +104,22 @@ export class LinguisticsManager {
         );
     }
 
+    private tokensMisaligned(): boolean {
+        if (!this.tokenizedArrays.length || this.tokenizedArrays.length !== this.paragraphs.length) return true;
+
+        for(let i: number = 0; i < this.tokenizedArrays.length; i++) {
+            const text: string = this.paragraphs[i]!.text;
+            const tokens: Token[] = this.tokenizedArrays[i]!;
+
+            for (const token of tokens) {
+                const slice: string = text.slice(token.offset, token.offset + token.surface.length);
+                if (slice !== token.surface) return true;
+
+            }
+        }
+        return false;
+    }
+
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
         if (document.querySelector("span.lingua-token")) return;
@@ -118,7 +134,7 @@ export class LinguisticsManager {
 
         const { enableHover, enableWordFilters } = await SettingsService.getSettings();
 
-        if (!this.tokenizedArrays.length) {
+        if (this.tokensMisaligned()) {
             this.tokenizedArrays = await this.remoteTokenize(
                 this.paragraphs.map((p: Paragraph): string => p.text),
             );
@@ -163,6 +179,7 @@ export class LinguisticsManager {
 
         const tooltip: HTMLElement | null = document.getElementById('tooltip');
         if (tooltip) tooltip.remove();
+        this.tokenWrapper.resetHover();
         this.tokenizedDOM = [];
         this.paragraphs = [];
         if (!preserveTokens) this.tokenizedArrays = [];
@@ -173,7 +190,7 @@ export class LinguisticsManager {
 
         this.kanjiReadingProcessor.removeReadings();
         this.textColorizer.removePOSAnnotations();
-        this.unwrapTokens(false);
+        this.unwrapTokens(true);
 
         if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
 

@@ -23,7 +23,7 @@
 
 import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
-import { FilterTokensService } from "../../services/./FilterTokensService";
+import { FilterTokensService } from "../../services/FilterTokensService";
 import HoverTokenView from "../../views/HoverTokenView";
 
 export class TokenWrapper {
@@ -47,7 +47,7 @@ export class TokenWrapper {
      * @returns               2‑D matrix: one row per paragraph, each containing
      *                        the <span> elements we created for that paragraph.
      */
-    async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],
+    public async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],
                hoverEnabled: boolean, wordFiltersEnabled: boolean): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
         let tokIdx: number = 0;
@@ -79,6 +79,10 @@ export class TokenWrapper {
 
         if (this.hoverEnabled) await this.mountHoverToolTip();
         return matrix;
+    }
+
+    public resetHover(): void {
+        this.tooltipReady = false;
     }
 
     /**
