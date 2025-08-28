@@ -48,12 +48,20 @@ export class LinguisticsManager {
     }
 
     private async remoteTokenize(paragraphs: string[]): Promise<Token[][]> {
-        const resp = await chrome.runtime.sendMessage<{ action: string; paragraphs: string[]; },
-            { ok: boolean; tokens?: Token[][]; err?: any; }>(
-            {action: "TOKENIZE_PARAGRAPHS", paragraphs}
-        );
-        if (!resp.ok) throw resp.err ?? new Error("Tokenize failed");
-        return resp.tokens!;
+
+        try {
+            const response = await chrome.runtime.sendMessage<{ action: string; paragraphs: string[]; },
+                { ok: boolean; tokens?: Token[][]; err?: any; }>(
+                {action: "TOKENIZE_PARAGRAPHS", paragraphs}
+            );
+            if (!response.ok) throw response.err ?? new Error("Tokenize failed");
+            return response.tokens!;
+        } catch (error) {
+            console.error("Toknizer request failed", error);
+            alert("Tokenizer service is unavailable");
+            throw error;
+        }
+
     }
 
     private async init(): Promise<void> {
