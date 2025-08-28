@@ -1,7 +1,7 @@
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { JishoEntry } from "../models/Jisho";
 import { IJishoService } from "../services/JishoService";
-import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import { FilterTokensService } from "../services/./FilterTokensService";
 import * as wanakana from "wanakana";
 import {ReadingTypes} from "../models/PopupSettings";
 
@@ -13,7 +13,7 @@ export default class HoverTokenViewModel {
 
     constructor(
         private readonly jisho: IJishoService,
-        private readonly filterTokens: typeof FilterTokens = FilterTokens
+        private readonly filterTokens: typeof FilterTokensService = FilterTokensService
     ) {}
 
     setToken(token: Token | null): void {

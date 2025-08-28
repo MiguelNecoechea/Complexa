@@ -23,13 +23,15 @@
 
 import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
-import { FilterTokens } from "../../appFunctions/WordFilters/FilterTokens";
+import { FilterTokensService } from "../../services/./FilterTokensService";
 import HoverTokenView from "../../views/HoverTokenView";
 
 export class TokenWrapper {
     private tooltipReady: boolean = false;
+    private hoverEnabled: boolean = false;
+    private wordFiltersEnabled: boolean = false;
 
-    constructor(private readonly tokenFilter: FilterTokens = FilterTokens.instance) {}
+    constructor(private readonly tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
     /**
      * Public entry point – wrap the whole page (or selection).
@@ -40,13 +42,18 @@ export class TokenWrapper {
      *                        of `Text` nodes (`textNodes`).
      * @param tokenizedArrays A parallel array where `tokenizedArrays[i]` holds
      *                        the tokens for `paragraphs[i]`.
+     * @param hoverEnabled    Tells if the hover is enabled.
+     * @param wordFiltersEnabled Turns off and on the filters.
      * @returns               2‑D matrix: one row per paragraph, each containing
      *                        the <span> elements we created for that paragraph.
      */
-    async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],): Promise<HTMLElement[][]> {
+    async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],
+               hoverEnabled: boolean, wordFiltersEnabled: boolean): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
         let tokIdx: number = 0;
         let paraOffset: number = 0;
+        this.hoverEnabled = hoverEnabled;
+        this.wordFiltersEnabled = wordFiltersEnabled;
 
         for (let pIdx: number = 0; pIdx < paragraphs.length; pIdx++) {
             const paragraph: Paragraph = paragraphs[pIdx];
@@ -70,7 +77,7 @@ export class TokenWrapper {
             matrix.push(row);
         }
 
-        await this.mountHoverToolTip();
+        if (this.hoverEnabled) await this.mountHoverToolTip();
         return matrix;
     }
 
@@ -100,7 +107,7 @@ export class TokenWrapper {
             if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
 
 
-            if (this.tokenFilter.shouldExclude(tok) || !tok.is_japanese) {
+            if ((this.wordFiltersEnabled && this.tokenFilter.shouldExclude(tok)) || !tok.is_japanese) {
                 frag.append(node.ownerDocument!.createTextNode(tok.surface));
             } else {
                 const span: HTMLSpanElement = this.buildSpan(tok);

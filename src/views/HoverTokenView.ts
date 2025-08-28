@@ -1,7 +1,7 @@
 // views/HoverTokenView.ts
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
-import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import { FilterTokensService } from "../services/./FilterTokensService";
 import { JishoService } from "../services/JishoService";
 import { JishoEntry } from "../models/Jisho";
 
@@ -30,7 +30,7 @@ export default class HoverTokenView {
     private dictionaryMode: boolean = false;
     private hideTimer: number | null = null;
     private rafPending: boolean = false;
-    private vm: HoverTokenViewModel = new HoverTokenViewModel(new JishoService(), FilterTokens);
+    private vm: HoverTokenViewModel = new HoverTokenViewModel(new JishoService(), FilterTokensService);
 
     constructor() {
         this.attachListeners();

@@ -35,7 +35,13 @@ export class PopupViewModel {
     async updateSetting<K extends keyof PopupSettings>(key: K, value: PopupSettings[K]): Promise<void> {
         await SettingsService.updateSetting(key, value);
 
-        // if (true) await this.injectManagerScript();
+        const requiresInjection: (keyof PopupSettings)[] = [
+            "enableFurigana",
+            "enableColor",
+            "enableHover",
+        ];
+
+        if (requiresInjection.includes(key) && value) await this.injectManagerScript();
 
         if (key === "readingType" && this.settings.enableFurigana) {
             const tab: Tab | null = await this.tabService.getActiveTab();

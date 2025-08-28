@@ -11,7 +11,7 @@ import { Paragraph } from "../models/Paragraph";
 import { Token } from "../models/JapaneseTokens";
 
 // UI imports
-import { FilterTokens } from "../appFunctions/WordFilters/FilterTokens";
+import { FilterTokensService } from "../services/FilterTokensService";
 import {PopupSettings, ReadingTypes} from "../models/PopupSettings";
 import MessageSender = chrome.runtime.MessageSender;
 
@@ -21,7 +21,7 @@ const MESSAGE_TYPES = {
     JISHO_LOOKUP: "JISHO_LOOKUP",
 };
 
-export class LingusticsManager {
+export class LinguisticsManager {
     private readonly paragraphs: Paragraph[];
     private readonly initPromise: Promise<Token[][]>;
 
@@ -31,7 +31,7 @@ export class LingusticsManager {
     private kanjiReadingProcessor: KanjiReadingsProcessor;
     private textColorizer: JapaneseTextColoring;
 
-    private tokenFilter: FilterTokens = FilterTokens.instance;
+    private tokenFilter: FilterTokensService = FilterTokensService.instance;
     private tokenWrapper: TokenWrapper;
 
     constructor() {
@@ -97,9 +97,11 @@ export class LingusticsManager {
 
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
-
+        const { enableHover, enableWordFilters } = await SettingsService.getSettings();
         this.tokenizedArrays = await this.initPromise;
-        this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays);
+
+        this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays,
+            enableHover, enableWordFilters);
     }
 
     // Listener functions
@@ -124,5 +126,5 @@ export class LingusticsManager {
 
 }
 
-console.log("Linguistcs Manager Injected");
-new LingusticsManager();
+console.log("Linguistics Manager Injected");
+new LinguisticsManager();

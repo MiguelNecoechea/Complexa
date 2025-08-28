@@ -1,5 +1,5 @@
 /*
- * FilterTokens.ts
+ * FilterTokensService.ts
  * ---------------------------------
  * A lightweight filtering utility that lets the user exclude specific tokens
  * from being wrapped with <span> elements (and therefore from receiving
@@ -17,7 +17,7 @@
  *
  */
 
-import { Token } from "../../models/JapaneseTokens";
+import { Token } from "../models/JapaneseTokens";
 
 const STORAGE_KEY = "excludedTokens" as const;
 
@@ -27,15 +27,15 @@ function normalise(value: string): TokenString {
     return value.normalize("NFC").trim().toLowerCase();
 }
 
-export class FilterTokens {
+export class FilterTokensService {
     private excluded: Set<string> = new Set<TokenString>();
     private loaded: boolean = false;
-    private static _instance: FilterTokens | null = null;
+    private static _instance: FilterTokensService | null = null;
 
     private constructor() {}
 
-    static get instance(): FilterTokens {
-        if (!this._instance) this._instance = new FilterTokens();
+    static get instance(): FilterTokensService {
+        if (!this._instance) this._instance = new FilterTokensService();
 
         return this._instance;
     }
