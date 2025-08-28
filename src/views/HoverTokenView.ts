@@ -26,12 +26,10 @@ const BINDINGS = {
 export default class HoverTokenView {
     private tooltip: HTMLElement = mustId("tooltip");
     private activeSpan: HTMLSpanElement | null = null;
-    private mouseX: number = 0;
-    private mouseY: number = 0;
     private isLocked: boolean = false;
     private dictionaryMode: boolean = false;
     private hideTimer: number | null = null;
-
+    private rafPending: boolean = false;
     private vm: HoverTokenViewModel = new HoverTokenViewModel(new JishoService(), FilterTokens);
 
     constructor() {
@@ -48,9 +46,6 @@ export default class HoverTokenView {
         });
 
         document.addEventListener("pointermove", (e: PointerEvent): void => {
-            this.mouseX = e.clientX;
-            this.mouseY = e.clientY;
-
             if (this.hideTimer && this.isOverBridge(e.clientX, e.clientY)) {
                 clearTimeout(this.hideTimer); this.hideTimer = null; return;
             }
@@ -77,8 +72,8 @@ export default class HoverTokenView {
         });
 
         document.addEventListener("click", (e: MouseEvent) => this.handleClick(e));
-        window.addEventListener("scroll", () => this.trackUnderCursor(), true);
-        window.addEventListener("resize", () => this.trackUnderCursor());
+        window.addEventListener("scroll", () => this.scheduleTrack(), true);
+        window.addEventListener("resize", () => this.scheduleTrack());
 
         this.tooltip.addEventListener("pointerenter", () => {
             if (this.hideTimer !== null) { clearTimeout(this.hideTimer); this.hideTimer = null; }
@@ -120,19 +115,32 @@ export default class HoverTokenView {
         this.tooltip.style.transform = "translateY(6px)";
     }
 
-    private trackUnderCursor(): void {
+    private scheduleTrack(): void {
+        if (this.rafPending) return;
+
+        this.rafPending = true;
+
+        requestAnimationFrame((): void => {
+            this.rafPending = false;
+            this.trackHovered();
+        });
+    }
+
+
+    private trackHovered(): void {
         if (this.isLocked) return;
+        const newSpan = document.querySelector("span[data-pos]:hover") as HTMLSpanElement | null;
 
-        const elem = document.elementFromPoint(this.mouseX, this.mouseY) as Element | null;
+        if (!newSpan) {
+            this.hide();
+            return;
+        }
 
-        if (elem?.closest?.("#tooltip")) { this.reposition(); return; }
-
-        const newSpan = elem?.closest?.("span[data-pos]") as HTMLSpanElement | null;
-
-        if (!newSpan) return this.hide();
-
-        if (newSpan !== this.activeSpan || !newSpan.isConnected) this.activate(newSpan);
-        else this.reposition();
+        if (newSpan !== this.activeSpan || !newSpan.isConnected) {
+            this.activate(newSpan);
+        } else {
+            this.reposition();
+        }
     }
 
     private handleClick(e: MouseEvent): void {
@@ -144,7 +152,7 @@ export default class HoverTokenView {
             this.isLocked = false;
             this.hide();
             if (clickedSpan && clickedSpan === this.activeSpan) this.activate(clickedSpan);
-            this.trackUnderCursor();
+            this.trackHovered();
             return;
         }
 
