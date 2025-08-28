@@ -41,12 +41,12 @@ export class PopupViewModel {
             "enableHover",
         ];
 
+        const tab: Tab | null = await this.tabService.getActiveTab();
+
         if (requiresInjection.includes(key) && value) await this.injectManagerScript();
 
         if (key === "readingType" && this.settings.enableFurigana) {
-            const tab: Tab | null = await this.tabService.getActiveTab();
             if (tab?.id) await this.tabService.sendMessageToTab(tab.id, {action: "changeReadingType", readingType: value});
-
         }
     }
 
@@ -71,7 +71,13 @@ export class PopupViewModel {
         const tab: Tab | null = await this.tabService.getActiveTab();
         if (!tab?.id) return false;
 
-        await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
-        return true;
+        try {
+            await this.tabService.sendMessageToTab(tab.id, { action: "ping" });
+            return true;
+        } catch {
+            await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
+            return true;
+        }
+
     }
 }

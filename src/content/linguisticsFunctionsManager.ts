@@ -18,12 +18,11 @@ import MessageSender = chrome.runtime.MessageSender;
 const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
     CHANGE_READING_TYPE: "changeReadingType",
-    JISHO_LOOKUP: "JISHO_LOOKUP",
+    PING: "ping",
 };
 
 export class LinguisticsManager {
     private readonly paragraphs: Paragraph[];
-    private readonly initPromise: Promise<Token[][]>;
 
     private tokenizedArrays: Token[][] = [];
     private tokenizedDOM: HTMLElement[][] = [];
@@ -36,7 +35,6 @@ export class LinguisticsManager {
 
     constructor() {
         this.paragraphs = TextExtractionManager.extract(document.querySelector("main") ?? document.body);
-        this.initPromise = this.remoteTokenize(this.paragraphs.map((p: Paragraph): string => p.text));
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
         this.textColorizer = new JapaneseTextColoring();
         this.tokenWrapper = new TokenWrapper(this.tokenFilter);
@@ -72,16 +70,9 @@ export class LinguisticsManager {
         this.setupMessageListeners();
     }
 
-    // Debug
-    private async debugSettings(): Promise<void> {
-        const curr: PopupSettings = await SettingsService.getSettings();
-        console.log(curr);
-    }
-
     private setupMessageListeners(): void {
         chrome.runtime.onMessage.addListener(
             (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
-                this.debugSettings();
                 switch (message.action) {
                     case MESSAGE_TYPES.ADD_READINGS:
                         this.handleAddReadings().then(
@@ -95,6 +86,9 @@ export class LinguisticsManager {
                             (err: any): void => sendResponse({ ok: false, err }),
                         )
                         return false;
+                    case MESSAGE_TYPES.PING:
+                        sendResponse({ ok: true });
+                        return false;
                     default:
                         sendResponse({ success: false, error: "Unknown action" });
                         return false;
@@ -105,11 +99,23 @@ export class LinguisticsManager {
 
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
-        const { enableHover, enableWordFilters } = await SettingsService.getSettings();
-        this.tokenizedArrays = await this.initPromise;
+        if (document.querySelector("span.lingua-token")) return;
 
-        this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays,
-            enableHover, enableWordFilters);
+        const { enableHover, enableWordFilters } = await SettingsService.getSettings();
+
+        if (!this.tokenizedArrays.length) {
+            this.tokenizedArrays = await this.remoteTokenize(
+                this.paragraphs.map((p: Paragraph): string => p.text)
+            );
+        }
+
+        this.tokenizedDOM = await this.tokenWrapper.wrap(
+            this.paragraphs,
+            this.tokenizedArrays,
+            enableHover,
+            enableWordFilters,
+        );
+
     }
 
     // Listener functions
