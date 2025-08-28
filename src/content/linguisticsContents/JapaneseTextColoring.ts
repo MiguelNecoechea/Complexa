@@ -6,7 +6,7 @@ export class JapaneseTextColoring {
     constructor() {}
 
     public addPOSAnnotations(): void {
-        const spans = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
 
         spans.forEach((span: HTMLSpanElement): void => {
             const token: Token = {
@@ -29,6 +29,12 @@ export class JapaneseTextColoring {
             span.style.color = posColor;
 
         });
+    }
 
+    public removePOSAnnotations(): void {
+        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+        spans.forEach((span: HTMLSpanElement): void => {
+            span.style.color = "";
+        });
     }
 }

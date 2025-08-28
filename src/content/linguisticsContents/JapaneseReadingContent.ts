@@ -90,7 +90,20 @@ export class KanjiReadingsProcessor {
         this.readingsAdded = true;
     }
 
-    changeReadingType(mode: ReadingTypes): void {
+    public removeReadings(): void {
+        if (!this.readingsAdded) return;
+
+        const spans: NodeListOf<HTMLSpanElement> =
+            document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
+
+        spans.forEach((span: HTMLSpanElement): void => {
+            span.textContent = span.dataset.surface || span.textContent || "";
+        });
+
+        this.readingsAdded = false;
+    }
+
+    public changeReadingType(mode: ReadingTypes): void {
         this.readingMode = mode;
 
         if (!this.readingsAdded) return;

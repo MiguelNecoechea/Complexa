@@ -19,6 +19,7 @@ const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
     CHANGE_READING_TYPE: "changeReadingType",
     PING: "ping",
+    REFRESH_SETTINGS: "refreshSettings"
 };
 
 export class LinguisticsManager {
@@ -89,6 +90,13 @@ export class LinguisticsManager {
                     case MESSAGE_TYPES.PING:
                         sendResponse({ ok: true });
                         return false;
+                    case MESSAGE_TYPES.REFRESH_SETTINGS:
+                        console.log("settings refreshed")
+                        this.handleRefreshSettings().then(
+                            (): void => sendResponse({ ok: true }),
+                            (err: any): void => sendResponse({ ok: false, err }),
+                        );
+                        return true;
                     default:
                         sendResponse({ success: false, error: "Unknown action" });
                         return false;
@@ -136,6 +144,31 @@ export class LinguisticsManager {
         HoverTokenViewModel.updateReadingMode(readingType);
         await SettingsService.updateSetting("readingType", readingType);
         sendResponse({ success: true });
+    }
+
+    private unwrapTokens(): void {
+        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span.lingua-token");
+
+        spans.forEach((span: HTMLSpanElement): void => {
+            const text: string = span.dataset.surface || span.textContent || "";
+            const node: Text = document.createTextNode(text);
+            span.replaceWith(node);
+        });
+
+        const tooltip: HTMLElement | null = document.getElementById('tooltip');
+        if (tooltip) tooltip.remove();
+        this.tokenizedDOM = [];
+    }
+
+    private async handleRefreshSettings(): Promise<void> {
+        const { enableFurigana, enableColor, enableHover, enableWordFilters } = await SettingsService.getSettings();
+
+        this.kanjiReadingProcessor.removeReadings();
+        this.textColorizer.removePOSAnnotations();
+        this.unwrapTokens();
+
+        if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
+
     }
 
 }
