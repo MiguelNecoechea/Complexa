@@ -38,7 +38,7 @@ export class LinguisticsManager {
         this.paragraphs = TextExtractionManager.extract(document.querySelector("main") ?? document.body);
         this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana", this.tokenFilter);
         this.textColorizer = new JapaneseTextColoring(this.tokenFilter);
-        this.tokenWrapper = new TokenWrapper(this.tokenFilter);
+        this.tokenWrapper = new TokenWrapper();
         this.init().then(
             (): void => {
                 console.log("Extension manager initialized.");
@@ -53,7 +53,7 @@ export class LinguisticsManager {
                 { ok: boolean; tokens?: Token[][]; err?: any; }>(
                 {action: "TOKENIZE_PARAGRAPHS", paragraphs}
             );
-            if (!response.ok) throw response.err ?? new Error("Tokenize failed");
+
             return response.tokens!;
         } catch (error) {
             console.error("Toknizer request failed", error);
@@ -139,12 +139,7 @@ export class LinguisticsManager {
             );
         }
 
-        this.tokenizedDOM = await this.tokenWrapper.wrap(
-            this.paragraphs,
-            this.tokenizedArrays,
-            enableHover,
-            enableWordFilters,
-        );
+        this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays, enableHover);
     }
 
     // Listener functions
