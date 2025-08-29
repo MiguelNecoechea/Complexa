@@ -3,6 +3,8 @@
  * This script manages the excluded words display interface
  */
 
+import { LIGHT_POS_COLORS } from '../content/linguisticsContents/DetermineTextColor';
+
 // Define the POS types we support - all 11 categories
 const POS_CATEGORIES = {
     'VERB': 'verb',
@@ -17,6 +19,67 @@ const POS_CATEGORIES = {
     'CCONJ': 'cconj',
     'SCONJ': 'sconj'
 } as const;
+
+// Function to convert hex color to lighter version
+function lightenColor(hex: string, amount: number = 20): string {
+    // Remove # if present
+    const color = hex.replace('#', '');
+    
+    // Parse RGB values
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    
+    // Add amount to each channel, cap at 255
+    const newR = Math.min(255, r + amount);
+    const newG = Math.min(255, g + amount);
+    const newB = Math.min(255, b + amount);
+    
+    // Convert back to hex
+    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+// Function to inject dynamic styles based on LIGHT_POS_COLORS
+function injectPOSStyles(): void {
+    const style = document.createElement('style');
+    style.id = 'dynamic-pos-styles';
+    
+    let css = '';
+    
+    Object.entries(LIGHT_POS_COLORS).forEach(([pos, color]) => {
+        const category = POS_CATEGORIES[pos as keyof typeof POS_CATEGORIES];
+        if (!category) return;
+        
+        const lightColor = lightenColor(color, 30);
+        const r = parseInt(lightColor.substring(1, 3), 16);
+        const g = parseInt(lightColor.substring(3, 5), 16);
+        const b = parseInt(lightColor.substring(5, 7), 16);
+        
+        css += `
+        /* ${pos} - Original: ${color} -> Light: ${lightColor} */
+        .pos-${category} { 
+            background: linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.1) 0%, rgba(${r}, ${g}, ${b}, 0.05) 100%);
+            border-color: rgba(${r}, ${g}, ${b}, 0.2);
+        }
+        
+        .pos-${category} .pos-header { 
+            border-color: ${color}; 
+            color: ${color}; 
+        }
+        
+        .pos-${category} .pos-color-indicator { 
+            background-color: ${color}; 
+        }
+        
+        .pos-${category} .excluded-table th { 
+            background-color: ${color}; 
+        }
+        `;
+    });
+    
+    style.textContent = css;
+    document.head.appendChild(style);
+}
 
 // Map POS types to their exact categories
 function getPOSCategory(pos: string): string {
@@ -148,6 +211,9 @@ class ExcludedWordsManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('App page loaded');
+
+    // Inject dynamic POS styles from DetermineTextColor
+    injectPOSStyles();
 
     // Initialize the excluded words manager
     new ExcludedWordsManager();

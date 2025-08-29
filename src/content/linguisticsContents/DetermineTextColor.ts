@@ -15,7 +15,7 @@ function defaultColour(dark: boolean): string {
 }
 
 // Light mode TextColors
-const LIGHT_POS_COLORS: ColorMap = {
+export const LIGHT_POS_COLORS: ColorMap = {
     NOUN: "#1f77b4",
     VERB: "#d62728",
     ADJ: "#2ca02c",
@@ -38,7 +38,7 @@ const LIGHT_INFLECTION_COLORS: ColorMap = {
 };
 
 // Dark mode text colors
-const DARK_POS_COLORS: ColorMap = {
+export const DARK_POS_COLORS: ColorMap = {
     NOUN: "#69a3f3",
     VERB: "#f2706a",
     ADJ: "#6dc66d",
