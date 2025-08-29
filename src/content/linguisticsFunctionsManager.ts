@@ -114,7 +114,6 @@ export class LinguisticsManager {
             for (const token of tokens) {
                 const slice: string = text.slice(token.offset, token.offset + token.surface.length);
                 if (slice !== token.surface) return true;
-
             }
         }
         return false;
@@ -168,32 +167,16 @@ export class LinguisticsManager {
         sendResponse({ success: true });
     }
 
-    private unwrapTokens(preserveTokens: boolean): void {
-        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span.lingua-token");
-
-        spans.forEach((span: HTMLSpanElement): void => {
-            const text: string = span.dataset.surface || span.textContent || "";
-            const node: Text = document.createTextNode(text);
-            span.replaceWith(node);
-        });
-
-        const tooltip: HTMLElement | null = document.getElementById('tooltip');
-        if (tooltip) tooltip.remove();
-        this.tokenWrapper.resetHover();
-        this.tokenizedDOM = [];
-        this.paragraphs = [];
-        if (!preserveTokens) this.tokenizedArrays = [];
-    }
-
     private async handleRefreshSettings(): Promise<void> {
         const { enableFurigana, enableColor, enableHover, enableWordFilters } = await SettingsService.getSettings();
 
-        this.kanjiReadingProcessor.removeReadings();
-        this.textColorizer.removePOSAnnotations();
-        this.unwrapTokens(true);
-
         if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
 
+        if (enableFurigana) this.kanjiReadingProcessor.addReadings();
+        else this.kanjiReadingProcessor.removeReadings();
+
+        if (enableColor) this.textColorizer.addPOSAnnotations();
+        else this.textColorizer.removePOSAnnotations();
     }
 
 }

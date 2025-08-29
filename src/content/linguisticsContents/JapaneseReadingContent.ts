@@ -75,29 +75,31 @@ export class KanjiReadingsProcessor {
     }
 
     public addReadings(): void {
-        if (this.readingsAdded) return;
-
         const spans: NodeListOf<HTMLSpanElement> =
             document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
 
         spans.forEach((span: HTMLSpanElement): void => {
-            const surface: string = span.textContent || "";
-            const reading : string= span.dataset.reading || "";
+            const surface: string = span.dataset.surface || span.textContent || "";
+            const reading: string = span.dataset.reading || "";
 
-            span.innerHTML = addReading(surface, reading, this.readingMode);
+            if (span.querySelector("ruby")) {
+                span.querySelectorAll("rt").forEach((rt: HTMLSpanElement): void => {
+                    (rt as HTMLElement).style.display = "";
+                });
+            } else {
+                span.innerHTML = addReading(surface, reading, this.readingMode);
+            }
         });
 
         this.readingsAdded = true;
+        this.changeReadingType(this.readingMode);
     }
 
     public removeReadings(): void {
         if (!this.readingsAdded) return;
 
-        const spans: NodeListOf<HTMLSpanElement> =
-            document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
-
-        spans.forEach((span: HTMLSpanElement): void => {
-            span.textContent = span.dataset.surface || span.textContent || "";
+        document.querySelectorAll("span[data-reading] rt").forEach((rt: Element): void => {
+            (rt as HTMLElement).style.display = "none";
         });
 
         this.readingsAdded = false;
@@ -105,8 +107,6 @@ export class KanjiReadingsProcessor {
 
     public changeReadingType(mode: ReadingTypes): void {
         this.readingMode = mode;
-
-        if (!this.readingsAdded) return;
 
         document.querySelectorAll("ruby rt").forEach((rt: Element): void => {
             const base: string = rt.textContent || "";
