@@ -60,7 +60,7 @@ export default class HoverTokenViewModel {
 
     async exclude(): Promise<string> {
         if (!this._token) return "";
-        await this.filterTokens.instance.add(this._token.surface);
+        await this.filterTokens.instance.addToken(this._token);
         return this._token.surface;
     }
 

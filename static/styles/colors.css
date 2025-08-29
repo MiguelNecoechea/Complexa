@@ -8,6 +8,10 @@
   --primary-hover-dark: #4338ca;
   --primary-active-dark: #3730a3;
   
+  /* Primary gradients */
+  --primary-gradient-from: #667eea;
+  --primary-gradient-to: #764ba2;
+  
   /* Secondary colors */
   --secondary-color: #22c55e;
   --secondary-hover: #16a34a;

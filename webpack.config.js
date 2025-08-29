@@ -12,6 +12,7 @@ export default {
         "scripts/content/linguisticsFunctionsManager":
             "./src/content/linguisticsFunctionsManager.ts",
         "scripts/ui/popup": "./src/ui/popup.ts",
+        "scripts/ui/app": "./src/ui/app.ts",
     },
 
     output: {

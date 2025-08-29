@@ -4,7 +4,240 @@
         <title>Complexa</title>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/styles/app.css" rel="stylesheet" />
         <script src="../../dist/scripts/ui/app.js" defer></script>
+        <style>
+            /* Override body para que use los mismos gradientes que el resto de la app */
+            body {
+                background: linear-gradient(to bottom right, var(--primary-gradient-from), var(--primary-gradient-to)) !important;
+            }
+
+            /* Mejorar el contenedor principal para que siga la temática glassmorphism */
+            .content-container {
+                background: var(--glass-bg) !important;
+                border: 1px solid var(--glass-border) !important;
+                backdrop-filter: blur(10px) !important;
+                box-shadow: var(--shadow-md) !important;
+            }
+
+            /* Asegurar que los títulos usen los colores correctos */
+            .app-title {
+                color: var(--text-primary) !important;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .app-subtitle {
+                color: var(--text-secondary) !important;
+            }
+
+            .excluded-words-container {
+                margin: 20px 0;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(5px);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            .excluded-words-container h2 {
+                text-align: center;
+                margin-bottom: 24px;
+                color: var(--text-primary);
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .pos-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .pos-section {
+                width: 300px;
+                height: 250px;
+                border-radius: 12px;
+                padding: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                backdrop-filter: blur(5px);
+            }
+
+            /* Individual POS section colors - usando degradados del color de cada tipo de palabra */
+            .pos-verb { 
+                background: linear-gradient(135deg, rgba(214, 39, 40, 0.1) 0%, rgba(214, 39, 40, 0.05) 100%);
+                border-color: rgba(214, 39, 40, 0.2);
+            }
+            .pos-noun { 
+                background: linear-gradient(135deg, rgba(31, 119, 180, 0.1) 0%, rgba(31, 119, 180, 0.05) 100%);
+                border-color: rgba(31, 119, 180, 0.2);
+            }
+            .pos-adj { 
+                background: linear-gradient(135deg, rgba(44, 160, 44, 0.1) 0%, rgba(44, 160, 44, 0.05) 100%);
+                border-color: rgba(44, 160, 44, 0.2);
+            }
+            .pos-adv { 
+                background: linear-gradient(135deg, rgba(255, 127, 14, 0.1) 0%, rgba(255, 127, 14, 0.05) 100%);
+                border-color: rgba(255, 127, 14, 0.2);
+            }
+            .pos-pron { 
+                background: linear-gradient(135deg, rgba(148, 103, 189, 0.1) 0%, rgba(148, 103, 189, 0.05) 100%);
+                border-color: rgba(148, 103, 189, 0.2);
+            }
+            .pos-propn { 
+                background: linear-gradient(135deg, rgba(99, 162, 176, 0.1) 0%, rgba(99, 162, 176, 0.05) 100%);
+                border-color: rgba(99, 162, 176, 0.2);
+            }
+            .pos-part { 
+                background: linear-gradient(135deg, rgba(140, 86, 75, 0.1) 0%, rgba(140, 86, 75, 0.05) 100%);
+                border-color: rgba(140, 86, 75, 0.2);
+            }
+            .pos-aux { 
+                background: linear-gradient(135deg, rgba(227, 119, 194, 0.1) 0%, rgba(227, 119, 194, 0.05) 100%);
+                border-color: rgba(227, 119, 194, 0.2);
+            }
+            .pos-adp { 
+                background: linear-gradient(135deg, rgba(127, 127, 127, 0.1) 0%, rgba(127, 127, 127, 0.05) 100%);
+                border-color: rgba(127, 127, 127, 0.2);
+            }
+            .pos-cconj { 
+                background: linear-gradient(135deg, rgba(188, 189, 34, 0.1) 0%, rgba(188, 189, 34, 0.05) 100%);
+                border-color: rgba(188, 189, 34, 0.2);
+            }
+            .pos-sconj { 
+                background: linear-gradient(135deg, rgba(23, 190, 207, 0.1) 0%, rgba(23, 190, 207, 0.05) 100%);
+                border-color: rgba(23, 190, 207, 0.2);
+            }
+
+            .pos-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid;
+                font-weight: 600;
+                font-size: 1rem;
+            }
+
+            .pos-color-indicator {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 8px;
+                border: 1px solid rgba(0, 0, 0, 0.2);
+                flex-shrink: 0;
+            }
+
+            .excluded-table {
+                width: 100%;
+                border-collapse: collapse;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 6px;
+                overflow: hidden;
+                font-size: 0.8rem;
+            }
+
+            .excluded-table th {
+                padding: 6px 4px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 0.75rem;
+                color: white;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .excluded-table td {
+                padding: 4px 4px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                color: #1e293b;
+                font-size: 0.75rem;
+                max-width: 80px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .excluded-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .excluded-table tr:hover {
+                background-color: rgba(255, 255, 255, 0.6);
+            }
+
+            .remove-word-btn {
+                background: #ef4444;
+                color: white;
+                border: none;
+                padding: 2px 4px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 0.7rem;
+                transition: background-color 0.2s ease;
+                width: 100%;
+            }
+
+            .remove-word-btn:hover {
+                background: #dc2626;
+            }
+
+            .empty-message {
+                text-align: center;
+                color: #64748b;
+                font-style: italic;
+                padding: 12px;
+                font-size: 0.75rem;
+            }
+
+            /* POS-specific header colors (manteniendo los colores originales para headers) */
+            .pos-noun .pos-header { border-color: #1f77b4; color: #1f77b4; }
+            .pos-noun .pos-color-indicator { background-color: #1f77b4; }
+            .pos-noun .excluded-table th { background-color: #1f77b4; }
+
+            .pos-verb .pos-header { border-color: #d62728; color: #d62728; }
+            .pos-verb .pos-color-indicator { background-color: #d62728; }
+            .pos-verb .excluded-table th { background-color: #d62728; }
+
+            .pos-adj .pos-header { border-color: #2ca02c; color: #2ca02c; }
+            .pos-adj .pos-color-indicator { background-color: #2ca02c; }
+            .pos-adj .excluded-table th { background-color: #2ca02c; }
+
+            .pos-adv .pos-header { border-color: #ff7f0e; color: #ff7f0e; }
+            .pos-adv .pos-color-indicator { background-color: #ff7f0e; }
+            .pos-adv .excluded-table th { background-color: #ff7f0e; }
+
+            .pos-pron .pos-header { border-color: #9467bd; color: #9467bd; }
+            .pos-pron .pos-color-indicator { background-color: #9467bd; }
+            .pos-pron .excluded-table th { background-color: #9467bd; }
+
+            .pos-propn .pos-header { border-color: #63A2B0; color: #63A2B0; }
+            .pos-propn .pos-color-indicator { background-color: #63A2B0; }
+            .pos-propn .excluded-table th { background-color: #63A2B0; }
+
+            .pos-part .pos-header { border-color: #8c564b; color: #8c564b; }
+            .pos-part .pos-color-indicator { background-color: #8c564b; }
+            .pos-part .excluded-table th { background-color: #8c564b; }
+
+            .pos-aux .pos-header { border-color: #e377c2; color: #e377c2; }
+            .pos-aux .pos-color-indicator { background-color: #e377c2; }
+            .pos-aux .excluded-table th { background-color: #e377c2; }
+
+            .pos-adp .pos-header { border-color: #7f7f7f; color: #7f7f7f; }
+            .pos-adp .pos-color-indicator { background-color: #7f7f7f; }
+            .pos-adp .excluded-table th { background-color: #7f7f7f; }
+
+            .pos-cconj .pos-header { border-color: #bcbd22; color: #bcbd22; }
+            .pos-cconj .pos-color-indicator { background-color: #bcbd22; }
+            .pos-cconj .excluded-table th { background-color: #bcbd22; }
+
+            .pos-sconj .pos-header { border-color: #17becf; color: #17becf; }
+            .pos-sconj .pos-color-indicator { background-color: #17becf; }
+            .pos-sconj .excluded-table th { background-color: #17becf; }
+        </style>
     </head>
     <body>
         <div class="app-container">
@@ -15,7 +248,231 @@
                 </p>
 
                 <div id="app-container">
-                    <p>App content will be implemented in future updates.</p>
+                    <div class="excluded-words-container">
+                        <h2>Excluded Words</h2>
+                        
+                        <div class="pos-grid">
+                            <!-- Verbs -->
+                            <div class="pos-section pos-verb">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Verbs
+                                </div>
+                                <table class="excluded-table" id="verb-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="verb-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Nouns -->
+                            <div class="pos-section pos-noun">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Nouns
+                                </div>
+                                <table class="excluded-table" id="noun-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="noun-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Adjectives -->
+                            <div class="pos-section pos-adj">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Adjectives
+                                </div>
+                                <table class="excluded-table" id="adj-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adj-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Adverbs -->
+                            <div class="pos-section pos-adv">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Adverbs
+                                </div>
+                                <table class="excluded-table" id="adv-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adv-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pronouns -->
+                            <div class="pos-section pos-pron">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Pronouns
+                                </div>
+                                <table class="excluded-table" id="pron-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pron-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Proper Nouns -->
+                            <div class="pos-section pos-propn">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Proper Nouns
+                                </div>
+                                <table class="excluded-table" id="propn-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="propn-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Particles -->
+                            <div class="pos-section pos-part">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Particles
+                                </div>
+                                <table class="excluded-table" id="part-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="part-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Auxiliaries -->
+                            <div class="pos-section pos-aux">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Auxiliaries
+                                </div>
+                                <table class="excluded-table" id="aux-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="aux-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Adpositions -->
+                            <div class="pos-section pos-adp">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Adpositions
+                                </div>
+                                <table class="excluded-table" id="adp-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adp-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Coordinating Conjunctions -->
+                            <div class="pos-section pos-cconj">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Coord. Conjunctions
+                                </div>
+                                <table class="excluded-table" id="cconj-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cconj-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Subordinating Conjunctions -->
+                            <div class="pos-section pos-sconj">
+                                <div class="pos-header">
+                                    <div class="pos-color-indicator"></div>
+                                    Subord. Conjunctions
+                                </div>
+                                <table class="excluded-table" id="sconj-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Reading</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sconj-tbody">
+                                        <tr><td colspan="3" class="empty-message">No words yet</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
