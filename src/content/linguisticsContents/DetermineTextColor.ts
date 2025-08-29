@@ -29,14 +29,6 @@ const LIGHT_POS_COLORS: ColorMap = {
     SCONJ: "#17becf",
 };
 
-const LIGHT_INFLECTION_COLORS: ColorMap = {
-    基本形: "#d62728", 
-    過去形: "#9467bd",
-    未然形: "#8c564b",
-    連用形: "#ff7f0e",
-    意志形: "#e377c2",
-};
-
 // Dark mode text colors
 const DARK_POS_COLORS: ColorMap = {
     NOUN: "#69a3f3",
@@ -51,14 +43,6 @@ const DARK_POS_COLORS: ColorMap = {
     SCONJ: "#5fdfea",
 };
 
-const DARK_INFLECTION_COLORS: ColorMap = {
-    基本形: "#f2706a",
-    過去形: "#b48cd5",
-    未然形: "#a67a6f",
-    連用形: "#ff9a4e",
-    意志形: "#f68fcf",
-};
-
 export class DetermineTextColor {
     private static matchDark: MediaQueryList = window.matchMedia?.("(prefers-color-scheme: dark)");
 
@@ -69,13 +53,11 @@ export class DetermineTextColor {
     public determineColorToken(token: Token): TextProcessedColor {
         const dark: boolean = DetermineTextColor.isDark();
         const posPalette: ColorMap = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
-        const infPalette: ColorMap = dark ? DARK_INFLECTION_COLORS : LIGHT_INFLECTION_COLORS;
 
         const posKey: string = token.pos?.toUpperCase() ?? "";
-        const tagKey: string = token.tag ?? "";
 
         const posColor: string = posPalette[posKey] ?? defaultColour(dark);
-        const tagColor: string = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
+        const tagColor: string = posColor;
 
         return { posColor, tagColor };
     }

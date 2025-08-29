@@ -1,11 +1,12 @@
 import { Token, MorphFeatures } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
 import DetermineTextColor from "./DetermineTextColor";
+import { FilterTokensService } from "../../services/FilterTokensService";
 
 export class JapaneseTextColoring {
-    constructor() {}
+    constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
-    public addPOSAnnotations(): void {
+    public addPOSAnnotations(enableWordFilters: boolean): void {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
 
         spans.forEach((span: HTMLSpanElement): void => {
@@ -24,7 +25,12 @@ export class JapaneseTextColoring {
                 is_japanese: span.dataset.is_japanese || "false",
             };
 
-            const { posColor, tagColor }: TextProcessedColor = DetermineTextColor.determineColorToken(token);
+            if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
+                span.style.color = "";
+                return;
+            }
+
+            const { posColor }: TextProcessedColor = DetermineTextColor.determineColorToken(token);
 
             span.style.color = posColor;
 

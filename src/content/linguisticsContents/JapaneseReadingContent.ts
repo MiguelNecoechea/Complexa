@@ -1,7 +1,8 @@
 // Handles DOM traversal, messaging, and style injection
 import * as wanakana from "wanakana";
 import { ReadingTypes } from "../../models/PopupSettings";
-
+import { FilterTokensService } from "../../services/FilterTokensService";
+import { Token } from "../../models/JapaneseTokens";
 
 const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
@@ -64,9 +65,11 @@ function addReading(surface: string, reading: string, mode: ReadingTypes): strin
 export class KanjiReadingsProcessor {
     private readingsAdded: boolean = false;
     private readingMode: ReadingTypes;
+    private tokenFilter: FilterTokensService;
 
-    constructor(readingMode: ReadingTypes) {
+    constructor(readingMode: ReadingTypes, tokenFilter: FilterTokensService = FilterTokensService.instance) {
         this.readingMode = readingMode;
+        this.tokenFilter = tokenFilter;
         this.initialize();
     }
 
@@ -74,13 +77,19 @@ export class KanjiReadingsProcessor {
         this.addRubyStyles();
     }
 
-    public addReadings(): void {
+    public addReadings(enableWordFilters: boolean): void {
         const spans: NodeListOf<HTMLSpanElement> =
             document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
 
         spans.forEach((span: HTMLSpanElement): void => {
             const surface: string = span.dataset.surface || span.textContent || "";
             const reading: string = span.dataset.reading || "";
+
+            if (enableWordFilters && this.tokenFilter.shouldExclude({ surface } as Token)) {
+                span.querySelectorAll("rt").forEach((rt: Element): void => {
+                    (rt as HTMLElement).style.display = "none";
+                });
+            }
 
             if (span.querySelector("ruby")) {
                 span.querySelectorAll("rt").forEach((rt: HTMLSpanElement): void => {

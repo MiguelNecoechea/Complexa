@@ -36,8 +36,8 @@ export class LinguisticsManager {
 
     constructor() {
         this.paragraphs = TextExtractionManager.extract(document.querySelector("main") ?? document.body);
-        this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana");
-        this.textColorizer = new JapaneseTextColoring();
+        this.kanjiReadingProcessor = new KanjiReadingsProcessor("hiragana", this.tokenFilter);
+        this.textColorizer = new JapaneseTextColoring(this.tokenFilter);
         this.tokenWrapper = new TokenWrapper(this.tokenFilter);
         this.init().then(
             (): void => {
@@ -66,7 +66,7 @@ export class LinguisticsManager {
     private async init(): Promise<void> {
         const mode: ReadingTypes = await SettingsService.getSetting("readingType");
         HoverTokenViewModel.updateReadingMode(mode);
-        this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode);
+        this.kanjiReadingProcessor = new KanjiReadingsProcessor(mode, this.tokenFilter);
         this.setupMessageListeners();
     }
 
@@ -151,13 +151,11 @@ export class LinguisticsManager {
     private async handleAddReadings(): Promise<void> {
         try {
             await this.ensureWrapped();
-            const colorEnabled: boolean = await SettingsService.getSetting("enableColor");
-            const furiganaEnabled: boolean = await SettingsService.getSetting("enableFurigana");
-            if (colorEnabled) this.textColorizer.addPOSAnnotations();
-            if (furiganaEnabled) this.kanjiReadingProcessor.addReadings();
+            const { enableColor, enableFurigana, enableWordFilters } = await SettingsService.getSettings();
+            if (enableColor) this.textColorizer.addPOSAnnotations(enableWordFilters);
+            if (enableFurigana) this.kanjiReadingProcessor.addReadings(enableWordFilters);
 
-        } catch (err: any) {
-        }
+        } catch (err: any) {}
     }
 
     private async handleChangeReadingType(readingType: ReadingTypes, sendResponse: (response: any) => void): Promise<void> {
@@ -172,10 +170,10 @@ export class LinguisticsManager {
 
         if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
 
-        if (enableFurigana) this.kanjiReadingProcessor.addReadings();
+        if (enableFurigana) this.kanjiReadingProcessor.addReadings(enableWordFilters);
         else this.kanjiReadingProcessor.removeReadings();
 
-        if (enableColor) this.textColorizer.addPOSAnnotations();
+        if (enableColor) this.textColorizer.addPOSAnnotations(enableWordFilters);
         else this.textColorizer.removePOSAnnotations();
     }
 
