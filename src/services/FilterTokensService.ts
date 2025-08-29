@@ -21,6 +21,14 @@ import { Token } from "../models/JapaneseTokens";
 
 const STORAGE_KEY = "excludedTokens" as const;
 
+// Enhanced token storage interface
+interface ExcludedToken {
+    surface: string;
+    reading?: string;
+    pos?: string;
+    lemma?: string;
+}
+
 type TokenString = string;
 
 function normalise(value: string): TokenString {
@@ -29,6 +37,7 @@ function normalise(value: string): TokenString {
 
 export class FilterTokensService {
     private excluded: Set<string> = new Set<TokenString>();
+    private excludedTokens: Map<string, ExcludedToken> = new Map();
     private loaded: boolean = false;
     private static _instance: FilterTokensService | null = null;
 
@@ -45,35 +54,75 @@ export class FilterTokensService {
 
         try {
             const result: {[key: string]: any} = await chrome.storage.sync.get(STORAGE_KEY);
-            const list = result[STORAGE_KEY] as TokenString[] | undefined;
+            const data = result[STORAGE_KEY];
 
-            if (Array.isArray(list)) list.forEach((t: string): Set<string> => this.excluded.add(t));
+            // Handle both old format (string[]) and new format (ExcludedToken[])
+            if (Array.isArray(data)) {
+                if (data.length > 0 && typeof data[0] === 'string') {
+                    // Old format - convert to new format
+                    data.forEach((surface: string) => {
+                        const normalized = normalise(surface);
+                        this.excluded.add(normalized);
+                        this.excludedTokens.set(normalized, { surface });
+                    });
+                } else {
+                    // New format
+                    data.forEach((token: ExcludedToken) => {
+                        const normalized = normalise(token.surface);
+                        this.excluded.add(normalized);
+                        this.excludedTokens.set(normalized, token);
+                    });
+                }
+            }
 
             this.loaded = true;
         } catch (err) {
             const result: {[key: string]: any} = await chrome.storage.local.get(STORAGE_KEY);
-            const list = result[STORAGE_KEY] as TokenString[] | undefined;
+            const data = result[STORAGE_KEY];
 
-            if (Array.isArray(list)) list.forEach((t: string): Set<string> => this.excluded.add(t));
+            if (Array.isArray(data)) {
+                if (data.length > 0 && typeof data[0] === 'string') {
+                    // Old format
+                    data.forEach((surface: string) => {
+                        const normalized = normalise(surface);
+                        this.excluded.add(normalized);
+                        this.excludedTokens.set(normalized, { surface });
+                    });
+                } else {
+                    // New format
+                    data.forEach((token: ExcludedToken) => {
+                        const normalized = normalise(token.surface);
+                        this.excluded.add(normalized);
+                        this.excludedTokens.set(normalized, token);
+                    });
+                }
+            }
 
             this.loaded = true;
         }
-
     }
 
     // Private functionality
     private async persist(): Promise<void> {
-        const data = { [STORAGE_KEY]: this.getAll() };
+        const data = this.getAllTokens();
+        const storageData = { [STORAGE_KEY]: data };
         try {
-            await chrome.storage.sync.set(data);
+            await chrome.storage.sync.set(storageData);
         } catch (err) {
-            await chrome.storage.local.set(data);
+            await chrome.storage.local.set(storageData);
         }
     }
 
     // Public functionality
     getAll(): string[] {
-        return [...this.excluded.values()];
+        return [...this.excluded.values()].map(normalized => {
+            const token = this.excludedTokens.get(normalized);
+            return token?.surface || normalized;
+        });
+    }
+
+    getAllTokens(): ExcludedToken[] {
+        return [...this.excludedTokens.values()];
     }
 
     shouldExclude(token: Token): boolean {
@@ -81,18 +130,41 @@ export class FilterTokensService {
         return this.excluded.has(str);
     }
 
+    async addToken(token: Token): Promise<void> {
+        const normalized = normalise(token.surface);
+        const excludedToken: ExcludedToken = {
+            surface: token.surface,
+            reading: token.reading,
+            pos: token.pos,
+            lemma: token.lemma
+        };
+        
+        this.excluded.add(normalized);
+        this.excludedTokens.set(normalized, excludedToken);
+        await this.persist();
+    }
+
     async add(...words: string[]): Promise<void> {
-        words.forEach((word: string): Set<string> => this.excluded.add(normalise(word)));
+        words.forEach((word: string) => {
+            const normalized = normalise(word);
+            this.excluded.add(normalized);
+            this.excludedTokens.set(normalized, { surface: word });
+        });
         await this.persist();
     }
 
     async remove(...words: string[]): Promise<void> {
-        words.forEach((word: string): boolean => this.excluded.delete(normalise(word)));
+        words.forEach((word: string) => {
+            const normalized = normalise(word);
+            this.excluded.delete(normalized);
+            this.excludedTokens.delete(normalized);
+        });
         await this.persist();
     }
 
     async clear(): Promise<void> {
         this.excluded.clear();
+        this.excludedTokens.clear();
         await this.persist();
     }
 }
