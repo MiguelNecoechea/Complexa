@@ -17,7 +17,7 @@ function defaultColour(dark: boolean): string {
 // Light mode TextColors
 export const LIGHT_POS_COLORS: ColorMap = {
     NOUN: "#1f77b4",
-    VERB: "#d62728",
+    VERB: "#d65627ff",
     ADJ: "#2ca02c",
     ADV: "#ff7f0e",
     PRON: "#9467bd",
@@ -29,7 +29,7 @@ export const LIGHT_POS_COLORS: ColorMap = {
     SCONJ: "#17becf",
 };
 
-const LIGHT_INFLECTION_COLORS: ColorMap = {
+export const LIGHT_INFLECTION_COLORS: ColorMap = {
     基本形: "#d62728", 
     過去形: "#9467bd",
     未然形: "#8c564b",
@@ -51,7 +51,7 @@ export const DARK_POS_COLORS: ColorMap = {
     SCONJ: "#5fdfea",
 };
 
-const DARK_INFLECTION_COLORS: ColorMap = {
+export const DARK_INFLECTION_COLORS: ColorMap = {
     基本形: "#f2706a",
     過去形: "#b48cd5",
     未然形: "#a67a6f",

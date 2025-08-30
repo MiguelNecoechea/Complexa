@@ -39,14 +39,21 @@ function lightenColor(hex: string, amount: number = 20): string {
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
 
-// Function to inject dynamic styles based on LIGHT_POS_COLORS
+// Function to inject dynamic styles based on current colors
 function injectPOSStyles(): void {
+    // Remove existing dynamic styles
+    const existingStyle = document.getElementById('dynamic-pos-styles');
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+    
     const style = document.createElement('style');
     style.id = 'dynamic-pos-styles';
     
     let css = '';
     
-    Object.entries(LIGHT_POS_COLORS).forEach(([pos, color]) => {
+    Object.keys(LIGHT_POS_COLORS).forEach(pos => {
+        const color = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
         const category = POS_CATEGORIES[pos as keyof typeof POS_CATEGORIES];
         if (!category) return;
         
@@ -79,6 +86,124 @@ function injectPOSStyles(): void {
     
     style.textContent = css;
     document.head.appendChild(style);
+}
+
+// Color Configuration Modal Class
+class ColorConfigModal {
+    private modal: HTMLElement;
+    private currentPOS: string = '';
+    private colorPicker: HTMLInputElement;
+    private hexInput: HTMLInputElement;
+    private currentColorPreview: HTMLElement;
+    private currentColorHex: HTMLElement;
+    private demoTextLight: HTMLElement;
+    private demoBackgroundLight: HTMLElement;
+    private demoTextDark: HTMLElement;
+    private demoBackgroundDark: HTMLElement;
+    private modalTitle: HTMLElement;
+    private newColorPreview: HTMLElement;
+
+    constructor() {
+        this.modal = document.getElementById('color-config-modal')!;
+        this.colorPicker = document.getElementById('color-picker') as HTMLInputElement;
+        this.hexInput = document.getElementById('color-hex-input') as HTMLInputElement;
+        this.currentColorPreview = document.getElementById('current-color-preview')!;
+        this.currentColorHex = document.getElementById('current-color-hex')!;
+        this.demoTextLight = document.getElementById('demo-text-light')!;
+        this.demoBackgroundLight = document.getElementById('demo-background-light')!;
+        this.demoTextDark = document.getElementById('demo-text-dark')!;
+        this.demoBackgroundDark = document.getElementById('demo-background-dark')!;
+        this.modalTitle = document.getElementById('modal-title')!;
+        
+        // Nuevo elemento para preview del color seleccionado
+        this.newColorPreview = document.getElementById('new-color-preview')!;
+
+        this.bindEvents();
+    }
+
+    private bindEvents(): void {
+        // Close modal events
+        document.getElementById('close-modal')?.addEventListener('click', () => this.close());
+        document.getElementById('cancel-btn')?.addEventListener('click', () => this.close());
+        
+        // Color picker events (solo para preview visual)
+        this.colorPicker.addEventListener('input', (e) => {
+            const color = (e.target as HTMLInputElement).value;
+            this.hexInput.value = color;
+            this.updatePreview(color);
+        });
+        
+        // Hex input events (solo para preview visual)
+        this.hexInput.addEventListener('input', (e) => {
+            const color = (e.target as HTMLInputElement).value;
+            if (this.isValidHex(color)) {
+                this.colorPicker.value = color;
+                this.updatePreview(color);
+            }
+        });
+        
+        // Click outside to close
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.close();
+            }
+        });
+    }
+
+    private isValidHex(hex: string): boolean {
+        return /^#[0-9A-F]{6}$/i.test(hex);
+    }
+
+    private updatePreview(color: string): void {
+        // Actualizar el preview del nuevo color
+        this.newColorPreview.style.backgroundColor = color;
+        this.newColorPreview.style.backgroundImage = 'none'; // Remove transparency pattern
+        
+        // Actualizar los previews de texto en ambos modos
+        this.demoTextLight.style.borderColor = color;
+        this.demoTextLight.style.color = color;
+        this.demoBackgroundLight.style.backgroundColor = color;
+        
+        // Para modo oscuro, usar el mismo color (simplificado)
+        this.demoTextDark.style.borderColor = color;
+        this.demoTextDark.style.color = color;
+        this.demoBackgroundDark.style.backgroundColor = color;
+    }
+
+    public open(pos: string): void {
+        this.currentPOS = pos;
+        const currentColor = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
+        
+        // Update modal title
+        const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
+        this.modalTitle.textContent = `Preview ${posName} Colors`;
+        
+        // Set current color
+        this.currentColorPreview.style.backgroundColor = currentColor;
+        this.currentColorPreview.style.backgroundImage = 'none';
+        this.currentColorHex.textContent = currentColor;
+        
+        // Set picker values and new color preview
+        this.colorPicker.value = currentColor;
+        this.hexInput.value = currentColor;
+        this.newColorPreview.style.backgroundColor = currentColor;
+        this.newColorPreview.style.backgroundImage = 'none';
+        
+        // Update preview
+        this.updatePreview(currentColor);
+        
+        // Show modal
+        this.modal.classList.add('show');
+    }
+
+    public close(): void {
+        this.modal.classList.remove('show');
+    }
+
+    private async applyColor(): Promise<void> {
+        // Solo cerrar el modal sin aplicar cambios
+        this.close();
+    }
 }
 
 // Map POS types to their exact categories
@@ -209,12 +334,26 @@ class ExcludedWordsManager {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('App page loaded');
+
+    // Initialize color preview modal (solo visual)
+    const colorModal = new ColorConfigModal();
 
     // Inject dynamic POS styles from DetermineTextColor
     injectPOSStyles();
 
     // Initialize the excluded words manager
     new ExcludedWordsManager();
+
+    // Bind config button events (solo para preview visual)
+    document.querySelectorAll('.pos-config-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const pos = (button as HTMLElement).dataset.pos;
+            if (pos) {
+                colorModal.open(pos);
+            }
+        });
+    });
 });
