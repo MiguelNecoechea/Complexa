@@ -23,15 +23,11 @@
 
 import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
-import { FilterTokensService } from "../../services/FilterTokensService";
 import HoverTokenView from "../../views/HoverTokenView";
 
 export class TokenWrapper {
     private tooltipReady: boolean = false;
     private hoverEnabled: boolean = false;
-    private wordFiltersEnabled: boolean = false;
-
-    constructor(private readonly tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
     /**
      * Public entry point – wrap the whole page (or selection).
@@ -43,17 +39,16 @@ export class TokenWrapper {
      * @param tokenizedArrays A parallel array where `tokenizedArrays[i]` holds
      *                        the tokens for `paragraphs[i]`.
      * @param hoverEnabled    Tells if the hover is enabled.
-     * @param wordFiltersEnabled Turns off and on the filters.
      * @returns               2‑D matrix: one row per paragraph, each containing
      *                        the <span> elements we created for that paragraph.
      */
     public async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],
-               hoverEnabled: boolean, wordFiltersEnabled: boolean): Promise<HTMLElement[][]> {
+               hoverEnabled: boolean): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
         let tokIdx: number = 0;
         let paraOffset: number = 0;
+        let spillover: number = 0;
         this.hoverEnabled = hoverEnabled;
-        this.wordFiltersEnabled = wordFiltersEnabled;
 
         for (let pIdx: number = 0; pIdx < paragraphs.length; pIdx++) {
             const paragraph: Paragraph = paragraphs[pIdx];
@@ -67,12 +62,20 @@ export class TokenWrapper {
 
             tokIdx = 0;
             paraOffset = 0;
+            spillover = 0;
             for (const node of paragraph.textNodes) {
-                const { fragment, consumed } = this.wrapTextNode(node, tokens, tokIdx, paraOffset, row);
-
+                if (spillover >= node.data.length) {
+                    paraOffset += node.data.length;
+                    spillover -= node.data.length;
+                    node.parentNode!.replaceChild(node.ownerDocument!.createDocumentFragment(), node);
+                    continue;
+                }
+                const skip: number = spillover;
+                const { fragment, consumed, spill } = this.wrapTextNode(node, tokens, tokIdx, paraOffset + skip, row, skip);
                 node.parentNode!.replaceChild(fragment, node);
                 tokIdx += consumed;
                 paraOffset += node.data.length;
+                spillover = spill;
             }
             matrix.push(row);
         }
@@ -81,9 +84,6 @@ export class TokenWrapper {
         return matrix;
     }
 
-    public resetHover(): void {
-        this.tooltipReady = false;
-    }
 
     /**
      * Walk a single Text node from left→right, emit plain text + wrapped tokens,
@@ -92,40 +92,44 @@ export class TokenWrapper {
      * @param node        The `Text` DOM node we’re processing.
      * @param tokens      Full token array for the paragraph.
      * @param startIdx    Index of the first *unwrapped* token.
-     * @param paraOffset  Absolute paragraph offset of node.data[0].
+     * @param paraOffset  Absolute paragraph offset of the first unconsumed character in this node.
      * @param row         Collects <span> references for caller.
+     * @param skip        Number of leading characters already consumed by a previous token.
      */
-    private wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[]
-    ): { fragment: DocumentFragment; consumed: number } {
+    private wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[],
+                        skip: number = 0): { fragment: DocumentFragment; consumed: number; spill: number } {
         const frag: DocumentFragment = node.ownerDocument!.createDocumentFragment();
-        const text: string = node.data;
+        const text: string = node.data.slice(skip);
         const nodeEnd: number = paraOffset + text.length;
 
         let localPos: number = 0;
         let idx: number = startIdx;
+        let spill: number = 0;
 
         while (idx < tokens.length && tokens[idx].offset < nodeEnd) {
             const tok: Token = tokens[idx];
             const relStart: number = tok.offset - paraOffset;
 
-            if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
-
-
-            if ((this.wordFiltersEnabled && this.tokenFilter.shouldExclude(tok)) || !tok.is_japanese) {
-                frag.append(node.ownerDocument!.createTextNode(tok.surface));
-            } else {
-                const span: HTMLSpanElement = this.buildSpan(tok);
-                frag.append(span);
-                row.push(span);
+            if (tok.offset < paraOffset + localPos) {
+                idx++;
+                continue;
             }
 
+            if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
+
+            const span: HTMLSpanElement = this.buildSpan(tok);
+            frag.append(span);
+            row.push(span);
+
             localPos = relStart + tok.surface.length;
+            const tokEnd: number = tok.offset + tok.surface.length;
+            if (tokEnd > nodeEnd) spill = tokEnd - nodeEnd;
             idx++;
         }
 
         if (localPos < text.length) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos)));
 
-        return { fragment: frag, consumed: idx - startIdx };
+        return { fragment: frag, consumed: idx - startIdx, spill };
     }
 
     /**

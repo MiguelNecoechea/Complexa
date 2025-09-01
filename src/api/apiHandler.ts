@@ -1,5 +1,5 @@
-import {Token} from "../models/JapaneseTokens";
-import {JishoEntry, JishoEntrySense} from "../models/Jisho";
+import { Token } from "../models/JapaneseTokens";
+import { JishoEntry, JishoEntrySense } from "../models/Jisho";
 
 interface ApiSense {
     english_definitions: string[];
@@ -28,7 +28,7 @@ export async function tokenizeBatch(texts: string[]): Promise<Token[][]> {
     const payload: {text: string}[] = clean.map((text: string): {text: string} => ({ text }));
 
 
-    const res = await fetch(`${baseUrl}${endpoint}`, {
+    const res: Response = await fetch(`${baseUrl}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

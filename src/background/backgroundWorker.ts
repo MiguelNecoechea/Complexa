@@ -2,7 +2,7 @@ import {PopupSettings} from "../models/PopupSettings";
 import { fetchJishoMeaning, tokenizeBatch }  from  "../api/apiHandler"
 import { JishoLookupResponse, JishoEntry } from "../models/Jisho";
 import MessageSender = chrome.runtime.MessageSender;
-import {Token} from "../models/JapaneseTokens";
+import { Token } from "../models/JapaneseTokens";
 
 /**
  * Notifica a todas las pestañas activas sobre cambios en los colores

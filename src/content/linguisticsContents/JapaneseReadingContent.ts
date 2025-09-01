@@ -1,7 +1,8 @@
 // Handles DOM traversal, messaging, and style injection
 import * as wanakana from "wanakana";
 import { ReadingTypes } from "../../models/PopupSettings";
-
+import { FilterTokensService } from "../../services/FilterTokensService";
+import { Token } from "../../models/JapaneseTokens";
 
 const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
@@ -64,9 +65,11 @@ function addReading(surface: string, reading: string, mode: ReadingTypes): strin
 export class KanjiReadingsProcessor {
     private readingsAdded: boolean = false;
     private readingMode: ReadingTypes;
+    private tokenFilter: FilterTokensService;
 
-    constructor(readingMode: ReadingTypes) {
+    constructor(readingMode: ReadingTypes, tokenFilter: FilterTokensService = FilterTokensService.instance) {
         this.readingMode = readingMode;
+        this.tokenFilter = tokenFilter;
         this.initialize();
     }
 
@@ -74,30 +77,38 @@ export class KanjiReadingsProcessor {
         this.addRubyStyles();
     }
 
-    public addReadings(): void {
-        if (this.readingsAdded) return;
-
+    public addReadings(enableWordFilters: boolean): void {
         const spans: NodeListOf<HTMLSpanElement> =
             document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
 
         spans.forEach((span: HTMLSpanElement): void => {
-            const surface: string = span.textContent || "";
-            const reading : string= span.dataset.reading || "";
+            const surface: string = span.dataset.surface || span.textContent || "";
+            const reading: string = span.dataset.reading || "";
 
-            span.innerHTML = addReading(surface, reading, this.readingMode);
+            if (enableWordFilters && this.tokenFilter.shouldExclude({ surface } as Token)) {
+                span.querySelectorAll("rt").forEach((rt: Element): void => {
+                    (rt as HTMLElement).style.display = "none";
+                });
+            }
+
+            if (span.querySelector("ruby")) {
+                span.querySelectorAll("rt").forEach((rt: HTMLSpanElement): void => {
+                    (rt as HTMLElement).style.display = "";
+                });
+            } else {
+                span.innerHTML = addReading(surface, reading, this.readingMode);
+            }
         });
 
         this.readingsAdded = true;
+        this.changeReadingType(this.readingMode);
     }
 
     public removeReadings(): void {
         if (!this.readingsAdded) return;
 
-        const spans: NodeListOf<HTMLSpanElement> =
-            document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
-
-        spans.forEach((span: HTMLSpanElement): void => {
-            span.textContent = span.dataset.surface || span.textContent || "";
+        document.querySelectorAll("span[data-reading] rt").forEach((rt: Element): void => {
+            (rt as HTMLElement).style.display = "none";
         });
 
         this.readingsAdded = false;
@@ -105,8 +116,6 @@ export class KanjiReadingsProcessor {
 
     public changeReadingType(mode: ReadingTypes): void {
         this.readingMode = mode;
-
-        if (!this.readingsAdded) return;
 
         document.querySelectorAll("ruby rt").forEach((rt: Element): void => {
             const base: string = rt.textContent || "";

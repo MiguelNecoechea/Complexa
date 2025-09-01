@@ -1,9 +1,10 @@
 import { Token, MorphFeatures } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
 import DetermineTextColor from "./DetermineTextColor";
+import { FilterTokensService } from "../../services/FilterTokensService";
 
 export class JapaneseTextColoring {
-    constructor() {}
+    constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
     public async addPOSAnnotations(): Promise<void> {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
@@ -34,6 +35,16 @@ export class JapaneseTextColoring {
                 const { posColor }: TextProcessedColor = DetermineTextColor.determineColorTokenSync(token);
                 span.style.color = posColor;
             }
+          
+            if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
+                span.style.color = "";
+                return;
+            }
+
+            const { posColor }: TextProcessedColor = DetermineTextColor.determineColorToken(token);
+
+            span.style.color = posColor;
+
         });
 
         await Promise.all(colorPromises);
