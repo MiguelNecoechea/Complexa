@@ -6,10 +6,11 @@ import { FilterTokensService } from "../../services/FilterTokensService";
 export class JapaneseTextColoring {
     constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
-    public addPOSAnnotations(enableWordFilters: boolean): void {
+    public async addPOSAnnotations(): Promise<void> {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
 
-        spans.forEach((span: HTMLSpanElement): void => {
+        // Procesar spans en paralelo para mejor performance
+        const colorPromises = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
             const token: Token = {
                 surface: span.textContent || "",
                 reading: span.dataset.reading || "",
@@ -25,6 +26,16 @@ export class JapaneseTextColoring {
                 is_japanese: span.dataset.is_japanese || "false",
             };
 
+            try {
+                const { posColor, tagColor }: TextProcessedColor = await DetermineTextColor.determineColorToken(token);
+                span.style.color = posColor;
+            } catch (error) {
+                console.warn("Error determining color for token, using the basic color:", error);
+                // Fallback al método sincrónico si hay error
+                const { posColor }: TextProcessedColor = DetermineTextColor.determineColorTokenSync(token);
+                span.style.color = posColor;
+            }
+          
             if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
                 span.style.color = "";
                 return;
@@ -35,6 +46,8 @@ export class JapaneseTextColoring {
             span.style.color = posColor;
 
         });
+
+        await Promise.all(colorPromises);
     }
 
     public removePOSAnnotations(): void {

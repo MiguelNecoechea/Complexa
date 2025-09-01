@@ -7,6 +7,7 @@
 
 import { Token } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
+import { ColorCustomizationService } from "../../services/ColorCustomizationService";
 
 type ColorMap = Record<string, string>;
 
@@ -15,7 +16,7 @@ function defaultColour(dark: boolean): string {
 }
 
 // Light mode TextColors
-const LIGHT_POS_COLORS: ColorMap = {
+export const LIGHT_POS_COLORS: ColorMap = {
     NOUN: "#1f77b4",
     VERB: "#d62728",
     ADJ: "#2ca02c",
@@ -30,7 +31,7 @@ const LIGHT_POS_COLORS: ColorMap = {
 };
 
 // Dark mode text colors
-const DARK_POS_COLORS: ColorMap = {
+export const DARK_POS_COLORS: ColorMap = {
     NOUN: "#69a3f3",
     VERB: "#f2706a",
     ADJ: "#6dc66d",
@@ -50,7 +51,13 @@ export class DetermineTextColor {
         return this.matchDark?.matches ?? false;
     }
 
-    public determineColorToken(token: Token): TextProcessedColor {
+    public async determineColorToken(token: Token): Promise<TextProcessedColor> {
+        // Usar el nuevo servicio de colores
+        return await ColorCustomizationService.determineColorToken(token);
+    }
+
+    // Método sincrónico de fallback para compatibilidad (usando colores hardcodeados)
+    public determineColorTokenSync(token: Token): TextProcessedColor {
         const dark: boolean = DetermineTextColor.isDark();
         const posPalette: ColorMap = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
 

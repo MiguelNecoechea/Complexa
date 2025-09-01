@@ -19,7 +19,8 @@ const MESSAGE_TYPES = {
     ADD_READINGS: "addReadings",
     CHANGE_READING_TYPE: "changeReadingType",
     PING: "ping",
-    REFRESH_SETTINGS: "refreshSettings"
+    REFRESH_SETTINGS: "refreshSettings",
+    COLORS_UPDATED: "COLORS_UPDATED"
 };
 
 export class LinguisticsManager {
@@ -73,7 +74,10 @@ export class LinguisticsManager {
     private setupMessageListeners(): void {
         chrome.runtime.onMessage.addListener(
             (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
-                switch (message.action) {
+                // Usar action o type para compatibilidad
+                const actionType = message.action || message.type;
+                
+                switch (actionType) {
                     case MESSAGE_TYPES.ADD_READINGS:
                         this.handleAddReadings().then(
                             (): void => sendResponse({ ok: true }),
@@ -90,8 +94,13 @@ export class LinguisticsManager {
                         sendResponse({ ok: true });
                         return false;
                     case MESSAGE_TYPES.REFRESH_SETTINGS:
-                        console.log("settings refreshed")
                         this.handleRefreshSettings().then(
+                            (): void => sendResponse({ ok: true }),
+                            (err: any): void => sendResponse({ ok: false, err }),
+                        );
+                        return true;
+                    case MESSAGE_TYPES.COLORS_UPDATED:
+                        this.handleColorsUpdated().then(
                             (): void => sendResponse({ ok: true }),
                             (err: any): void => sendResponse({ ok: false, err }),
                         );
@@ -170,6 +179,33 @@ export class LinguisticsManager {
 
         if (enableColor) this.textColorizer.addPOSAnnotations(enableWordFilters);
         else this.textColorizer.removePOSAnnotations();
+    }
+
+    /**
+     * Maneja la actualización automática de colores cuando se cambian desde la app
+     */
+    private async handleColorsUpdated(): Promise<void> {
+        try {            
+            // Verificar si el coloreado está habilitado
+            const colorEnabled: boolean = await SettingsService.getSetting("enableColor");
+            
+            if (!colorEnabled) {
+                return;
+            }
+
+            // Verificar si hay tokens ya coloreados en la página
+            const coloredSpans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+            
+            if (coloredSpans.length === 0) {
+                return;
+            }
+            
+            // Re-aplicar colores usando el nuevo sistema
+            await this.textColorizer.addPOSAnnotations();
+                        
+        } catch (error) {
+            console.error("❌ Error updating colors:", error);
+        }
     }
 
 }
