@@ -6,11 +6,11 @@ import { FilterTokensService } from "../../services/FilterTokensService";
 export class JapaneseTextColoring {
     constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
-    public async addPOSAnnotations(): Promise<void> {
+    public async addPOSAnnotations(enableWordFilters: boolean): Promise<void> {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
 
         // Procesar spans en paralelo para mejor performance
-        const colorPromises = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
+        const colorPromises:Promise<void>[] = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
             const token: Token = {
                 surface: span.textContent || "",
                 reading: span.dataset.reading || "",
@@ -26,6 +26,11 @@ export class JapaneseTextColoring {
                 is_japanese: span.dataset.is_japanese || "false",
             };
 
+            if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
+                span.style.color = "";
+                return;
+            }
+
             try {
                 const { posColor, tagColor }: TextProcessedColor = await DetermineTextColor.determineColorToken(token);
                 span.style.color = posColor;
@@ -35,16 +40,6 @@ export class JapaneseTextColoring {
                 const { posColor }: TextProcessedColor = DetermineTextColor.determineColorTokenSync(token);
                 span.style.color = posColor;
             }
-          
-            if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
-                span.style.color = "";
-                return;
-            }
-
-            const { posColor }: TextProcessedColor = DetermineTextColor.determineColorToken(token);
-
-            span.style.color = posColor;
-
         });
 
         await Promise.all(colorPromises);

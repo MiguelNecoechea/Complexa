@@ -84,6 +84,11 @@ export class TokenWrapper {
         return matrix;
     }
 
+    public async setHoverEnabled(enable: boolean): Promise<void> {
+        this.hoverEnabled = enable;
+        if (this.hoverEnabled) await this.mountHoverToolTip();
+    }
+
 
     /**
      * Walk a single Text node from left→right, emit plain text + wrapped tokens,
@@ -173,4 +178,6 @@ export class TokenWrapper {
         new HoverTokenView();
         this.tooltipReady = true;
     }
+
+
 }

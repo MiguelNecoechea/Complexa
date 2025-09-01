@@ -12,7 +12,7 @@ import { Token } from "../models/JapaneseTokens";
 
 // UI imports
 import { FilterTokensService } from "../services/FilterTokensService";
-import { ReadingTypes } from "../models/PopupSettings";
+import {PopupSettings, ReadingTypes} from "../models/PopupSettings";
 import MessageSender = chrome.runtime.MessageSender;
 
 const MESSAGE_TYPES = {
@@ -174,6 +174,8 @@ export class LinguisticsManager {
 
         if (enableFurigana || enableColor || enableHover || enableWordFilters) await this.handleAddReadings();
 
+        await this.tokenWrapper.setHoverEnabled(enableHover);
+
         if (enableFurigana) this.kanjiReadingProcessor.addReadings(enableWordFilters);
         else this.kanjiReadingProcessor.removeReadings();
 
@@ -186,22 +188,20 @@ export class LinguisticsManager {
      */
     private async handleColorsUpdated(): Promise<void> {
         try {            
-            // Verificar si el coloreado está habilitado
+            const enableWordFilters: boolean  = await SettingsService.getSetting("enableWordFilters");
             const colorEnabled: boolean = await SettingsService.getSetting("enableColor");
             
             if (!colorEnabled) {
                 return;
             }
 
-            // Verificar si hay tokens ya coloreados en la página
             const coloredSpans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
             
             if (coloredSpans.length === 0) {
                 return;
             }
             
-            // Re-aplicar colores usando el nuevo sistema
-            await this.textColorizer.addPOSAnnotations();
+            await this.textColorizer.addPOSAnnotations(enableWordFilters);
                         
         } catch (error) {
             console.error("❌ Error updating colors:", error);
