@@ -137,31 +137,37 @@ async function injectPOSStyles(): Promise<void> {
 class ColorConfigModal {
     private modal: HTMLElement;
     private currentPOS: string = '';
-    private colorPicker: HTMLInputElement;
-    private hexInput: HTMLInputElement;
-    private currentColorPreview: HTMLElement;
+    private lightColorPicker: HTMLInputElement;
+    private darkColorPicker: HTMLInputElement;
+    private lightHexInput: HTMLInputElement;
+    private darkHexInput: HTMLInputElement;
+    private currentColorPreviewLight: HTMLElement;
+    private currentColorPreviewDark: HTMLElement;
     private currentColorHex: HTMLElement;
+    private newColorPreviewLight: HTMLElement;
+    private newColorPreviewDark: HTMLElement;
     private demoTextLight: HTMLElement;
     private demoBackgroundLight: HTMLElement;
     private demoTextDark: HTMLElement;
     private demoBackgroundDark: HTMLElement;
     private modalTitle: HTMLElement;
-    private newColorPreview: HTMLElement;
 
     constructor() {
         this.modal = document.getElementById('color-config-modal')!;
-        this.colorPicker = document.getElementById('color-picker') as HTMLInputElement;
-        this.hexInput = document.getElementById('color-hex-input') as HTMLInputElement;
-        this.currentColorPreview = document.getElementById('current-color-preview')!;
+        this.lightColorPicker = document.getElementById('light-color-picker') as HTMLInputElement;
+        this.darkColorPicker = document.getElementById('dark-color-picker') as HTMLInputElement;
+        this.lightHexInput = document.getElementById('light-color-hex-input') as HTMLInputElement;
+        this.darkHexInput = document.getElementById('dark-color-hex-input') as HTMLInputElement;
+        this.currentColorPreviewLight = document.getElementById('current-color-preview-light')!;
+        this.currentColorPreviewDark = document.getElementById('current-color-preview-dark')!;
         this.currentColorHex = document.getElementById('current-color-hex')!;
+        this.newColorPreviewLight = document.getElementById('new-color-preview-light')!;
+        this.newColorPreviewDark = document.getElementById('new-color-preview-dark')!;
         this.demoTextLight = document.getElementById('demo-text-light')!;
         this.demoBackgroundLight = document.getElementById('demo-background-light')!;
         this.demoTextDark = document.getElementById('demo-text-dark')!;
         this.demoBackgroundDark = document.getElementById('demo-background-dark')!;
         this.modalTitle = document.getElementById('modal-title')!;
-        
-        // Nuevo elemento para preview del color seleccionado
-        this.newColorPreview = document.getElementById('new-color-preview')!;
 
         this.bindEvents();
     }
@@ -176,24 +182,40 @@ class ColorConfigModal {
             await this.applyColor();
         });
         
-        // Color picker events (solo para preview visual)
-        this.colorPicker.addEventListener('input', (e) => {
+        // Light mode color picker events
+        this.lightColorPicker.addEventListener('input', (e: Event) => {
             const color = (e.target as HTMLInputElement).value;
-            this.hexInput.value = color;
-            this.updatePreview(color);
+            this.lightHexInput.value = color;
+            this.updatePreview();
         });
         
-        // Hex input events (solo para preview visual)
-        this.hexInput.addEventListener('input', (e) => {
+        // Light mode hex input events
+        this.lightHexInput.addEventListener('input', (e: Event) => {
             const color = (e.target as HTMLInputElement).value;
             if (this.isValidHex(color)) {
-                this.colorPicker.value = color;
-                this.updatePreview(color);
+                this.lightColorPicker.value = color;
+                this.updatePreview();
+            }
+        });
+        
+        // Dark mode color picker events
+        this.darkColorPicker.addEventListener('input', (e: Event) => {
+            const color = (e.target as HTMLInputElement).value;
+            this.darkHexInput.value = color;
+            this.updatePreview();
+        });
+        
+        // Dark mode hex input events
+        this.darkHexInput.addEventListener('input', (e: Event) => {
+            const color = (e.target as HTMLInputElement).value;
+            if (this.isValidHex(color)) {
+                this.darkColorPicker.value = color;
+                this.updatePreview();
             }
         });
         
         // Click outside to close
-        this.modal.addEventListener('click', (e) => {
+        this.modal.addEventListener('click', (e: Event) => {
             if (e.target === this.modal) {
                 this.close();
             }
@@ -204,98 +226,133 @@ class ColorConfigModal {
         return /^#[0-9A-F]{6}$/i.test(hex);
     }
 
-    private updatePreview(color: string): void {
-        // Generar color para modo oscuro
-        const darkModeColor = this.generateDarkModeColor(color);
+    private updatePreview(): void {
+        // Obtener colores actuales de ambos pickers
+        const lightColor = this.lightColorPicker.value;
+        const darkColor = this.darkColorPicker.value;
         
-        // Actualizar el preview del nuevo color (modo claro)
-        this.newColorPreview.style.backgroundColor = color;
-        this.newColorPreview.style.backgroundImage = 'none'; // Remove transparency pattern
+        // Actualizar los previews de los nuevos colores
+        this.newColorPreviewLight.style.backgroundColor = lightColor;
+        this.newColorPreviewLight.style.backgroundImage = 'none';
+        this.newColorPreviewDark.style.backgroundColor = darkColor;
+        this.newColorPreviewDark.style.backgroundImage = 'none';
         
         // Texto japonés para el preview
         const japaneseText = "こんにちは！私が例です。";
         
-        // Actualizar el preview de texto en modo claro - solo letras del color
+        // Actualizar el preview de texto en modo claro
         this.demoTextLight.textContent = japaneseText;
-        this.demoTextLight.style.color = color;
-        this.demoTextLight.style.border = `2px solid ${color}`;
+        this.demoTextLight.style.color = lightColor;
+        this.demoTextLight.style.border = `2px solid ${lightColor}`;
         this.demoTextLight.style.borderRadius = '8px';
         this.demoTextLight.style.padding = '12px 16px';
-        this.demoTextLight.style.backgroundColor = '#ffffff'; // Fondo blanco sólido
+        this.demoTextLight.style.backgroundColor = '#ffffff';
         this.demoTextLight.style.fontWeight = '500';
         this.demoTextLight.style.fontSize = '16px';
         this.demoTextLight.style.textAlign = 'center';
-        this.demoTextLight.style.boxShadow = 'none'; // Sin sombra
+        this.demoTextLight.style.boxShadow = 'none';
         
-        // Ocultar el segundo recuadro de modo claro (el que tenía fondo de color)
+        // Ocultar el segundo recuadro de modo claro
         this.demoBackgroundLight.style.display = 'none';
         
-        // Actualizar el preview de texto en modo oscuro - solo letras del color
+        // Actualizar el preview de texto en modo oscuro
         this.demoTextDark.textContent = japaneseText;
-        this.demoTextDark.style.color = darkModeColor;
-        this.demoTextDark.style.border = `2px solid ${darkModeColor}`;
+        this.demoTextDark.style.color = darkColor;
+        this.demoTextDark.style.border = `2px solid ${darkColor}`;
         this.demoTextDark.style.borderRadius = '8px';
         this.demoTextDark.style.padding = '12px 16px';
-        this.demoTextDark.style.backgroundColor = '#000000'; // Fondo negro sólido
+        this.demoTextDark.style.backgroundColor = '#000000';
         this.demoTextDark.style.fontWeight = '500';
         this.demoTextDark.style.fontSize = '16px';
         this.demoTextDark.style.textAlign = 'center';
-        this.demoTextDark.style.boxShadow = 'none'; // Sin sombra
+        this.demoTextDark.style.boxShadow = 'none';
         
-        // Ocultar el segundo recuadro de modo oscuro (el que tenía fondo de color)
+        // Ocultar el segundo recuadro de modo oscuro
         this.demoBackgroundDark.style.display = 'none';
         
+        console.log(`🎨 Preview: Light: ${lightColor}, Dark: ${darkColor}`);
+    }
+
+    private styleColorHexText(): void {
+        // Hacer el texto del color actual más grande y visible
+        this.currentColorHex.style.fontSize = '14px';
+        this.currentColorHex.style.fontWeight = 'bold';
+        this.currentColorHex.style.fontFamily = 'monospace';
+        this.currentColorHex.style.letterSpacing = '0.5px';
     }
 
     public async open(pos: string): Promise<void> {
         this.currentPOS = pos;
         
         try {
-            // Obtener color actual del servicio dinámico
-            const currentColor = await ColorCustomizationService.getColorForPOS(pos);
+            // Obtener colores actuales del servicio dinámico para ambos modos
+            const currentLightColor = await ColorCustomizationService.getColorForPOS(pos, false); // Light mode
+            const currentDarkColor = await ColorCustomizationService.getColorForPOS(pos, true);   // Dark mode
             
             // Update modal title
             const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
-            this.modalTitle.textContent = `Preview ${posName} Colors`;
+            this.modalTitle.textContent = `Configure ${posName} Colors`;
             
-            // Set current color
-            this.currentColorPreview.style.backgroundColor = currentColor;
-            this.currentColorPreview.style.backgroundImage = 'none';
-            this.currentColorHex.textContent = currentColor;
-            this.currentColorHex.style.fontSize = '16px';
+            // Set current color preview (ambos modos)
+            this.currentColorPreviewLight.style.backgroundColor = currentLightColor;
+            this.currentColorPreviewLight.style.backgroundImage = 'none';
+            this.currentColorPreviewDark.style.backgroundColor = currentDarkColor;
+            this.currentColorPreviewDark.style.backgroundImage = 'none';
+            this.currentColorHex.innerHTML = `
+                <div>Light: ${currentLightColor}</div>
+                <div>Dark: ${currentDarkColor}</div>
+            `;
+            this.styleColorHexText();
 
-            // Set picker values and new color preview
-            this.colorPicker.value = currentColor;
-            this.hexInput.value = currentColor;
-            this.newColorPreview.style.backgroundColor = currentColor;
-            this.newColorPreview.style.backgroundImage = 'none';
+            // Set picker values 
+            this.lightColorPicker.value = currentLightColor;
+            this.lightHexInput.value = currentLightColor;
+            this.darkColorPicker.value = currentDarkColor;
+            this.darkHexInput.value = currentDarkColor;
+            
+            // Set new color preview (ambos modos)
+            this.newColorPreviewLight.style.backgroundColor = currentLightColor;
+            this.newColorPreviewLight.style.backgroundImage = 'none';
+            this.newColorPreviewDark.style.backgroundColor = currentDarkColor;
+            this.newColorPreviewDark.style.backgroundImage = 'none';
             
             // Update preview
-            this.updatePreview(currentColor);
+            this.updatePreview();
             
             // Show modal
             this.modal.classList.add('show');
             
-            
         } catch (error) {
-            console.error('❌ Error loading current color, using fallback:', error);
+            console.error('❌ Error loading current colors, using fallback:', error);
             
             // Fallback a colores hardcodeados
             const fallbackColor = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
+            const fallbackDarkColor = this.generateDarkModeColor(fallbackColor);
             
             const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
-            this.modalTitle.textContent = `Preview ${posName} Colors`;
+            this.modalTitle.textContent = `Configure ${posName} Colors`;
             
-            this.currentColorPreview.style.backgroundColor = fallbackColor;
-            this.currentColorPreview.style.backgroundImage = 'none';
-            this.currentColorHex.textContent = fallbackColor;
-            this.currentColorHex.style.fontSize = '16px';
-            this.colorPicker.value = fallbackColor;
-            this.hexInput.value = fallbackColor;
-            this.newColorPreview.style.backgroundColor = fallbackColor;
-            this.newColorPreview.style.backgroundImage = 'none';
+            this.currentColorPreviewLight.style.backgroundColor = fallbackColor;
+            this.currentColorPreviewLight.style.backgroundImage = 'none';
+            this.currentColorPreviewDark.style.backgroundColor = fallbackDarkColor;
+            this.currentColorPreviewDark.style.backgroundImage = 'none';
+            this.currentColorHex.innerHTML = `
+                <div>Light: ${fallbackColor}</div>
+                <div>Dark: ${fallbackDarkColor}</div>
+            `;
+            this.styleColorHexText();
             
-            this.updatePreview(fallbackColor);
+            this.lightColorPicker.value = fallbackColor;
+            this.lightHexInput.value = fallbackColor;
+            this.darkColorPicker.value = fallbackDarkColor;
+            this.darkHexInput.value = fallbackDarkColor;
+            
+            this.newColorPreviewLight.style.backgroundColor = fallbackColor;
+            this.newColorPreviewLight.style.backgroundImage = 'none';
+            this.newColorPreviewDark.style.backgroundColor = fallbackDarkColor;
+            this.newColorPreviewDark.style.backgroundImage = 'none';
+            
+            this.updatePreview();
             this.modal.classList.add('show');
         }
     }
@@ -384,24 +441,23 @@ class ColorConfigModal {
 
     private async applyColor(): Promise<void> {
         try {
-            // Obtener el color seleccionado
-            const selectedColor = this.colorPicker.value;
+            // Obtener los colores seleccionados de ambos pickers
+            const selectedLightColor = this.lightColorPicker.value;
+            const selectedDarkColor = this.darkColorPicker.value;
             
-            if (!selectedColor || !this.currentPOS) {
-                console.error('❌ No color selected or POS not set');
+            if (!selectedLightColor || !selectedDarkColor || !this.currentPOS) {
+                console.error('❌ No colors selected or POS not set');
                 return;
             }
             
-            // Generar una versión más clara del color para modo oscuro (mejor contraste)
-            const darkModeColor = this.generateDarkModeColor(selectedColor);
-                        
-            // Guardar el color usando ColorCustomizationService
+            // Guardar ambos colores usando ColorCustomizationService
             await ColorCustomizationService.setColorForPOS(
                 this.currentPOS, 
-                selectedColor,     // Color original para modo claro
-                darkModeColor      // Color ajustado para modo oscuro
+                selectedLightColor,     // Color para modo claro
+                selectedDarkColor       // Color para modo oscuro
             );
             
+            console.log(`✅ Colors applied for ${this.currentPOS}: Light: ${selectedLightColor}, Dark: ${selectedDarkColor}`);
             
             // Refrescar los estilos de la app para que se vean los cambios inmediatamente
             await injectPOSStyles();
@@ -410,8 +466,8 @@ class ColorConfigModal {
             this.close();
             
         } catch (error) {
-            console.error('❌ Error applying color:', error);
-            this.showErrorMessage('Failed to apply color. Please try again.');
+            console.error('❌ Error applying colors:', error);
+            this.showErrorMessage('Failed to apply colors. Please try again.');
         }
     }
     

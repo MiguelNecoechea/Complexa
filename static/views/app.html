@@ -296,26 +296,50 @@
                     <div class="color-selection-section">
                         <div class="color-info-group">
                             <div class="color-info-item">
-                                <label>Current Color:</label>
-                                <div class="color-display">
-                                    <div class="color-preview" id="current-color-preview"></div>
-                                    <span id="current-color-hex">#000000</span>
+                                <label>Current Colors:</label>
+                                <div class="color-display-dual">
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="current-color-preview-light"></div>
+                                        <span class="mode-label">Light</span>
+                                    </div>
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="current-color-preview-dark"></div>
+                                        <span class="mode-label">Dark</span>
+                                    </div>
                                 </div>
+                                <div class="color-hex-display" id="current-color-hex">#000000</div>
                             </div>
                             
                             <div class="color-info-item">
-                                <label>New Color:</label>
-                                <div class="color-display">
-                                    <div class="color-preview" id="new-color-preview"></div>
-                                    <input type="text" id="color-hex-input" class="hex-input" placeholder="#000000">
+                                <label>New Colors:</label>
+                                <div class="color-display-dual">
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="new-color-preview-light"></div>
+                                        <span class="mode-label">Light</span>
+                                    </div>
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="new-color-preview-dark"></div>
+                                        <span class="mode-label">Dark</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="color-picker-container">
-                            <label>Choose Color:</label>
-                            <div class="color-picker-wheel">
-                                <input type="color" id="color-picker" class="color-picker-input">
+                        <div class="color-pickers-container">
+                            <div class="color-picker-section">
+                                <label>Choose Light Mode Color:</label>
+                                <div class="color-picker-wheel">
+                                    <input type="color" id="light-color-picker" class="color-picker-input">
+                                </div>
+                                <input type="text" id="light-color-hex-input" class="hex-input" placeholder="#000000">
+                            </div>
+                            
+                            <div class="color-picker-section">
+                                <label>Choose Dark Mode Color:</label>
+                                <div class="color-picker-wheel">
+                                    <input type="color" id="dark-color-picker" class="color-picker-input">
+                                </div>
+                                <input type="text" id="dark-color-hex-input" class="hex-input" placeholder="#000000">
                             </div>
                         </div>
                     </div>
