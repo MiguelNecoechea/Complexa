@@ -15,13 +15,6 @@
                     A linguistics and AI powered language learning tool
                 </p>
 
-                <!-- Reset Colors Button -->
-                <div class="reset-colors-section">
-                    <button id="reset-colors-btn" class="reset-colors-btn">
-                        🎨 Reset Colors to Default
-                    </button>
-                </div>
-
                 <div id="app-container">
                     <div class="excluded-words-container">
                         <h2>Excluded Words</h2>
@@ -325,21 +318,30 @@
                             </div>
                         </div>
                         
-                        <div class="color-pickers-container">
-                            <div class="color-picker-section">
-                                <label>Choose Light Mode Color:</label>
-                                <div class="color-picker-wheel">
-                                    <input type="color" id="light-color-picker" class="color-picker-input">
+                        <div class="color-pickers-group">
+                            <div class="color-pickers-container">
+                                <div class="color-picker-section">
+                                    <label>Choose Light Mode Color:</label>
+                                    <div class="color-picker-wheel">
+                                        <input type="color" id="light-color-picker" class="color-picker-input">
+                                    </div>
+                                    <input type="text" id="light-color-hex-input" class="hex-input" placeholder="#000000">
                                 </div>
-                                <input type="text" id="light-color-hex-input" class="hex-input" placeholder="#000000">
+                                
+                                <div class="color-picker-section">
+                                    <label>Choose Dark Mode Color:</label>
+                                    <div class="color-picker-wheel">
+                                        <input type="color" id="dark-color-picker" class="color-picker-input">
+                                    </div>
+                                    <input type="text" id="dark-color-hex-input" class="hex-input" placeholder="#000000">
+                                </div>
                             </div>
                             
-                            <div class="color-picker-section">
-                                <label>Choose Dark Mode Color:</label>
-                                <div class="color-picker-wheel">
-                                    <input type="color" id="dark-color-picker" class="color-picker-input">
-                                </div>
-                                <input type="text" id="dark-color-hex-input" class="hex-input" placeholder="#000000">
+                            <!-- Action button container -->
+                            <div class="color-action-container">
+                                <button class="btn-primary" id="reset-pos-color-btn">
+                                    Reset to Default Colors
+                                </button>
                             </div>
                         </div>
                     </div>

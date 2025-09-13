@@ -182,6 +182,11 @@ class ColorConfigModal {
             await this.applyColor();
         });
         
+        // Reset POS color button
+        document.getElementById('reset-pos-color-btn')?.addEventListener('click', async () => {
+            await this.resetPOSColor();
+        });
+        
         // Light mode color picker events
         this.lightColorPicker.addEventListener('input', (e: Event) => {
             const color = (e.target as HTMLInputElement).value;
@@ -224,6 +229,35 @@ class ColorConfigModal {
 
     private isValidHex(hex: string): boolean {
         return /^#[0-9A-F]{6}$/i.test(hex);
+    }
+
+    /**
+     * Normaliza un color hex a formato de 6 caracteres (sin alpha)
+     * Convierte #rrggbbaa a #rrggbb
+     */
+    private normalizeHexColor(hex: string): string {
+        if (!hex) return '#000000';
+        
+        // Remove # if present
+        let cleanHex = hex.replace('#', '');
+        
+        // If it's 8 characters (with alpha), take only the first 6
+        if (cleanHex.length === 8) {
+            cleanHex = cleanHex.substring(0, 6);
+        }
+        
+        // Ensure it's exactly 6 characters
+        if (cleanHex.length === 6) {
+            return `#${cleanHex}`;
+        }
+        
+        // If it's 3 characters, expand it
+        if (cleanHex.length === 3) {
+            return `#${cleanHex[0]}${cleanHex[0]}${cleanHex[1]}${cleanHex[1]}${cleanHex[2]}${cleanHex[2]}`;
+        }
+        
+        // Fallback to black if invalid
+        return '#000000';
     }
 
     private updatePreview(): void {
@@ -289,31 +323,35 @@ class ColorConfigModal {
             const currentLightColor = await ColorCustomizationService.getColorForPOS(pos, false); // Light mode
             const currentDarkColor = await ColorCustomizationService.getColorForPOS(pos, true);   // Dark mode
             
+            // Normalizar colores a formato de 6 caracteres
+            const normalizedLightColor = this.normalizeHexColor(currentLightColor);
+            const normalizedDarkColor = this.normalizeHexColor(currentDarkColor);
+            
             // Update modal title
             const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
             this.modalTitle.textContent = `Configure ${posName} Colors`;
             
-            // Set current color preview (ambos modos)
-            this.currentColorPreviewLight.style.backgroundColor = currentLightColor;
+            // Set current color preview (ambos modos) - usar colores originales para display
+            this.currentColorPreviewLight.style.backgroundColor = normalizedLightColor;
             this.currentColorPreviewLight.style.backgroundImage = 'none';
-            this.currentColorPreviewDark.style.backgroundColor = currentDarkColor;
+            this.currentColorPreviewDark.style.backgroundColor = normalizedDarkColor;
             this.currentColorPreviewDark.style.backgroundImage = 'none';
             this.currentColorHex.innerHTML = `
-                <div>Light: ${currentLightColor}</div>
-                <div>Dark: ${currentDarkColor}</div>
+                <div>Light: ${normalizedLightColor}</div>
+                <div>Dark: ${normalizedDarkColor}</div>
             `;
             this.styleColorHexText();
 
-            // Set picker values 
-            this.lightColorPicker.value = currentLightColor;
-            this.lightHexInput.value = currentLightColor;
-            this.darkColorPicker.value = currentDarkColor;
-            this.darkHexInput.value = currentDarkColor;
+            // Set picker values - usar colores normalizados
+            this.lightColorPicker.value = normalizedLightColor;
+            this.lightHexInput.value = normalizedLightColor;
+            this.darkColorPicker.value = normalizedDarkColor;
+            this.darkHexInput.value = normalizedDarkColor;
             
             // Set new color preview (ambos modos)
-            this.newColorPreviewLight.style.backgroundColor = currentLightColor;
+            this.newColorPreviewLight.style.backgroundColor = normalizedLightColor;
             this.newColorPreviewLight.style.backgroundImage = 'none';
-            this.newColorPreviewDark.style.backgroundColor = currentDarkColor;
+            this.newColorPreviewDark.style.backgroundColor = normalizedDarkColor;
             this.newColorPreviewDark.style.backgroundImage = 'none';
             
             // Update preview
@@ -329,27 +367,31 @@ class ColorConfigModal {
             const fallbackColor = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
             const fallbackDarkColor = this.generateDarkModeColor(fallbackColor);
             
+            // Normalizar colores de fallback
+            const normalizedFallbackLight = this.normalizeHexColor(fallbackColor);
+            const normalizedFallbackDark = this.normalizeHexColor(fallbackDarkColor);
+            
             const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
             this.modalTitle.textContent = `Configure ${posName} Colors`;
             
-            this.currentColorPreviewLight.style.backgroundColor = fallbackColor;
+            this.currentColorPreviewLight.style.backgroundColor = normalizedFallbackLight;
             this.currentColorPreviewLight.style.backgroundImage = 'none';
-            this.currentColorPreviewDark.style.backgroundColor = fallbackDarkColor;
+            this.currentColorPreviewDark.style.backgroundColor = normalizedFallbackDark;
             this.currentColorPreviewDark.style.backgroundImage = 'none';
             this.currentColorHex.innerHTML = `
-                <div>Light: ${fallbackColor}</div>
-                <div>Dark: ${fallbackDarkColor}</div>
+                <div>Light: ${normalizedFallbackLight}</div>
+                <div>Dark: ${normalizedFallbackDark}</div>
             `;
             this.styleColorHexText();
             
-            this.lightColorPicker.value = fallbackColor;
-            this.lightHexInput.value = fallbackColor;
-            this.darkColorPicker.value = fallbackDarkColor;
-            this.darkHexInput.value = fallbackDarkColor;
+            this.lightColorPicker.value = normalizedFallbackLight;
+            this.lightHexInput.value = normalizedFallbackLight;
+            this.darkColorPicker.value = normalizedFallbackDark;
+            this.darkHexInput.value = normalizedFallbackDark;
             
-            this.newColorPreviewLight.style.backgroundColor = fallbackColor;
+            this.newColorPreviewLight.style.backgroundColor = normalizedFallbackLight;
             this.newColorPreviewLight.style.backgroundImage = 'none';
-            this.newColorPreviewDark.style.backgroundColor = fallbackDarkColor;
+            this.newColorPreviewDark.style.backgroundColor = normalizedFallbackDark;
             this.newColorPreviewDark.style.backgroundImage = 'none';
             
             this.updatePreview();
@@ -468,6 +510,37 @@ class ColorConfigModal {
         } catch (error) {
             console.error('❌ Error applying colors:', error);
             this.showErrorMessage('Failed to apply colors. Please try again.');
+        }
+    }
+
+    private async resetPOSColor(): Promise<void> {
+        try {
+            if (!this.currentPOS) {
+                console.error('❌ No POS selected for reset');
+                return;
+            }
+
+            // Obtener los colores por defecto para este POS
+            const defaultColors = ColorCustomizationService.getDefaultColorsForPOS(this.currentPOS);
+            
+            // Normalizar los colores a formato de 6 caracteres
+            const normalizedLightColor = this.normalizeHexColor(defaultColors.light);
+            const normalizedDarkColor = this.normalizeHexColor(defaultColors.dark);
+            
+            // Actualizar los color pickers con los colores normalizados
+            this.lightColorPicker.value = normalizedLightColor;
+            this.darkColorPicker.value = normalizedDarkColor;
+            this.lightHexInput.value = normalizedLightColor;
+            this.darkHexInput.value = normalizedDarkColor;
+            
+            // Actualizar la vista previa
+            this.updatePreview();
+            
+            console.log(`✅ Reset colors for ${this.currentPOS} to defaults: Light: ${defaultColors.light}, Dark: ${defaultColors.dark}`);
+            
+        } catch (error) {
+            console.error('❌ Error resetting POS color:', error);
+            this.showErrorMessage('Failed to reset colors. Please try again.');
         }
     }
     
@@ -618,35 +691,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize the excluded words manager
     new ExcludedWordsManager();
-
-    // Bind reset colors button event
-    const resetColorsBtn = document.getElementById('reset-colors-btn');
-    if (resetColorsBtn) {
-        resetColorsBtn.addEventListener('click', async () => {
-            try {
-                // Deshabilitar botón durante la operación
-                resetColorsBtn.textContent = '🔄 Resetting...';
-                (resetColorsBtn as HTMLButtonElement).disabled = true;
-                                
-                // Resetear colores usando el servicio
-                await ColorCustomizationService.resetColors();
-                
-                // Refrescar los estilos de la app
-                await injectPOSStyles();
-                                
-                // Rehabilitar botón
-                resetColorsBtn.textContent = '🎨 Reset Colors to Default';
-                (resetColorsBtn as HTMLButtonElement).disabled = false;
-                
-            } catch (error) {
-                console.error('❌ Error resetting colors:', error);
-                
-                // Rehabilitar botón en caso de error
-                resetColorsBtn.textContent = '🎨 Reset Colors to Default';
-                (resetColorsBtn as HTMLButtonElement).disabled = false;
-            }
-        });
-    }
 
     // Bind config button events (solo para preview visual)
     document.querySelectorAll('.pos-config-btn').forEach(button => {
