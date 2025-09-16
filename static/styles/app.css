@@ -2,6 +2,26 @@
 @import 'colors.css';
 @import 'glassmorphism.css';
 
+/* Estilos globales de scrollbar para consistencia */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
 body {
   background: linear-gradient(to bottom right, var(--primary-gradient-from), var(--primary-gradient-to)) !important;
   min-height: 100vh;
@@ -203,28 +223,55 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
+  background: transparent;
   z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .modal-overlay.show {
   display: flex;
 }
 
+/* Bloquear scroll del body cuando el modal está abierto */
+body.modal-open {
+  overflow: hidden;
+}
+
 .modal-content {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   width: 90%;
-  max-width: 900px;
-  max-height: 100vh;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
+  max-width: 850px;
+  max-height: calc(100vh - 30px);
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Estilos personalizados para el scrollbar del modal */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .modal-header {
@@ -294,7 +341,7 @@ body {
 .color-info-item label {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .color-display {
@@ -314,19 +361,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .color-mode-display .color-preview {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mode-label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -335,7 +382,7 @@ body {
 
 .color-hex-display {
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: bold;
   color: var(--text-primary);
   letter-spacing: 0.5px;

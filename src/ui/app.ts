@@ -225,6 +225,13 @@ class ColorConfigModal {
                 this.close();
             }
         });
+        
+        // Escape key to close
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && this.modal.classList.contains('show')) {
+                this.close();
+            }
+        });
     }
 
     private isValidHex(hex: string): boolean {
@@ -303,9 +310,7 @@ class ColorConfigModal {
         
         // Ocultar el segundo recuadro de modo oscuro
         this.demoBackgroundDark.style.display = 'none';
-        
-        console.log(`🎨 Preview: Light: ${lightColor}, Dark: ${darkColor}`);
-    }
+        }
 
     private styleColorHexText(): void {
         // Hacer el texto del color actual más grande y visible
@@ -357,8 +362,9 @@ class ColorConfigModal {
             // Update preview
             this.updatePreview();
             
-            // Show modal
+            // Show modal y bloquear scroll del body
             this.modal.classList.add('show');
+            this.blockBodyScroll();
             
         } catch (error) {
             console.error('❌ Error loading current colors, using fallback:', error);
@@ -396,11 +402,43 @@ class ColorConfigModal {
             
             this.updatePreview();
             this.modal.classList.add('show');
+            this.blockBodyScroll();
         }
     }
 
     public close(): void {
         this.modal.classList.remove('show');
+        this.unblockBodyScroll();
+    }
+
+    /**
+     * Bloquea el scroll del body cuando el modal está abierto
+     */
+    private blockBodyScroll(): void {
+        // Guardar posición actual de scroll
+        const scrollY = window.scrollY;
+        document.body.classList.add('modal-open');
+        document.body.style.top = `-${scrollY}px`;
+        
+        // También bloquear scroll en html para mayor compatibilidad
+        document.documentElement.style.overflow = 'hidden';
+    }
+
+    /**
+     * Desbloquea el scroll del body cuando el modal se cierra
+     */
+    private unblockBodyScroll(): void {
+        const scrollY = document.body.style.top;
+        
+        // Restaurar estilos
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        document.documentElement.style.overflow = '';
+        
+        // Restaurar posición de scroll
+        if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
     }
 
     /**
@@ -498,9 +536,7 @@ class ColorConfigModal {
                 selectedLightColor,     // Color para modo claro
                 selectedDarkColor       // Color para modo oscuro
             );
-            
-            console.log(`✅ Colors applied for ${this.currentPOS}: Light: ${selectedLightColor}, Dark: ${selectedDarkColor}`);
-            
+                        
             // Refrescar los estilos de la app para que se vean los cambios inmediatamente
             await injectPOSStyles();
                         
@@ -535,9 +571,7 @@ class ColorConfigModal {
             
             // Actualizar la vista previa
             this.updatePreview();
-            
-            console.log(`✅ Reset colors for ${this.currentPOS} to defaults: Light: ${defaultColors.light}, Dark: ${defaultColors.dark}`);
-            
+                        
         } catch (error) {
             console.error('❌ Error resetting POS color:', error);
             this.showErrorMessage('Failed to reset colors. Please try again.');
