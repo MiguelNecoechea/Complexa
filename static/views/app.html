@@ -15,13 +15,6 @@
                     A linguistics and AI powered language learning tool
                 </p>
 
-                <!-- Reset Colors Button -->
-                <div class="reset-colors-section">
-                    <button id="reset-colors-btn" class="reset-colors-btn">
-                        🎨 Reset Colors to Default
-                    </button>
-                </div>
-
                 <div id="app-container">
                     <div class="excluded-words-container">
                         <h2>Excluded Words</h2>
@@ -290,32 +283,72 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="modal-title">Configure Color</h3>
+                    <div class="modal-switch-container">
+                        <label class="modal-switch">
+                            <input type="checkbox" id="pos-toggle-switch" checked>
+                            <span class="modal-slider"></span>
+                        </label>
+                        <span class="modal-switch-label">Disable</span>
+                    </div>
                     <button class="modal-close-btn" id="close-modal">×</button>
                 </div>
                 <div class="modal-body">
                     <div class="color-selection-section">
                         <div class="color-info-group">
                             <div class="color-info-item">
-                                <label>Current Color:</label>
-                                <div class="color-display">
-                                    <div class="color-preview" id="current-color-preview"></div>
-                                    <span id="current-color-hex">#000000</span>
+                                <label>Current Colors:</label>
+                                <div class="color-display-dual">
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="current-color-preview-light"></div>
+                                        <span class="mode-label">Light</span>
+                                    </div>
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="current-color-preview-dark"></div>
+                                        <span class="mode-label">Dark</span>
+                                    </div>
                                 </div>
+                                <div class="color-hex-display" id="current-color-hex">#000000</div>
                             </div>
                             
                             <div class="color-info-item">
-                                <label>New Color:</label>
-                                <div class="color-display">
-                                    <div class="color-preview" id="new-color-preview"></div>
-                                    <input type="text" id="color-hex-input" class="hex-input" placeholder="#000000">
+                                <label>New Colors:</label>
+                                <div class="color-display-dual">
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="new-color-preview-light"></div>
+                                        <span class="mode-label">Light</span>
+                                    </div>
+                                    <div class="color-mode-display">
+                                        <div class="color-preview" id="new-color-preview-dark"></div>
+                                        <span class="mode-label">Dark</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="color-picker-container">
-                            <label>Choose Color:</label>
-                            <div class="color-picker-wheel">
-                                <input type="color" id="color-picker" class="color-picker-input">
+                        <div class="color-pickers-group">
+                            <div class="color-pickers-container">
+                                <div class="color-picker-section">
+                                    <label>Choose Light Mode Color:</label>
+                                    <div class="color-picker-wheel">
+                                        <input type="color" id="light-color-picker" class="color-picker-input">
+                                    </div>
+                                    <input type="text" id="light-color-hex-input" class="hex-input" placeholder="#000000">
+                                </div>
+                                
+                                <div class="color-picker-section">
+                                    <label>Choose Dark Mode Color:</label>
+                                    <div class="color-picker-wheel">
+                                        <input type="color" id="dark-color-picker" class="color-picker-input">
+                                    </div>
+                                    <input type="text" id="dark-color-hex-input" class="hex-input" placeholder="#000000">
+                                </div>
+                            </div>
+                            
+                            <!-- Action button container -->
+                            <div class="color-action-container">
+                                <button class="btn-primary" id="reset-pos-color-btn">
+                                    Reset to Default Colors
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -342,7 +375,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn-secondary" id="cancel-btn">Cancel</button>
-                    <button class="btn-primary" id="apply-color-btn">Apply Color</button>
+                    <button class="btn-primary" id="apply-color-btn">Apply</button>
                 </div>
             </div>
         </div>

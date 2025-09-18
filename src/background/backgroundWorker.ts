@@ -34,10 +34,41 @@ async function notifyColorChangeToAllTabs(): Promise<void> {
     }
 }
 
+/**
+ * Notifica a todas las pestañas activas sobre cambios en los estados POS
+ */
+async function notifyPOSStateChangeToAllTabs(): Promise<void> {
+    try {
+        // Obtener todas las pestañas activas
+        const tabs = await chrome.tabs.query({});
+        
+        // Enviar mensaje a cada pestaña
+        const promises = tabs.map(async (tab) => {
+            if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+                try {
+                    await chrome.tabs.sendMessage(tab.id, {
+                        action: "POS_STATES_UPDATED",
+                        type: "POS_STATES_UPDATED"
+                    });
+                } catch (error) {
+                    // Es normal que algunas pestañas no respondan (ej: páginas sin content script)
+                    console.warn(`⚠️ Could not notify tab ${tab.title} about POS state change: ${error}`);
+                }
+            }
+        });
+        
+        await Promise.allSettled(promises);
+        
+    } catch (error) {
+        console.error("Error notifying tabs about POS state changes:", error);
+    }
+}
+
 const ACTIONS = {
     TOKENIZE_PARAGRAPHS: "TOKENIZE_PARAGRAPHS",
     JISHO_LOOKUP:       "JISHO_LOOKUP",
     NOTIFY_COLOR_CHANGE: "NOTIFY_COLOR_CHANGE",
+    POS_STATES_UPDATED: "POS_STATES_UPDATED",
 } as const;
 
 chrome.runtime.onMessage.addListener((msg: { action: string; [k: string]: any }, _sender: MessageSender, sendResponse): boolean | void => {
@@ -60,6 +91,12 @@ chrome.runtime.onMessage.addListener((msg: { action: string; [k: string]: any },
         }
         case ACTIONS.NOTIFY_COLOR_CHANGE: {
             notifyColorChangeToAllTabs()
+                .then((): void => sendResponse({ ok: true }))
+                .catch((err: unknown): void => sendResponse({ ok: false, err }));
+            return true;
+        }
+        case ACTIONS.POS_STATES_UPDATED: {
+            notifyPOSStateChangeToAllTabs()
                 .then((): void => sendResponse({ ok: true }))
                 .catch((err: unknown): void => sendResponse({ ok: false, err }));
             return true;

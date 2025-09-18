@@ -14,7 +14,7 @@ export class ColorCustomizationService {
     // Colores por defecto - modo claro
     private static readonly DEFAULT_LIGHT_COLORS: ColorMap = {
         NOUN: "#1f77b4",
-        VERB: "#d65627ff",
+        VERB: "#d65627",
         ADJ: "#2ca02c",
         ADV: "#ff7f0e",
         PRON: "#9467bd",
@@ -33,6 +33,7 @@ export class ColorCustomizationService {
         ADJ: "#6dc66d",
         ADV: "#ff9a4e",
         PRON: "#b48cd5",
+        PROPN: "#2e7686",
         PART: "#a67a6f",
         AUX: "#f68fcf",
         ADP: "#b3b3b3",
@@ -163,24 +164,6 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Resetea todos los colores a los valores por defecto
-     */
-    public static async resetColors(): Promise<void> {
-        try {
-            await chrome.storage.sync.remove(this.STORAGE_KEY);
-            
-            // Notificar a todas las pestañas activas sobre el reset de colores
-            await this.notifyColorChangeToAllTabs();
-            
-            // Refrescar estilos de la app si está disponible
-            await this.refreshAppStylesIfAvailable();
-            
-        } catch (error) {
-            console.error("Error resetting colors:", error);
-        }
-    }
-
-    /**
      * Método auxiliar para refrescar estilos de la app si está disponible
      */
     private static async refreshAppStylesIfAvailable(): Promise<void> {
@@ -199,6 +182,45 @@ export class ColorCustomizationService {
     public static async getColorForPOS(pos: string, isDark?: boolean): Promise<string> {
         const colors = await this.getPOSColors(isDark);
         return colors[pos.toUpperCase()] ?? this.defaultColour(isDark ?? this.isDark());
+    }
+
+    /**
+     * Obtiene los colores por defecto para un POS específico
+     */
+    public static getDefaultColorsForPOS(pos: string): { light: string; dark: string } {
+        const posUpper = pos.toUpperCase();
+        return {
+            light: this.DEFAULT_LIGHT_COLORS[posUpper] ?? this.defaultColour(false),
+            dark: this.DEFAULT_DARK_COLORS[posUpper] ?? this.defaultColour(true)
+        };
+    }
+
+    /**
+     * Resetea los colores de un POS específico a los valores por defecto
+     */
+    public static async resetPOSColor(pos: string): Promise<void> {
+        try {
+            const customSettings = await this.getCustomSettings();
+            const posUpper = pos.toUpperCase();
+            
+            // Remover el POS específico de ambos modos
+            if (customSettings.lightColors[posUpper]) {
+                delete customSettings.lightColors[posUpper];
+            }
+            if (customSettings.darkColors[posUpper]) {
+                delete customSettings.darkColors[posUpper];
+            }
+            
+            // Guardar la configuración actualizada
+            await chrome.storage.sync.set({ [this.STORAGE_KEY]: customSettings });
+            
+            // Notificar cambio
+            await this.notifyColorChangeToAllTabs();
+            await this.refreshAppStylesIfAvailable();
+            
+        } catch (error) {
+            console.error(`Error resetting color for POS ${pos}:`, error);
+        }
     }
 
     /**
