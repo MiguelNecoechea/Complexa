@@ -2,12 +2,16 @@ import { Token, MorphFeatures } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
 import DetermineTextColor from "./DetermineTextColor";
 import { FilterTokensService } from "../../services/FilterTokensService";
+import { POSFilterUtility } from "../POSFilterUtility";
 
 export class JapaneseTextColoring {
     constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
 
     public async addPOSAnnotations(enableWordFilters: boolean): Promise<void> {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+
+        // Initialize POSFilterUtility if not already done
+        await POSFilterUtility.init();
 
         // Procesar spans en paralelo para mejor performance
         const colorPromises:Promise<void>[] = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
@@ -25,6 +29,17 @@ export class JapaneseTextColoring {
                 ent_type: span.dataset.ent_type || "",
                 is_japanese: span.dataset.is_japanese || "false",
             };
+
+            // 🚫 Skip coloring for disabled POS types
+            if (!POSFilterUtility.shouldProcessToken(token)) {
+                span.style.color = "";
+                // Store POS state in span for hover filtering
+                span.dataset.posEnabled = "false";
+                return;
+            }
+
+            // Mark POS as enabled for hover functionality
+            span.dataset.posEnabled = "true";
 
             if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
                 span.style.color = "";

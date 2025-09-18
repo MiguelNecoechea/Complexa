@@ -476,6 +476,16 @@ export class ColorConfigModal {
             // Save the switch state regardless of position
             if (switchElement) {
                 await this.posStateService.setPOSState(this.currentPOS, switchElement.checked);
+                
+                // 🚀 Notify content scripts about POS state changes
+                try {
+                    await chrome.runtime.sendMessage({
+                        action: 'POS_STATES_UPDATED',
+                        type: 'POS_STATES_UPDATED'
+                    });
+                } catch (error) {
+                    console.warn('⚠️ Could not notify content scripts about POS state change:', error);
+                }
             }
             
             // Notificar que los estilos necesitan ser refrescados

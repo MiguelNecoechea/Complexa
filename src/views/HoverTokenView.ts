@@ -95,6 +95,11 @@ export default class HoverTokenView {
     }
 
     private activate(span: HTMLSpanElement): void {
+        // 🚫 Check if this POS is disabled - skip hover if so
+        if (span.dataset.posEnabled === "false") {
+            return;
+        }
+
         this.hideJisho();
         this.activeSpan = span;
         this.vm.setToken(this.spanToToken(span));
@@ -132,6 +137,12 @@ export default class HoverTokenView {
         const newSpan = document.querySelector("span[data-pos]:hover") as HTMLSpanElement | null;
 
         if (!newSpan) {
+            this.hide();
+            return;
+        }
+
+        // 🚫 Skip disabled POS spans
+        if (newSpan.dataset.posEnabled === "false") {
             this.hide();
             return;
         }

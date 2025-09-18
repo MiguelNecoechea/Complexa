@@ -4,6 +4,7 @@ import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring
 import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
 import { SettingsService } from "../services/SettingsService";
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel"
+import { POSFilterUtility } from "./POSFilterUtility";
 
 
 // Custom types
@@ -20,7 +21,8 @@ const MESSAGE_TYPES = {
     CHANGE_READING_TYPE: "changeReadingType",
     PING: "ping",
     REFRESH_SETTINGS: "refreshSettings",
-    COLORS_UPDATED: "COLORS_UPDATED"
+    COLORS_UPDATED: "COLORS_UPDATED",
+    POS_STATES_UPDATED: "POS_STATES_UPDATED"
 };
 
 export class LinguisticsManager {
@@ -101,6 +103,12 @@ export class LinguisticsManager {
                         return true;
                     case MESSAGE_TYPES.COLORS_UPDATED:
                         this.handleColorsUpdated().then(
+                            (): void => sendResponse({ ok: true }),
+                            (err: any): void => sendResponse({ ok: false, err }),
+                        );
+                        return true;
+                    case MESSAGE_TYPES.POS_STATES_UPDATED:
+                        this.handlePOSStatesUpdated().then(
                             (): void => sendResponse({ ok: true }),
                             (err: any): void => sendResponse({ ok: false, err }),
                         );
@@ -205,6 +213,27 @@ export class LinguisticsManager {
                         
         } catch (error) {
             console.error("❌ Error updating colors:", error);
+        }
+    }
+
+    /**
+     * Maneja la actualización de estados POS cuando se cambian desde la app
+     */
+    private async handlePOSStatesUpdated(): Promise<void> {
+        try {
+            // Refresh POSFilterUtility states from storage
+            await POSFilterUtility.refresh();
+            
+            const enableWordFilters: boolean = await SettingsService.getSetting("enableWordFilters");
+            const colorEnabled: boolean = await SettingsService.getSetting("enableColor");
+            
+            // Re-apply coloring and hover states if color is enabled
+            if (colorEnabled) {
+                await this.textColorizer.addPOSAnnotations(enableWordFilters);
+            }
+            
+        } catch (error) {
+            console.error("❌ Error updating POS states:", error);
         }
     }
 
