@@ -23,6 +23,7 @@
 
 import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
+import { SettingsService } from "../../services/SettingsService";
 import HoverTokenView from "../../views/HoverTokenView";
 
 export class TokenWrapper {
@@ -71,7 +72,7 @@ export class TokenWrapper {
                     continue;
                 }
                 const skip: number = spillover;
-                const { fragment, consumed, spill } = this.wrapTextNode(node, tokens, tokIdx, paraOffset + skip, row, skip);
+                const { fragment, consumed, spill } = await this.wrapTextNode(node, tokens, tokIdx, paraOffset + skip, row, skip);
                 node.parentNode!.replaceChild(fragment, node);
                 tokIdx += consumed;
                 paraOffset += node.data.length;
@@ -101,8 +102,8 @@ export class TokenWrapper {
      * @param row         Collects <span> references for caller.
      * @param skip        Number of leading characters already consumed by a previous token.
      */
-    private wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[],
-                        skip: number = 0): { fragment: DocumentFragment; consumed: number; spill: number } {
+    private async wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[],
+                        skip: number = 0): Promise<{ fragment: DocumentFragment; consumed: number; spill: number }> {
         const frag: DocumentFragment = node.ownerDocument!.createDocumentFragment();
         const text: string = node.data.slice(skip);
         const nodeEnd: number = paraOffset + text.length;
@@ -121,8 +122,9 @@ export class TokenWrapper {
             }
 
             if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
-
-            const span: HTMLSpanElement = this.buildSpan(tok);
+            const hoverStatus: boolean = await SettingsService.getSetting("enableHover");
+            const hoverStatusStr: string = hoverStatus.toString();
+            const span: HTMLSpanElement = this.buildSpan(tok, hoverStatusStr);
             frag.append(span);
             row.push(span);
 
@@ -143,8 +145,9 @@ export class TokenWrapper {
      * hover UI and other modules can query it later.
      *
      * @param tok Token metadata from the backend (surface, reading, pos, ...).
+     * @param hoverStatus the status to tell the frontend if the hover should be rendered.
      */
-    private buildSpan(tok: Token): HTMLSpanElement {
+    private buildSpan(tok: Token, hoverStatus: string): HTMLSpanElement {
         const span: HTMLSpanElement = document.createElement("span");
         span.textContent = tok.surface;
         span.classList.add("lingua-token", "mw-no-invert", "notheme");
@@ -159,8 +162,8 @@ export class TokenWrapper {
         span.dataset.ent_obj = tok.ent_iob;
         span.dataset.ent_type = tok.ent_type;
         span.dataset.is_japanese = tok.is_japanese;
+        span.dataset.hoverEnabled = hoverStatus;
         if (tok.reading) span.dataset.reading = tok.reading;
-
         return span;
     }
 
