@@ -41,24 +41,6 @@ export class ColorCustomizationService {
         SCONJ: "#5fdfea",
     };
 
-    // Colores de inflexión por defecto - modo claro
-    private static readonly DEFAULT_LIGHT_INFLECTION_COLORS: ColorMap = {
-        基本形: "#d62728",
-        過去形: "#9467bd",
-        未然形: "#8c564b",
-        連用形: "#ff7f0e",
-        意志形: "#e377c2",
-    };
-
-    // Colores de inflexión por defecto - modo oscuro
-    private static readonly DEFAULT_DARK_INFLECTION_COLORS: ColorMap = {
-        基本形: "#f2706a",
-        過去形: "#b48cd5",
-        未然形: "#a67a6f",
-        連用形: "#ff9a4e",
-        意志形: "#f68fcf",
-    };
-
     /**
      * Detecta si el sistema está en modo oscuro
      */
@@ -109,29 +91,18 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Obtiene los colores de inflexión (mezclando defaults + personalizados)
-     */
-    public static async getInflectionColors(isDark?: boolean): Promise<ColorMap> {
-        const dark = isDark ?? this.isDark();
-        // Podria extenderse para incluir colores personalizados
-        return dark ? this.DEFAULT_DARK_INFLECTION_COLORS : this.DEFAULT_LIGHT_INFLECTION_COLORS;
-    }
-
-    /**
      * Determina el color de un token
      */
     public static async determineColorToken(token: Token): Promise<TextProcessedColor> {
         const dark: boolean = this.isDark();
         const posPalette: ColorMap = await this.getPOSColors(dark);
-        const infPalette: ColorMap = await this.getInflectionColors(dark);
 
         const posKey: string = token.pos?.toUpperCase() ?? "";
         const tagKey: string = token.tag ?? "";
 
         const posColor: string = posPalette[posKey] ?? this.defaultColour(dark);
-        const tagColor: string = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
 
-        return { posColor, tagColor };
+        return { posColor };
     }
 
     /**

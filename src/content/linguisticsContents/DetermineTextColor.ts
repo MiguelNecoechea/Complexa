@@ -64,9 +64,8 @@ export class DetermineTextColor {
         const posKey: string = token.pos?.toUpperCase() ?? "";
 
         const posColor: string = posPalette[posKey] ?? defaultColour(dark);
-        const tagColor: string = posColor;
 
-        return { posColor, tagColor };
+        return { posColor };
     }
 }
 

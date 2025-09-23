@@ -32,7 +32,7 @@ export class JapaneseTextColoring {
 
             // 🚫 Skip coloring for disabled POS types
             if (!POSFilterUtility.shouldProcessToken(token)) {
-                span.style.color = "";
+                span.style.removeProperty("color");
                 // Store POS state in span for hover filtering
                 span.dataset.posEnabled = "false";
                 return;
@@ -42,18 +42,18 @@ export class JapaneseTextColoring {
             span.dataset.posEnabled = "true";
 
             if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
-                span.style.color = "";
+                span.style.removeProperty("color");
                 return;
             }
 
             try {
-                const { posColor, tagColor }: TextProcessedColor = await DetermineTextColor.determineColorToken(token);
-                span.style.color = posColor;
+                const { posColor }: TextProcessedColor = await DetermineTextColor.determineColorToken(token);
+                span.style.setProperty("color", posColor, "important");
             } catch (error) {
                 console.warn("Error determining color for token, using the basic color:", error);
                 // Fallback al método sincrónico si hay error
                 const { posColor }: TextProcessedColor = DetermineTextColor.determineColorTokenSync(token);
-                span.style.color = posColor;
+                span.style.setProperty("color", posColor, "important");
             }
         });
 
@@ -63,7 +63,7 @@ export class JapaneseTextColoring {
     public removePOSAnnotations(): void {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
         spans.forEach((span: HTMLSpanElement): void => {
-            span.style.color = "";
+            span.style.removeProperty("color");
         });
     }
 }
