@@ -43,7 +43,7 @@ export class ColorCustomizationService {
 
     // Colores de inflexión por defecto - modo claro
     private static readonly DEFAULT_LIGHT_INFLECTION_COLORS: ColorMap = {
-        基本形: "#d62728", 
+        基本形: "#d62728",
         過去形: "#9467bd",
         未然形: "#8c564b",
         連用形: "#ff7f0e",
@@ -63,7 +63,7 @@ export class ColorCustomizationService {
      * Detecta si el sistema está en modo oscuro
      */
     private static isDark(): boolean {
-        const matchDark = window.matchMedia?.("(prefers-color-scheme: dark)");
+        const matchDark: MediaQueryList = window.matchMedia?.("(prefers-color-scheme: dark)");
         return matchDark?.matches ?? false;
     }
 
@@ -91,16 +91,16 @@ export class ColorCustomizationService {
      * Obtiene los colores POS (mezclando defaults + personalizados)
      */
     public static async getPOSColors(isDark?: boolean): Promise<ColorMap> {
-        const dark = isDark ?? this.isDark();
-        const customSettings = await this.getCustomSettings();
+        const dark: boolean = isDark ?? this.isDark();
+        const customSettings: CustomColorSettings = await this.getCustomSettings();
         
-        const defaultColors = dark ? this.DEFAULT_DARK_COLORS : this.DEFAULT_LIGHT_COLORS;
-        const customColors = dark ? customSettings.darkColors : customSettings.lightColors;
+        const defaultColors: ColorMap = dark ? this.DEFAULT_DARK_COLORS : this.DEFAULT_LIGHT_COLORS;
+        const customColors: Partial<ColorMap> = dark ? customSettings.darkColors : customSettings.lightColors;
         
         // Filtrar valores undefined y mantener solo strings válidos
         const filteredCustomColors: ColorMap = {};
-        Object.entries(customColors).forEach(([key, value]) => {
-            if (value && typeof value === 'string') {
+        Object.entries(customColors).forEach(([key, value]: [string, string | undefined]): void => {
+            if (value) {
                 filteredCustomColors[key] = value;
             }
         });
@@ -121,15 +121,15 @@ export class ColorCustomizationService {
      * Determina el color de un token
      */
     public static async determineColorToken(token: Token): Promise<TextProcessedColor> {
-        const dark = this.isDark();
-        const posPalette = await this.getPOSColors(dark);
-        const infPalette = await this.getInflectionColors(dark);
+        const dark: boolean = this.isDark();
+        const posPalette: ColorMap = await this.getPOSColors(dark);
+        const infPalette: ColorMap = await this.getInflectionColors(dark);
 
-        const posKey = token.pos?.toUpperCase() ?? "";
-        const tagKey = token.tag ?? "";
+        const posKey: string = token.pos?.toUpperCase() ?? "";
+        const tagKey: string = token.tag ?? "";
 
-        const posColor = posPalette[posKey] ?? this.defaultColour(dark);
-        const tagColor = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
+        const posColor: string = posPalette[posKey] ?? this.defaultColour(dark);
+        const tagColor: string = token.dep === "ROOT" ? (infPalette[tagKey] ?? posColor) : posColor;
 
         return { posColor, tagColor };
     }
@@ -143,7 +143,7 @@ export class ColorCustomizationService {
         darkColor?: string
     ): Promise<void> {
         try {
-            const settings = await this.getCustomSettings();
+            const settings: CustomColorSettings = await this.getCustomSettings();
             
             settings.lightColors[pos.toUpperCase()] = lightColor;
             if (darkColor) {
@@ -180,7 +180,7 @@ export class ColorCustomizationService {
      * Obtiene un color específico para una categoría POS
      */
     public static async getColorForPOS(pos: string, isDark?: boolean): Promise<string> {
-        const colors = await this.getPOSColors(isDark);
+        const colors: ColorMap = await this.getPOSColors(isDark);
         return colors[pos.toUpperCase()] ?? this.defaultColour(isDark ?? this.isDark());
     }
 
@@ -188,7 +188,7 @@ export class ColorCustomizationService {
      * Obtiene los colores por defecto para un POS específico
      */
     public static getDefaultColorsForPOS(pos: string): { light: string; dark: string } {
-        const posUpper = pos.toUpperCase();
+        const posUpper: string = pos.toUpperCase();
         return {
             light: this.DEFAULT_LIGHT_COLORS[posUpper] ?? this.defaultColour(false),
             dark: this.DEFAULT_DARK_COLORS[posUpper] ?? this.defaultColour(true)
@@ -200,8 +200,8 @@ export class ColorCustomizationService {
      */
     public static async resetPOSColor(pos: string): Promise<void> {
         try {
-            const customSettings = await this.getCustomSettings();
-            const posUpper = pos.toUpperCase();
+            const customSettings: CustomColorSettings = await this.getCustomSettings();
+            const posUpper: string = pos.toUpperCase();
             
             // Remover el POS específico de ambos modos
             if (customSettings.lightColors[posUpper]) {
@@ -241,11 +241,7 @@ export class ColorCustomizationService {
             console.error("Error requesting color change notification:", error);
         }
     }
-    public static async setColorAndRefresh(
-        pos: string, 
-        lightColor: string, 
-        darkColor?: string
-    ): Promise<void> {
+    public static async setColorAndRefresh(pos: string, lightColor: string, darkColor?: string): Promise<void> {
         await this.setColorForPOS(pos, lightColor, darkColor);
     }
 
