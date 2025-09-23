@@ -3,6 +3,7 @@ import { TextProcessedColor } from "../../models/TextColors";
 import DetermineTextColor from "./DetermineTextColor";
 import { FilterTokensService } from "../../services/FilterTokensService";
 import { POSFilterUtility } from "../POSFilterUtility";
+import { recomputeHoverState } from "../utils/hoverState";
 
 export class JapaneseTextColoring {
     constructor(private tokenFilter: FilterTokensService = FilterTokensService.instance) {}
@@ -12,6 +13,10 @@ export class JapaneseTextColoring {
 
         // Initialize POSFilterUtility if not already done
         await POSFilterUtility.init();
+
+        if (enableWordFilters) {
+            await this.tokenFilter.init();
+        }
 
         // Procesar spans en paralelo para mejor performance
         const colorPromises:Promise<void>[] = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
@@ -33,15 +38,19 @@ export class JapaneseTextColoring {
             // 🚫 Skip coloring for disabled POS types
             if (!POSFilterUtility.shouldProcessToken(token)) {
                 span.style.removeProperty("color");
-                // Store POS state in span for hover filtering
                 span.dataset.posEnabled = "false";
+                recomputeHoverState(span);
                 return;
             }
 
             // Mark POS as enabled for hover functionality
             span.dataset.posEnabled = "true";
 
-            if (enableWordFilters && this.tokenFilter.shouldExclude(token)) {
+            const isExcluded: boolean = enableWordFilters ? this.tokenFilter.shouldExclude(token) : false;
+            span.dataset.wordExcluded = String(isExcluded);
+            recomputeHoverState(span);
+
+            if (isExcluded) {
                 span.style.removeProperty("color");
                 return;
             }
@@ -58,6 +67,8 @@ export class JapaneseTextColoring {
         });
 
         await Promise.all(colorPromises);
+
+        document.dispatchEvent(new CustomEvent("modular-hover-refresh"));
     }
 
     public removePOSAnnotations(): void {

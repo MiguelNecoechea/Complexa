@@ -3,6 +3,7 @@ import * as wanakana from "wanakana";
 import { ReadingTypes } from "../../models/PopupSettings";
 import { FilterTokensService } from "../../services/FilterTokensService";
 import { Token } from "../../models/JapaneseTokens";
+import { recomputeHoverState } from "../utils/hoverState";
 
 const KANJI_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
@@ -85,7 +86,11 @@ export class KanjiReadingsProcessor {
             const surface: string = span.dataset.surface || span.textContent || "";
             const reading: string = span.dataset.reading || "";
 
-            if (enableWordFilters && this.tokenFilter.shouldExclude({ surface } as Token)) {
+            const isExcluded: boolean = enableWordFilters && this.tokenFilter.shouldExclude({ surface } as Token);
+            span.dataset.wordExcluded = String(isExcluded);
+            recomputeHoverState(span);
+
+            if (isExcluded) {
                 span.querySelectorAll("rt").forEach((rt: Element): void => {
                     (rt as HTMLElement).style.display = "none";
                 });
@@ -102,6 +107,8 @@ export class KanjiReadingsProcessor {
 
         this.readingsAdded = true;
         this.changeReadingType(this.readingMode);
+
+        document.dispatchEvent(new CustomEvent("modular-hover-refresh"));
     }
 
     public removeReadings(): void {

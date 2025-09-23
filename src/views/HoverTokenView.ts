@@ -40,7 +40,10 @@ export default class HoverTokenView {
     private attachListeners(): void {
         document.addEventListener("pointerover", (e: PointerEvent): void => {
             if (this.isLocked) return;
+
             const span = (e.target as Element | null)?.closest?.("span[data-pos]") as HTMLSpanElement | null;
+
+            if (span?.dataset.hoverEnabled === "false") return;
             if (span && this.hideTimer !== null) { clearTimeout(this.hideTimer); this.hideTimer = null; }
             if (span) this.activate(span);
         });
@@ -88,6 +91,23 @@ export default class HoverTokenView {
             this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
         });
 
+        document.addEventListener("modular-hover-toggle", (event: Event): void => {
+            const enabled: boolean = (event as CustomEvent<{ enabled: boolean }>).detail?.enabled;
+            if (!enabled) {
+                this.hide();
+            }
+        });
+
+        document.addEventListener("modular-hover-refresh", (): void => {
+            if (!this.activeSpan) return;
+
+            if (this.activeSpan.dataset.posEnabled === "false" || this.activeSpan.dataset.hoverEnabled === "false") {
+                this.hide();
+            } else if (!this.isLocked) {
+                this.reposition();
+            }
+        });
+
         mustId("jp-back-btn").addEventListener("click", (e: MouseEvent) => {
             e.stopPropagation();
             this.hideJisho();
@@ -95,10 +115,7 @@ export default class HoverTokenView {
     }
 
     private activate(span: HTMLSpanElement): void {
-        // 🚫 Check if this POS is disabled - skip hover if so
-        if (span.dataset.posEnabled === "false") {
-            return;
-        }
+        if (span.dataset.posEnabled === "false" || span.dataset.hoverEnabled === "false") return;
 
         this.hideJisho();
         this.activeSpan = span;
@@ -142,7 +159,7 @@ export default class HoverTokenView {
         }
 
         // 🚫 Skip disabled POS spans
-        if (newSpan.dataset.posEnabled === "false") {
+        if (newSpan.dataset.posEnabled === "false" || newSpan.dataset.hoverEnabled === "false") {
             this.hide();
             return;
         }

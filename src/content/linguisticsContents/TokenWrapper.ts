@@ -24,11 +24,15 @@
 import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
 import { SettingsService } from "../../services/SettingsService";
+import { FilterTokensService } from "../../services/FilterTokensService";
+import { recomputeHoverState } from "../utils/hoverState";
 import HoverTokenView from "../../views/HoverTokenView";
+
 
 export class TokenWrapper {
     private tooltipReady: boolean = false;
     private hoverEnabled: boolean = false;
+    private tokenFilter: FilterTokensService = FilterTokensService.instance;
 
     /**
      * Public entry point – wrap the whole page (or selection).
@@ -82,11 +86,17 @@ export class TokenWrapper {
         }
 
         if (this.hoverEnabled) await this.mountHoverToolTip();
+        await this.updateAllSpanHoverStates();
         return matrix;
     }
 
     public async setHoverEnabled(enable: boolean): Promise<void> {
         this.hoverEnabled = enable;
+        const enableWordFilters: boolean = await SettingsService.getSetting("enableWordFilters");
+        await this.updateAllSpanHoverStates(true, enableWordFilters);
+        document.dispatchEvent(new CustomEvent("modular-hover-toggle", {
+            detail: { enabled: this.hoverEnabled },
+        }));
         if (this.hoverEnabled) await this.mountHoverToolTip();
     }
 
@@ -122,9 +132,8 @@ export class TokenWrapper {
             }
 
             if (relStart > localPos) frag.append(node.ownerDocument!.createTextNode(text.slice(localPos, relStart)));
-            const hoverStatus: boolean = await SettingsService.getSetting("enableHover");
-            const hoverStatusStr: string = hoverStatus.toString();
-            const span: HTMLSpanElement = this.buildSpan(tok, hoverStatusStr);
+            const span: HTMLSpanElement = this.buildSpan(tok, this.hoverEnabled);
+
             frag.append(span);
             row.push(span);
 
@@ -145,9 +154,9 @@ export class TokenWrapper {
      * hover UI and other modules can query it later.
      *
      * @param tok Token metadata from the backend (surface, reading, pos, ...).
-     * @param hoverStatus the status to tell the frontend if the hover should be rendered.
+     * @param hoverSetting the status to tell the frontend if the hover should be rendered.
      */
-    private buildSpan(tok: Token, hoverStatus: string): HTMLSpanElement {
+    private buildSpan(tok: Token, hoverSetting: boolean): HTMLSpanElement {
         const span: HTMLSpanElement = document.createElement("span");
         span.textContent = tok.surface;
         span.classList.add("lingua-token", "mw-no-invert", "notheme");
@@ -162,7 +171,9 @@ export class TokenWrapper {
         span.dataset.ent_obj = tok.ent_iob;
         span.dataset.ent_type = tok.ent_type;
         span.dataset.is_japanese = tok.is_japanese;
-        span.dataset.hoverEnabled = hoverStatus;
+        span.dataset.hoverSetting = String(hoverSetting);
+        span.dataset.wordExcluded = "false";
+        recomputeHoverState(span);
         if (tok.reading) span.dataset.reading = tok.reading;
         return span;
     }
@@ -182,5 +193,32 @@ export class TokenWrapper {
         this.tooltipReady = true;
     }
 
+    private async updateAllSpanHoverStates(updateSetting: boolean = false, enableWordFilters?: boolean): Promise<void> {
+        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
+        if (!spans.length) return;
+
+        const useWordFilters: boolean =
+            enableWordFilters !== undefined ? enableWordFilters : await SettingsService.getSetting("enableWordFilters");
+
+        let filter: FilterTokensService | null = null;
+        if (useWordFilters) {
+            await this.tokenFilter.init();
+            filter = this.tokenFilter;
+        }
+
+        spans.forEach((span: HTMLSpanElement): void => {
+            if (updateSetting) span.dataset.hoverSetting = String(this.hoverEnabled);
+
+            if (filter) {
+                const surface: string = span.dataset.surface || span.textContent || "";
+                const isExcluded: boolean = filter.shouldExclude({ surface } as Token);
+                span.dataset.wordExcluded = String(isExcluded);
+            } else {
+                span.dataset.wordExcluded = "false";
+            }
+
+            recomputeHoverState(span);
+        });
+    }
 
 }
