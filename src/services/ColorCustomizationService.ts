@@ -98,7 +98,6 @@ export class ColorCustomizationService {
         const posPalette: ColorMap = await this.getPOSColors(dark);
 
         const posKey: string = token.pos?.toUpperCase() ?? "";
-        const tagKey: string = token.tag ?? "";
 
         const posColor: string = posPalette[posKey] ?? this.defaultColour(dark);
 
@@ -167,34 +166,6 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Resetea los colores de un POS específico a los valores por defecto
-     */
-    public static async resetPOSColor(pos: string): Promise<void> {
-        try {
-            const customSettings: CustomColorSettings = await this.getCustomSettings();
-            const posUpper: string = pos.toUpperCase();
-            
-            // Remover el POS específico de ambos modos
-            if (customSettings.lightColors[posUpper]) {
-                delete customSettings.lightColors[posUpper];
-            }
-            if (customSettings.darkColors[posUpper]) {
-                delete customSettings.darkColors[posUpper];
-            }
-            
-            // Guardar la configuración actualizada
-            await chrome.storage.sync.set({ [this.STORAGE_KEY]: customSettings });
-            
-            // Notificar cambio
-            await this.notifyColorChangeToAllTabs();
-            await this.refreshAppStylesIfAvailable();
-            
-        } catch (error) {
-            console.error(`Error resetting color for POS ${pos}:`, error);
-        }
-    }
-
-    /**
      * Notifica a todas las pestañas activas sobre cambios en los colores
      */
     private static async notifyColorChangeToAllTabs(): Promise<void> {
@@ -203,23 +174,14 @@ export class ColorCustomizationService {
             const response = await chrome.runtime.sendMessage({
                 action: "NOTIFY_COLOR_CHANGE"
             });
-            
+
             if (!response?.ok) {
                 console.warn("⚠️ Failed to send color change notification to background worker");
-            } 
-            
+            }
+
         } catch (error) {
             console.error("Error requesting color change notification:", error);
         }
     }
-    public static async setColorAndRefresh(pos: string, lightColor: string, darkColor?: string): Promise<void> {
-        await this.setColorForPOS(pos, lightColor, darkColor);
-    }
 
-    /**
-     * Función de prueba para verificar que las notificaciones funcionan
-     */
-    public static async testNotifications(): Promise<void> {
-        await this.notifyColorChangeToAllTabs();
-    }
 }
