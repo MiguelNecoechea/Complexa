@@ -60,7 +60,7 @@ export class TokenWrapper {
             const tokens: Token[] = tokenizedArrays[pIdx] ?? [];
             const row: HTMLElement[] = [];
 
-            if (!tokens.length) {
+            if (!tokens.length  || !this.tokensAlignWithDom(paragraph, tokens)) {
                 matrix.push(row);
                 continue;
             }
@@ -88,6 +88,24 @@ export class TokenWrapper {
         if (this.hoverEnabled) await this.mountHoverToolTip();
         await this.updateAllSpanHoverStates();
         return matrix;
+    }
+
+    private tokensAlignWithDom(paragraph: Paragraph, tokens: Token[]): boolean {
+        if (!tokens.length) return true;
+        if (!paragraph.container.isConnected) return false;
+        if (!paragraph.textNodes.every((node: Text): boolean => node.isConnected)) return false;
+
+        const liveText: string = paragraph.textNodes.reduce((acc: string, node: Text): string => acc + node.data, "");
+
+        for (const token of tokens) {
+            const start: number = token.offset;
+            const end: number = start + token.surface.length;
+
+            if (start < 0 || end > liveText.length) return false;
+            if (liveText.slice(start, end) !== token.surface) return false;
+        }
+
+        return true;
     }
 
     public async setHoverEnabled(enable: boolean): Promise<void> {

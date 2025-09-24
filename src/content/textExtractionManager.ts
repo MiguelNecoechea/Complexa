@@ -70,9 +70,25 @@ export class TextExtractionManager {
      */
     static extract(root: Node): Paragraph[] {
         const out: Paragraph[] = [];
-        const queue: Element[] = [root as Element];
-        const doc: Document = root.ownerDocument!;
+        const doc: Document = root instanceof Document ? root : root.ownerDocument!;
         const NF = doc.defaultView!.NodeFilter;
+
+        const seen: Set<Element> = new Set<Element>();
+        const queue: Element[] = [];
+        const enqueue = (el: Element | null): void => {
+            if (!el || seen.has(el)) return;
+            seen.add(el);
+            queue.push(el);
+        };
+
+        if (root instanceof Element) enqueue(root);
+        else if (root instanceof Document) enqueue(root.documentElement);
+        else enqueue(doc.body ?? doc.documentElement!);
+
+        doc.querySelectorAll("footer").forEach((footer: Element): void => {
+            if (root instanceof Element && root.contains(footer)) return;
+            enqueue(footer);
+        });
 
         while (queue.length) {
             const el: Element = queue.shift()!;
@@ -99,7 +115,7 @@ export class TextExtractionManager {
 
                 if (text.trim()) out.push({ container: el, textNodes, spans, text });
             } else {
-                queue.push(...Array.from(el.children));
+                Array.from(el.children).forEach(enqueue);
             }
         }
         return out;

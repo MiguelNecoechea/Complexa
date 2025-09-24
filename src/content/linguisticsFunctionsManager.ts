@@ -121,39 +121,29 @@ export class LinguisticsManager {
         );
     }
 
-    private tokensMisaligned(): boolean {
-        if (!this.tokenizedArrays.length || this.tokenizedArrays.length !== this.paragraphs.length) return true;
-
-        for(let i: number = 0; i < this.tokenizedArrays.length; i++) {
-            const text: string = this.paragraphs[i]!.text;
-            const tokens: Token[] = this.tokenizedArrays[i]!;
-
-            for (const token of tokens) {
-                const slice: string = text.slice(token.offset, token.offset + token.surface.length);
-                if (slice !== token.surface) return true;
-            }
-        }
-        return false;
-    }
-
     private async ensureWrapped(): Promise<void> {
         if (this.tokenizedDOM.length) return;
         if (document.querySelector("span.lingua-token")) return;
 
+        this.paragraphs = TextExtractionManager.extract(
+            document.querySelector("main") ?? document.body,
+        );
+
         if (!this.paragraphs.length) {
-            this.paragraphs = TextExtractionManager.extract(
-                document.querySelector("main") ?? document.body,
-            );
+            this.tokenizedArrays = [];
+            return;
         }
 
         await this.tokenFilter.init();
 
-        const { enableHover, enableWordFilters } = await SettingsService.getSettings();
+        const { enableHover } = await SettingsService.getSettings();
 
-        if (this.tokensMisaligned()) {
-            this.tokenizedArrays = await this.remoteTokenize(
-                this.paragraphs.map((p: Paragraph): string => p.text),
-            );
+        this.tokenizedArrays = await this.remoteTokenize(
+            this.paragraphs.map((p: Paragraph): string => p.text),
+        );
+
+        if (this.tokenizedArrays.length !== this.paragraphs.length) {
+            console.warn("Tokenizer response did not match extracted paragraph count.");
         }
 
         this.tokenizedDOM = await this.tokenWrapper.wrap(this.paragraphs, this.tokenizedArrays, enableHover);
