@@ -113,14 +113,6 @@ export class FilterTokensService {
         }
     }
 
-    // Public functionality
-    getAll(): string[] {
-        return [...this.excluded.values()].map(normalized => {
-            const token = this.excludedTokens.get(normalized);
-            return token?.surface || normalized;
-        });
-    }
-
     getAllTokens(): ExcludedToken[] {
         return [...this.excludedTokens.values()];
     }
@@ -144,27 +136,4 @@ export class FilterTokensService {
         await this.persist();
     }
 
-    async add(...words: string[]): Promise<void> {
-        words.forEach((word: string) => {
-            const normalized = normalise(word);
-            this.excluded.add(normalized);
-            this.excludedTokens.set(normalized, { surface: word });
-        });
-        await this.persist();
-    }
-
-    async remove(...words: string[]): Promise<void> {
-        words.forEach((word: string) => {
-            const normalized = normalise(word);
-            this.excluded.delete(normalized);
-            this.excludedTokens.delete(normalized);
-        });
-        await this.persist();
-    }
-
-    async clear(): Promise<void> {
-        this.excluded.clear();
-        this.excludedTokens.clear();
-        await this.persist();
-    }
 }

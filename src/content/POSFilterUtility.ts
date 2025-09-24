@@ -87,43 +87,6 @@ export class POSFilterUtility {
     }
 
     /**
-     * Filter an array of tokens, removing those with disabled POS
-     */
-    public static filterTokens(tokens: Token[]): Token[] {
-        if (!this.isInitialized) {
-            console.warn('⚠️ POSFilterUtility not initialized, returning all tokens');
-            return tokens;
-        }
-
-        return tokens.filter(token => this.shouldProcessToken(token));
-    }
-
-    /**
-     * Filter a 2D array of tokens (for batch processing)
-     */
-    public static filterTokenArrays(tokenArrays: Token[][]): Token[][] {
-        if (!this.isInitialized) {
-            console.warn('⚠️ POSFilterUtility not initialized, returning all tokens');
-            return tokenArrays;
-        }
-
-        return tokenArrays.map(tokens => this.filterTokens(tokens));
-    }
-
-    /**
-     * Get all disabled POS codes (for debugging/logging)
-     */
-    public static getDisabledPOS(): string[] {
-        if (!this.isInitialized || !this.posStates) {
-            return [];
-        }
-
-        return Object.entries(this.posStates)
-            .filter(([_, enabled]) => !enabled)
-            .map(([pos, _]) => pos);
-    }
-
-    /**
      * Refresh the POS states from storage (useful if states change during runtime)
      */
     public static async refresh(): Promise<void> {
@@ -132,10 +95,4 @@ export class POSFilterUtility {
         await this.init();
     }
 
-    /**
-     * Check if the utility is ready to use
-     */
-    public static isReady(): boolean {
-        return this.isInitialized && this.posStates !== null;
-    }
 }

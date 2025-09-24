@@ -63,16 +63,5 @@ export class TabService {
         }
     }
 
-    /**
-     * Reloads the specified tab.
-     *
-     * @method reloadTab
-     * @param {number} tabId - The id of the tab to reload
-     * @returns {Promise<void>} - A promise that is resolved when the tab is reloaded
-     */
-    async reload(tabId: number): Promise<void> {
-        return new Promise((resolve): void => {
-            chrome.tabs.reload(tabId, {}, (): void => resolve());
-        })
-    }
+
 }

@@ -108,67 +108,6 @@ export class POSStateService {
         return this.posStates[pos.toUpperCase()] ?? true; // Default to enabled
     }
 
-    /**
-     * Get all POS states as a copy of the internal state
-     */
-    public getAllStates(): { [key: string]: boolean } {
-        if (!this.isInitialized) {
-            console.warn('⚠️ POSStateService not initialized, returning empty states');
-            return {};
-        }
-        
-        return { ...this.posStates };
-    }
-
-    /**
-     * Get an array of all enabled POS codes
-     */
-    public getEnabledPOS(): string[] {
-        if (!this.isInitialized) {
-            console.warn('⚠️ POSStateService not initialized, returning empty array');
-            return [];
-        }
-        
-        return Object.entries(this.posStates)
-            .filter(([_, enabled]) => enabled)
-            .map(([pos, _]) => pos);
-    }
-
-    /**
-     * Get an array of all disabled POS codes
-     */
-    public getDisabledPOS(): string[] {
-        if (!this.isInitialized) {
-            console.warn('⚠️ POSStateService not initialized, returning empty array');
-            return [];
-        }
-        
-        return Object.entries(this.posStates)
-            .filter(([_, enabled]) => !enabled)
-            .map(([pos, _]) => pos);
-    }
-
-    /**
-     * Reset all POS to enabled state
-     */
-    public async enableAllPOS(): Promise<void> {
-        if (!this.isInitialized) {
-            await this.init();
-        }
-        
-        for (const pos of Object.keys(POS_CATEGORIES)) {
-            this.posStates[pos] = true;
-        }
-        
-        await this.saveStates();
-    }
-
-    /**
-     * Check if the service is initialized
-     */
-    public isReady(): boolean {
-        return this.isInitialized;
-    }
 }
 
 // Export singleton instance getter function for convenience
