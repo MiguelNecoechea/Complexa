@@ -43,7 +43,7 @@ export class ExcludedWordsManager {
         try {
             // Try to get from chrome.storage.sync first
             const result = await chrome.storage.sync.get('excludedTokens');
-            const excludedList = result.excludedTokens as ExcludedToken[] || [];
+            const excludedList: ExcludedToken[] = result.excludedTokens as ExcludedToken[] || [];
             
             this.excludedWords = excludedList;
             
@@ -51,7 +51,7 @@ export class ExcludedWordsManager {
             try {
                 // Fallback to local storage
                 const result = await chrome.storage.local.get('excludedTokens');
-                const excludedList = result.excludedTokens as ExcludedToken[] || [];
+                const excludedList: ExcludedToken[] = result.excludedTokens as ExcludedToken[] || [];
                 
                 this.excludedWords = excludedList;
                 
@@ -74,16 +74,16 @@ export class ExcludedWordsManager {
         });
 
         // Group words by their POS category
-        this.excludedWords.forEach(word => {
-            const category = getPOSCategory(word.pos || '');
+        this.excludedWords.forEach((word: ExcludedToken): void => {
+            const category: string = getPOSCategory(word.pos || '');
             if (categorizedWords[category]) {
                 categorizedWords[category].push(word);
             }
         });
 
         // Render each category
-        Object.entries(categorizedWords).forEach(([category, words]) => {
-            const tbody = document.getElementById(`${category}-tbody`);
+        Object.entries(categorizedWords).forEach(([category, words]): void => {
+            const tbody: HTMLElement | null = document.getElementById(`${category}-tbody`);
             if (!tbody) return;
 
             // Clear existing content

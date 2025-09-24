@@ -6,7 +6,7 @@
 import { LIGHT_POS_COLORS } from '../content/linguisticsContents/DetermineTextColor';
 import { ColorCustomizationService } from '../services/ColorCustomizationService';
 import { POSStateService, getPOSStateService } from '../services/POSStateService';
-import { ColorConfigModal } from './components/ColorConfigModal';
+import { ColorConfigModel } from './components/ColorConfigModel';
 import { ExcludedWordsManager } from './managers/ExcludedWordsManager';
 
 // Define the POS types we support - all 11 categories
@@ -27,17 +27,17 @@ const POS_CATEGORIES = {
 // Function to convert hex color to lighter version
 function lightenColor(hex: string, amount: number = 20): string {
     // Remove # if present
-    const color = hex.replace('#', '');
+    const color: string = hex.replace('#', '');
     
     // Parse RGB values
-    const r = parseInt(color.substring(0, 2), 16);
-    const g = parseInt(color.substring(2, 4), 16);
-    const b = parseInt(color.substring(4, 6), 16);
+    const r: number = parseInt(color.substring(0, 2), 16);
+    const g: number = parseInt(color.substring(2, 4), 16);
+    const b: number = parseInt(color.substring(4, 6), 16);
     
     // Add amount to each channel, cap at 255
-    const newR = Math.min(255, r + amount);
-    const newG = Math.min(255, g + amount);
-    const newB = Math.min(255, b + amount);
+    const newR: number = Math.min(255, r + amount);
+    const newG: number = Math.min(255, g + amount);
+    const newB: number = Math.min(255, b + amount);
     
     // Convert back to hex
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
@@ -46,15 +46,15 @@ function lightenColor(hex: string, amount: number = 20): string {
 // Function to inject dynamic styles based on current colors from ColorCustomizationService
 async function injectPOSStyles(): Promise<void> {
     // Remove existing dynamic styles
-    const existingStyle = document.getElementById('dynamic-pos-styles');
+    const existingStyle: HTMLElement | null = document.getElementById('dynamic-pos-styles');
     if (existingStyle) {
         existingStyle.remove();
     }
     
-    const style = document.createElement('style');
+    const style: HTMLStyleElement = document.createElement('style');
     style.id = 'dynamic-pos-styles';
     
-    let css = '';
+    let css: string = '';
     
     try {
         // Obtener colores actuales del servicio (incluye personalizaciones)
@@ -62,12 +62,12 @@ async function injectPOSStyles(): Promise<void> {
         
         // Iterar sobre todas las categorías POS
         for (const [pos, category] of Object.entries(POS_CATEGORIES)) {
-            const color = currentColors[pos] || '#000000';
+            const color: string = currentColors[pos] || '#000000';
             
-            const lightColor = lightenColor(color, 30);
-            const r = parseInt(lightColor.substring(1, 3), 16);
-            const g = parseInt(lightColor.substring(3, 5), 16);
-            const b = parseInt(lightColor.substring(5, 7), 16);
+            const lightColor: string = lightenColor(color, 30);
+            const r: number = parseInt(lightColor.substring(1, 3), 16);
+            const g: number = parseInt(lightColor.substring(3, 5), 16);
+            const b: number = parseInt(lightColor.substring(5, 7), 16);
             
             css += `
             /* ${pos} - Current: ${color} -> Light: ${lightColor} */
@@ -99,15 +99,15 @@ async function injectPOSStyles(): Promise<void> {
         console.error('❌ Error loading colors from service, falling back to hardcoded colors:', error);
         
         // Fallback a colores hardcodeados si hay error
-        Object.keys(LIGHT_POS_COLORS).forEach(pos => {
-            const color = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
+        Object.keys(LIGHT_POS_COLORS).forEach((pos: string): void => {
+            const color: string = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
             const category = POS_CATEGORIES[pos as keyof typeof POS_CATEGORIES];
             if (!category) return;
             
-            const lightColor = lightenColor(color, 30);
-            const r = parseInt(lightColor.substring(1, 3), 16);
-            const g = parseInt(lightColor.substring(3, 5), 16);
-            const b = parseInt(lightColor.substring(5, 7), 16);
+            const lightColor: string = lightenColor(color, 30);
+            const r: number = parseInt(lightColor.substring(1, 3), 16);
+            const g: number = parseInt(lightColor.substring(3, 5), 16);
+            const b: number = parseInt(lightColor.substring(5, 7), 16);
             
             css += `
             /* ${pos} - Fallback: ${color} -> Light: ${lightColor} */
@@ -137,9 +137,8 @@ async function injectPOSStyles(): Promise<void> {
 }
 
 // Map POS types to their exact categories
-// Map POS types to their exact categories
 function getPOSCategory(pos: string): string {
-    const posUpper = pos.toUpperCase();
+    const posUpper: string = pos.toUpperCase();
     return POS_CATEGORIES[posUpper as keyof typeof POS_CATEGORIES] || 'noun'; // default to noun if unknown
 }
 
@@ -148,15 +147,15 @@ function getPOSStateManager(): POSStateService {
     return getPOSStateService();
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async (): Promise<void> => {
     console.log('App page loaded');
 
     // Initialize POS state service
-    const posStateService = getPOSStateService();
+    const posStateService: POSStateService = getPOSStateService();
     await posStateService.init();
 
     // Initialize color preview modal (solo visual)
-    const colorModal = new ColorConfigModal();
+    const colorModal = new ColorConfigModel();
 
     // Inject dynamic POS styles from ColorCustomizationService (ahora con colores dinámicos)
     await injectPOSStyles();
@@ -165,10 +164,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     new ExcludedWordsManager();
 
     // Bind config button events (solo para preview visual)
-    document.querySelectorAll('.pos-config-btn').forEach(button => {
-        button.addEventListener('click', async (e) => {
+    document.querySelectorAll('.pos-config-btn').forEach((button: Element): void => {
+        button.addEventListener('click', async (e: Event): Promise<void> => {
             e.stopPropagation();
-            const pos = (button as HTMLElement).dataset.pos;
+            const pos: string | undefined = (button as HTMLElement).dataset.pos;
             if (pos) {
                 await colorModal.open(pos);
             }
@@ -185,7 +184,7 @@ declare global {
 
 // Hacer la función disponible globalmente
 if (typeof window !== 'undefined') {
-    window.refreshAppStyles = async () => {
+    window.refreshAppStyles = async (): Promise<void> => {
         await injectPOSStyles();
     };
 }

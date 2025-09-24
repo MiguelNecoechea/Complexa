@@ -26,8 +26,8 @@ function getPOSDisplayName(posCode: string): string {
  * Handles the POS color configuration modal, including color pickers,
  * preview functionality, and integration with the POSStateService.
  */
-export class ColorConfigModal {
-    private modal: HTMLElement;
+export class ColorConfigModel {
+    private readonly modal: HTMLElement;
     private currentPOS: string = '';
     private posStateService: POSStateService;
     private lightColorPicker: HTMLInputElement;
@@ -82,15 +82,14 @@ export class ColorConfigModal {
         });
         
         // Light mode color picker events
-        this.lightColorPicker.addEventListener('input', (e: Event) => {
-            const color = (e.target as HTMLInputElement).value;
-            this.lightHexInput.value = color;
+        this.lightColorPicker.addEventListener('input', (e: Event): void => {
+            this.lightHexInput.value = (e.target as HTMLInputElement).value;
             this.updatePreview();
         });
         
         // Light mode hex input events
-        this.lightHexInput.addEventListener('input', (e: Event) => {
-            const color = (e.target as HTMLInputElement).value;
+        this.lightHexInput.addEventListener('input', (e: Event): void => {
+            const color: string = (e.target as HTMLInputElement).value;
             if (this.isValidHex(color)) {
                 this.lightColorPicker.value = color;
                 this.updatePreview();
@@ -98,15 +97,14 @@ export class ColorConfigModal {
         });
         
         // Dark mode color picker events
-        this.darkColorPicker.addEventListener('input', (e: Event) => {
-            const color = (e.target as HTMLInputElement).value;
-            this.darkHexInput.value = color;
+        this.darkColorPicker.addEventListener('input', (e: Event): void => {
+            this.darkHexInput.value = (e.target as HTMLInputElement).value;
             this.updatePreview();
         });
         
         // Dark mode hex input events
-        this.darkHexInput.addEventListener('input', (e: Event) => {
-            const color = (e.target as HTMLInputElement).value;
+        this.darkHexInput.addEventListener('input', (e: Event): void => {
+            const color: string = (e.target as HTMLInputElement).value;
             if (this.isValidHex(color)) {
                 this.darkColorPicker.value = color;
                 this.updatePreview();
@@ -114,14 +112,14 @@ export class ColorConfigModal {
         });
         
         // Click outside to close
-        this.modal.addEventListener('click', (e: Event) => {
+        this.modal.addEventListener('click', (e: Event): void => {
             if (e.target === this.modal) {
                 this.close();
             }
         });
         
         // Escape key to close
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
+        document.addEventListener('keydown', (e: KeyboardEvent): void => {
             if (e.key === 'Escape' && this.modal.classList.contains('show')) {
                 this.close();
             }
@@ -140,12 +138,12 @@ export class ColorConfigModal {
 
     private updateSwitchLabel(): void {
         const switchElement = document.getElementById('pos-toggle-switch') as HTMLInputElement;
-        const switchLabel = document.querySelector('.modal-switch-label');
-        const modalContent = document.querySelector('.modal-content');
+        const switchLabel: Element | null = document.querySelector('.modal-switch-label');
+        const modalContent: Element | null = document.querySelector('.modal-content');
         
         if (switchElement && switchLabel && modalContent && this.currentPOS) {
-            const posDisplayName = getPOSDisplayName(this.currentPOS);
-            const action = switchElement.checked ? 'Disable' : 'Enable';
+            const posDisplayName: string = getPOSDisplayName(this.currentPOS);
+            const action: "Disable" | "Enable" = switchElement.checked ? 'Disable' : 'Enable';
             switchLabel.textContent = `${action} ${posDisplayName}`;
             
             // Toggle modal disabled state
@@ -244,22 +242,21 @@ export class ColorConfigModal {
         
         try {
             // Obtener colores actuales del servicio dinámico para ambos modos
-            const currentLightColor = await ColorCustomizationService.getColorForPOS(pos, false); // Light mode
-            const currentDarkColor = await ColorCustomizationService.getColorForPOS(pos, true);   // Dark mode
+            const currentLightColor: string = await ColorCustomizationService.getColorForPOS(pos, false); // Light mode
+            const currentDarkColor: string = await ColorCustomizationService.getColorForPOS(pos, true);   // Dark mode
             
             // Normalizar colores a formato de 6 caracteres
-            const normalizedLightColor = this.normalizeHexColor(currentLightColor);
-            const normalizedDarkColor = this.normalizeHexColor(currentDarkColor);
+            const normalizedLightColor: string = this.normalizeHexColor(currentLightColor);
+            const normalizedDarkColor: string = this.normalizeHexColor(currentDarkColor);
             
             // Update modal title
-            const posDisplayName = getPOSDisplayName(pos);
+            const posDisplayName: string = getPOSDisplayName(pos);
             this.modalTitle.textContent = `Configure ${posDisplayName} Colors`;
             
             // Load and set switch state from storage
             const switchElement = document.getElementById('pos-toggle-switch') as HTMLInputElement;
             if (switchElement) {
-                const savedState = this.posStateService.getPOSState(pos);
-                switchElement.checked = savedState;
+                switchElement.checked = this.posStateService.getPOSState(pos);
             }
             this.updateSwitchLabel();
             
@@ -297,14 +294,14 @@ export class ColorConfigModal {
             console.error('❌ Error loading current colors, using fallback:', error);
             
             // Fallback a colores hardcodeados
-            const fallbackColor = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
-            const fallbackDarkColor = this.generateDarkModeColor(fallbackColor);
+            const fallbackColor: string = LIGHT_POS_COLORS[pos as keyof typeof LIGHT_POS_COLORS] || '#000000';
+            const fallbackDarkColor: string = this.generateDarkModeColor(fallbackColor);
             
             // Normalizar colores de fallback
-            const normalizedFallbackLight = this.normalizeHexColor(fallbackColor);
-            const normalizedFallbackDark = this.normalizeHexColor(fallbackDarkColor);
+            const normalizedFallbackLight: string = this.normalizeHexColor(fallbackColor);
+            const normalizedFallbackDark: string = this.normalizeHexColor(fallbackDarkColor);
             
-            const posName = pos.charAt(0) + pos.slice(1).toLowerCase();
+            const posName: string = pos.charAt(0) + pos.slice(1).toLowerCase();
             this.modalTitle.textContent = `Configure ${posName} Colors`;
             
             this.currentColorPreviewLight.style.backgroundColor = normalizedFallbackLight;
@@ -343,7 +340,7 @@ export class ColorConfigModal {
      */
     private blockBodyScroll(): void {
         // Guardar posición actual de scroll
-        const scrollY = window.scrollY;
+        const scrollY: number = window.scrollY;
         document.body.classList.add('modal-open');
         document.body.style.top = `-${scrollY}px`;
         
@@ -355,7 +352,7 @@ export class ColorConfigModal {
      * Desbloquea el scroll del body cuando el modal se cierra
      */
     private unblockBodyScroll(): void {
-        const scrollY = document.body.style.top;
+        const scrollY: string = document.body.style.top;
         
         // Restaurar estilos
         document.body.classList.remove('modal-open');
@@ -378,9 +375,9 @@ export class ColorConfigModal {
         
         // Aumentar la luminosidad para modo oscuro (mejor contraste sobre fondo oscuro)
         const factor = 1.5; // Factor de aclarado
-        const newR = Math.min(255, Math.round(rgb.r * factor));
-        const newG = Math.min(255, Math.round(rgb.g * factor));
-        const newB = Math.min(255, Math.round(rgb.b * factor));
+        const newR: number = Math.min(255, Math.round(rgb.r * factor));
+        const newG: number = Math.min(255, Math.round(rgb.g * factor));
+        const newB: number = Math.min(255, Math.round(rgb.b * factor));
         
         // Convertir de vuelta a hex
         return this.rgbToHex(newR, newG, newB);
@@ -390,7 +387,7 @@ export class ColorConfigModal {
      * Convierte color hex a RGB
      */
     private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        const result: RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? {
             r: parseInt(result[1], 16),
             g: parseInt(result[2], 16),
@@ -408,44 +405,6 @@ export class ColorConfigModal {
             b.toString(16).padStart(2, '0');
     }
 
-    /**
-     * Añade transparencia a un color hex
-     */
-    private addAlpha(hex: string, alpha: number): string {
-        const rgb = this.hexToRgb(hex);
-        if (!rgb) return hex;
-        
-        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
-    }
-
-    /**
-     * Oscurece un color hex
-     */
-    private darkenColor(hex: string, amount: number): string {
-        const rgb = this.hexToRgb(hex);
-        if (!rgb) return hex;
-        
-        const newR = Math.max(0, rgb.r - amount);
-        const newG = Math.max(0, rgb.g - amount);
-        const newB = Math.max(0, rgb.b - amount);
-        
-        return this.rgbToHex(newR, newG, newB);
-    }
-
-    /**
-     * Aclara un color hex (método local para la clase)
-     */
-    private lightenColor(hex: string, amount: number): string {
-        const rgb = this.hexToRgb(hex);
-        if (!rgb) return hex;
-        
-        const newR = Math.min(255, rgb.r + amount);
-        const newG = Math.min(255, rgb.g + amount);
-        const newB = Math.min(255, rgb.b + amount);
-        
-        return this.rgbToHex(newR, newG, newB);
-    }
-
     private async applyColor(): Promise<void> {
         try {
             const switchElement = document.getElementById('pos-toggle-switch') as HTMLInputElement;
@@ -457,8 +416,8 @@ export class ColorConfigModal {
             
             if (switchElement && switchElement.checked) {
                 // Switch is ON - Apply the selected colors
-                const selectedLightColor = this.lightColorPicker.value;
-                const selectedDarkColor = this.darkColorPicker.value;
+                const selectedLightColor: string = this.lightColorPicker.value;
+                const selectedDarkColor: string = this.darkColorPicker.value;
                 
                 if (!selectedLightColor || !selectedDarkColor) {
                     console.error('❌ No colors selected');
@@ -513,8 +472,8 @@ export class ColorConfigModal {
             const defaultColors = ColorCustomizationService.getDefaultColorsForPOS(this.currentPOS);
             
             // Normalizar los colores a formato de 6 caracteres
-            const normalizedLightColor = this.normalizeHexColor(defaultColors.light);
-            const normalizedDarkColor = this.normalizeHexColor(defaultColors.dark);
+            const normalizedLightColor: string = this.normalizeHexColor(defaultColors.light);
+            const normalizedDarkColor: string = this.normalizeHexColor(defaultColors.dark);
             
             // Actualizar los color pickers con los colores normalizados
             this.lightColorPicker.value = normalizedLightColor;
