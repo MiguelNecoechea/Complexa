@@ -1,7 +1,7 @@
 // views/HoverTokenView.ts
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel";
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
-import { FilterTokensService } from "../services/./FilterTokensService";
+import { FilterTokensService } from "../services/FilterTokensService";
 import { JishoService } from "../services/JishoService";
 import { JishoEntry } from "../models/Jisho";
 

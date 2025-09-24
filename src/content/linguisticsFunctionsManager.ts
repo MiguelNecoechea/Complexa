@@ -13,7 +13,7 @@ import { Token } from "../models/JapaneseTokens";
 
 // UI imports
 import { FilterTokensService } from "../services/FilterTokensService";
-import {PopupSettings, ReadingTypes} from "../models/PopupSettings";
+import { ReadingTypes} from "../models/PopupSettings";
 import MessageSender = chrome.runtime.MessageSender;
 
 const MESSAGE_TYPES = {
@@ -59,7 +59,7 @@ export class LinguisticsManager {
 
             return response.tokens!;
         } catch (error) {
-            console.error("Toknizer request failed", error);
+            console.error("Tokenizer request failed", error);
             alert("Tokenizer service is unavailable");
             throw error;
         }
@@ -75,8 +75,8 @@ export class LinguisticsManager {
 
     private setupMessageListeners(): void {
         chrome.runtime.onMessage.addListener(
-            (message: any, sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
-                // Usar action o type para compatibilidad
+            (message: any, _sender: MessageSender, sendResponse: (response?: any) => void): boolean => {
+                // User action o type para compatibilidad
                 const actionType = message.action || message.type;
                 
                 switch (actionType) {
@@ -154,7 +154,7 @@ export class LinguisticsManager {
         try {
             await this.ensureWrapped();
             const { enableColor, enableFurigana, enableWordFilters } = await SettingsService.getSettings();
-            if (enableColor) this.textColorizer.addPOSAnnotations(enableWordFilters);
+            if (enableColor) await this.textColorizer.addPOSAnnotations(enableWordFilters);
             if (enableFurigana) this.kanjiReadingProcessor.addReadings(enableWordFilters);
 
         } catch (err: any) {}
@@ -177,7 +177,8 @@ export class LinguisticsManager {
         if (enableFurigana) this.kanjiReadingProcessor.addReadings(enableWordFilters);
         else this.kanjiReadingProcessor.removeReadings();
 
-        if (enableColor) this.textColorizer.addPOSAnnotations(enableWordFilters);
+        if (enableColor) await this.textColorizer.addPOSAnnotations(enableWordFilters);
+
         else this.textColorizer.removePOSAnnotations();
     }
 

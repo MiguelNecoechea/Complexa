@@ -1,7 +1,7 @@
 import { Token, MorphFeatures } from "../models/JapaneseTokens";
 import { JishoEntry } from "../models/Jisho";
 import { IJishoService } from "../services/JishoService";
-import { FilterTokensService } from "../services/./FilterTokensService";
+import { FilterTokensService } from "../services/FilterTokensService";
 import * as wanakana from "wanakana";
 import {ReadingTypes} from "../models/PopupSettings";
 
