@@ -4,42 +4,47 @@
     "version": "1.0.0",
     "description": "A Chrome extension for learning Japanese with reading and dictionary features",
     "action": {
-        "default_popup": "static/views/popup.html",
-        "default_icon": {
-            "48": "static/assets/icons/Modular48.png",
-            "128": "static/assets/icons/Modular128.png"
-        }
-    },
-    "permissions": [
-        "storage",
-        "activeTab",
-        "tabs",
-        "scripting",
-        "contextMenus",
-        "commands"
-    ],
-    "background": {
-        "service_worker": "dist/scripts/background/backgroundWorker.js"
-    },
-    "icons": {
+      "default_popup": "static/views/popup.html",
+      "default_icon": {
         "48": "static/assets/icons/Modular48.png",
         "128": "static/assets/icons/Modular128.png"
+      }
     },
+    "background": {
+      "service_worker": "dist/scripts/background/backgroundWorker.js"
+    },
+    "permissions": [
+      "storage",
+      "activeTab",
+      "tabs",
+      "scripting",
+      "contextMenus"
+    ],
     "host_permissions": ["<all_urls>"],
+    "icons": {
+      "48": "static/assets/icons/Modular48.png",
+      "128": "static/assets/icons/Modular128.png"
+    },
     "web_accessible_resources": [
-        {
-            "resources": [
-                "dist/scripts/content/*",
-                "dist/scripts/models/*",
-                "dist/scripts/services/*",
-                "dist/scripts/ui/*",
-                "dist/scripts/viewmodels/*"
-            ],
-            "matches": ["<all_urls>"]
-        },
-        {
-            "resources": ["static/views/*"],
-            "matches": ["<all_urls>"]
-        }
-    ]
+      {
+        "resources": [
+          "dist/scripts/content/*",
+          "dist/scripts/models/*",
+          "dist/scripts/services/*",
+          "dist/scripts/ui/*",
+          "dist/scripts/viewmodels/*"
+        ],
+        "matches": ["<all_urls>"]
+      },
+      {
+        "resources": ["static/views/*"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "commands": {
+      "toggle-feature": {
+        "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
+        "description": "Toggle Complexa feature"
+      }
+    }
 }
