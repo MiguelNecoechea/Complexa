@@ -177,7 +177,7 @@ export class TokenWrapper {
     private buildSpan(tok: Token, hoverSetting: boolean): HTMLSpanElement {
         const span: HTMLSpanElement = document.createElement("span");
         span.textContent = tok.surface;
-        span.classList.add("lingua-token", "mw-no-invert", "notheme");
+        span.classList.add("lingua-token");
 
         span.dataset.surface = tok.surface;
         span.dataset.pos = tok.pos;

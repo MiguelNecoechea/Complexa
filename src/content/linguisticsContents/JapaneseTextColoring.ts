@@ -38,6 +38,7 @@ export class JapaneseTextColoring {
             // 🚫 Skip coloring for disabled POS types
             if (!POSFilterUtility.shouldProcessToken(token)) {
                 span.style.removeProperty("color");
+                span.classList.remove("notheme", "mw-no-invert");
                 span.dataset.posEnabled = "false";
                 recomputeHoverState(span);
                 return;
@@ -52,12 +53,14 @@ export class JapaneseTextColoring {
 
             if (isExcluded) {
                 span.style.removeProperty("color");
+                span.classList.remove("notheme", "mw-no-invert");
                 return;
             }
 
             try {
                 const { posColor }: TextProcessedColor = await DetermineTextColor.determineColorToken(token);
                 span.style.setProperty("color", posColor, "important");
+                span.classList.remove("notheme", "mw-no-invert");
             } catch (error) {
                 console.warn("Error determining color for token, using the basic color:", error);
                 // Fallback al método sincrónico si hay error
@@ -75,6 +78,7 @@ export class JapaneseTextColoring {
         const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-pos]");
         spans.forEach((span: HTMLSpanElement): void => {
             span.style.removeProperty("color");
+            span.classList.remove("notheme", "mw-no-invert");
         });
     }
 }
