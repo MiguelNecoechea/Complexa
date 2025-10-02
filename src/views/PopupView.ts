@@ -3,6 +3,7 @@ import { PopupViewModel } from "../viewmodels/PopupViewModel";
 
 const DOM_IDS = {
     LAUNCH_APP: "launch-app",
+    OPEN_MANUAL: "open-manual",
     ENABLE_FURIGANA: "enable-text-furigana",
     ENABLE_COLOR: "enable-text-colors",
     ENABLE_HOVER: "enable-text-hover",
@@ -32,6 +33,7 @@ const STRINGS = {
     ADD_READINGS_CLICKED: "Add readings button clicked",
     APP_HTML_PATH: "static/views/app.html",
     KANJI_REQUESTED: "Requesting extracted kanji from the current tab",
+    MANUAL_PDF_PATH: "static/assets/ComplexaUserGuide.pdf",
     KANJI_RECEIVED: "Received kanji from content script:",
     GETTING_KANJI_ERROR: "Error getting kanji from content script:",
 };
@@ -74,6 +76,14 @@ export class PopupView {
         if (launchAppBtn) {
             launchAppBtn.addEventListener("click", (): void => {
                 chrome.tabs.create({url: chrome.runtime.getURL(STRINGS.APP_HTML_PATH)});
+            });
+        }
+
+        const openManualBtn = document.getElementById(DOM_IDS.OPEN_MANUAL) as HTMLButtonElement;
+
+        if (openManualBtn) {
+            openManualBtn.addEventListener("click", (): void => {
+                chrome.tabs.create({ url: chrome.runtime.getURL(STRINGS.MANUAL_PDF_PATH) });
             });
         }
 

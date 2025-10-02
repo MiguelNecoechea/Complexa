@@ -44,6 +44,12 @@ body.dark-mode {
   gap: 20px;
 }
 
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .popup-title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -206,6 +212,10 @@ input[type="checkbox"]:checked + label:after {
   box-shadow: var(--shadow);
 }
 
+.button-group .button {
+    margin-top: 0;
+}
+
 .dark-mode .button {
   background-color: var(--primary-color-dark);
 }
@@ -230,6 +240,37 @@ input[type="checkbox"]:checked + label:after {
 
 .dark-mode .button img {
   filter: brightness(0) invert(1) !important;
+}
+
+
+.button-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    box-shadow: none;
+}
+
+.button-secondary:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+}
+
+.button-secondary:active {
+    background-color: rgba(99, 102, 241, 0.2);
+}
+
+.dark-mode .button-secondary {
+    color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+}
+
+.dark-mode .button-secondary:hover {
+    background-color: rgba(99, 102, 241, 0.15);
+    color: var(--primary-color-dark);
+}
+
+.dark-mode .button-secondary:active {
+    background-color: rgba(99, 102, 241, 0.25);
 }
 
 /* Dropdown select styling */
