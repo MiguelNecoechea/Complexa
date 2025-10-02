@@ -30,7 +30,7 @@ const STRINGS = {
     HIRAGANA_LABEL: "Hiragana",
     ADD_READINGS: "Add Readings",
     ADD_READINGS_CLICKED: "Add readings button clicked",
-    APP_HTML_PATH: "static/views/app.html",
+    APP_HTML_PATH: "../views/app.html",
     KANJI_REQUESTED: "Requesting extracted kanji from the current tab",
     KANJI_RECEIVED: "Received kanji from content script:",
     GETTING_KANJI_ERROR: "Error getting kanji from content script:",
