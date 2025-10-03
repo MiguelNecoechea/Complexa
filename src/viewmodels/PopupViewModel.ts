@@ -83,7 +83,7 @@ export class PopupViewModel {
             await this.tabService.sendMessageToTab(tab.id, { action: "ping" });
             return true;
         } catch {
-            await this.tabService.injectScript(tab.id, "dist/scripts/content/linguisticsFunctionsManager.js");
+            await this.tabService.injectScript(tab.id, "scripts/content/linguisticsFunctionsManager.js");
             return true;
         }
 

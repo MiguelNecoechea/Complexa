@@ -33,7 +33,6 @@ const STRINGS = {
     ADD_READINGS_CLICKED: "Add readings button clicked",
     APP_HTML_PATH: "../views/app.html",
     KANJI_REQUESTED: "Requesting extracted kanji from the current tab",
-    MANUAL_PDF_PATH: "static/assets/ComplexaUserGuide.pdf",
     KANJI_RECEIVED: "Received kanji from content script:",
     GETTING_KANJI_ERROR: "Error getting kanji from content script:",
 };
@@ -76,14 +75,6 @@ export class PopupView {
         if (launchAppBtn) {
             launchAppBtn.addEventListener("click", (): void => {
                 chrome.tabs.create({url: chrome.runtime.getURL(STRINGS.APP_HTML_PATH)});
-            });
-        }
-
-        const openManualBtn = document.getElementById(DOM_IDS.OPEN_MANUAL) as HTMLButtonElement;
-
-        if (openManualBtn) {
-            openManualBtn.addEventListener("click", (): void => {
-                chrome.tabs.create({ url: chrome.runtime.getURL(STRINGS.MANUAL_PDF_PATH) });
             });
         }
 
@@ -207,7 +198,7 @@ export class PopupView {
         buttonContent.style.gap = "8px";
         
         const icon: HTMLImageElement = document.createElement("img");
-        icon.src = "/static/assets/icons/ui/add-reading.svg";
+        icon.src = "/assets/icons/ui/add-reading.svg";
         icon.alt = "";
         icon.style.width = "20px";
         icon.style.height = "20px";

@@ -203,7 +203,7 @@ export class TokenWrapper {
     private async mountHoverToolTip(): Promise<void> {
         if (this.tooltipReady) return;
 
-        const hoverHTML: string = await fetch(chrome.runtime.getURL("static/views/hoverView.html"))
+        const hoverHTML: string = await fetch(chrome.runtime.getURL("views/hoverView.html"))
             .then((r: Response): Promise<string> => r.text());
 
         document.body.insertAdjacentHTML("beforeend", hoverHTML);
