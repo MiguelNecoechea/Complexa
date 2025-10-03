@@ -1,9 +1,11 @@
 import path from "path";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export default {
-    mode: "development",
-    devtool: "source-map",
+    mode: isProduction ? "production" : "development",
+    devtool: isProduction ? false : "source-map",
 
     // Entry points
     entry: {
@@ -40,7 +42,10 @@ export default {
 
     plugins: [
         new CopyWebpackPlugin({
-            patterns: [{ from: "static", to: "." }],
+            patterns: [
+                { from: "static", to: "." },
+                { from: "manifest.json", to: "manifest.json" },
+            ],
         }),
     ],
 };

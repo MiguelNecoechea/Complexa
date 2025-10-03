@@ -24,8 +24,10 @@
     "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "build": "rimraf dist && tsc --noEmit && webpack --config webpack.config.js",
-    "watch": "webpack --watch --config webpack.config.js",
+    "build-dev": "rimraf dist && tsc --noEmit && webpack --config webpack.config.js",
+    "watch-dev": "webpack --watch --config webpack.config.js",
+    "build": "rimraf dist && tsc --noEmit && webpack --mode production --config webpack.config.js",
+    "watch": "webpack --watch --mode development --config webpack.config.js",
     "type-check": "tsc --noEmit"
   }
 }
