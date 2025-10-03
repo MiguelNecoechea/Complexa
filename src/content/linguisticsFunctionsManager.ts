@@ -1,7 +1,7 @@
 import { TextExtractionManager } from "./textExtractionManager";
 import { KanjiReadingsProcessor} from "./linguisticsContents/JapaneseReadingContent";
 import { JapaneseTextColoring } from "./linguisticsContents/JapaneseTextColoring";
-import { TokenWrapper } from "./linguisticsContents/TokenWrapper";
+import { TokenWrapper } from "./utils/TokenWrapper";
 import { SettingsService } from "../services/SettingsService";
 import HoverTokenViewModel from "../viewmodels/HoverTokenViewModel"
 import { POSFilterUtility } from "./POSFilterUtility";

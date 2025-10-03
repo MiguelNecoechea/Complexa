@@ -25,7 +25,7 @@ import { Paragraph } from "../../models/Paragraph";
 import { Token } from "../../models/JapaneseTokens";
 import { SettingsService } from "../../services/SettingsService";
 import { FilterTokensService } from "../../services/FilterTokensService";
-import { recomputeHoverState } from "../utils/hoverState";
+import { recomputeHoverState } from "./hoverState";
 import HoverTokenView from "../../views/HoverTokenView";
 
 

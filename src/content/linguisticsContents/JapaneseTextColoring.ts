@@ -1,6 +1,6 @@
 import { Token, MorphFeatures } from "../../models/JapaneseTokens";
 import { TextProcessedColor } from "../../models/TextColors";
-import DetermineTextColor from "./DetermineTextColor";
+import DetermineTextColor from "../utils/DetermineTextColor";
 import { FilterTokensService } from "../../services/FilterTokensService";
 import { POSFilterUtility } from "../POSFilterUtility";
 import { recomputeHoverState } from "../utils/hoverState";
@@ -18,7 +18,7 @@ export class JapaneseTextColoring {
             await this.tokenFilter.init();
         }
 
-        // Procesar spans en paralelo para mejor performance
+        // Process spans in parallel for better performance.
         const colorPromises:Promise<void>[] = Array.from(spans).map(async (span: HTMLSpanElement): Promise<void> => {
             const token: Token = {
                 surface: span.textContent || "",
@@ -35,7 +35,7 @@ export class JapaneseTextColoring {
                 is_japanese: span.dataset.is_japanese || "false",
             };
 
-            // 🚫 Skip coloring for disabled POS types
+            // Skip coloring for disabled POS types
             if (!POSFilterUtility.shouldProcessToken(token)) {
                 span.style.removeProperty("color");
                 span.classList.remove("notheme", "mw-no-invert");
@@ -63,7 +63,6 @@ export class JapaneseTextColoring {
                 span.classList.remove("notheme", "mw-no-invert");
             } catch (error) {
                 console.warn("Error determining color for token, using the basic color:", error);
-                // Fallback al método sincrónico si hay error
                 const { posColor }: TextProcessedColor = DetermineTextColor.determineColorTokenSync(token);
                 span.style.setProperty("color", posColor, "important");
             }

@@ -3,7 +3,7 @@
  * This script manages the excluded words display interface
  */
 
-import { LIGHT_POS_COLORS } from '../content/linguisticsContents/DetermineTextColor';
+import { LIGHT_POS_COLORS } from '../content/utils/DetermineTextColor';
 import { ColorCustomizationService } from '../services/ColorCustomizationService';
 import { POSStateService, getPOSStateService } from '../services/POSStateService';
 import { ColorConfigModel } from './components/ColorConfigModel';
