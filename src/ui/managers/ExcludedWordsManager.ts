@@ -36,24 +36,22 @@ export class ExcludedWordsManager {
     private excludedWords: ExcludedToken[] = [];
 
     constructor() {
-        this.loadExcludedWords();
+        this.loadExcludedWords().then((): void => {
+            console.log('ExcludedWordsManager loaded');
+        })
     }
 
     private async loadExcludedWords(): Promise<void> {
         try {
             // Try to get from chrome.storage.sync first
             const result = await chrome.storage.sync.get('excludedTokens');
-            const excludedList: ExcludedToken[] = result.excludedTokens as ExcludedToken[] || [];
-            
-            this.excludedWords = excludedList;
+            this.excludedWords = result.excludedTokens as ExcludedToken[] || [];
             
         } catch (error) {
             try {
                 // Fallback to local storage
                 const result = await chrome.storage.local.get('excludedTokens');
-                const excludedList: ExcludedToken[] = result.excludedTokens as ExcludedToken[] || [];
-                
-                this.excludedWords = excludedList;
+                this.excludedWords = result.excludedTokens as ExcludedToken[] || [];
                 
             } catch (localError) {
                 console.warn('Could not load excluded words:', localError);
@@ -143,20 +141,5 @@ export class ExcludedWordsManager {
         } catch (error) {
             console.error('Error removing word:', error);
         }
-    }
-
-    /**
-     * Public method to refresh the excluded words display
-     * Useful for external updates to the excluded words list
-     */
-    public async refresh(): Promise<void> {
-        await this.loadExcludedWords();
-    }
-
-    /**
-     * Get the current list of excluded words
-     */
-    public getExcludedWords(): ExcludedToken[] {
-        return [...this.excludedWords]; // Return a copy
     }
 }

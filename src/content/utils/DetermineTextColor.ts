@@ -15,7 +15,7 @@ function defaultColour(dark: boolean): string {
     return dark ? "#e0e0e0" : "#202124";
 }
 
-// Light mode TextColors
+// Light mode text colors
 export const LIGHT_POS_COLORS: ColorMap = {
     NOUN: "#1f77b4",
     VERB: "#d62728",
@@ -52,11 +52,9 @@ export class DetermineTextColor {
     }
 
     public async determineColorToken(token: Token): Promise<TextProcessedColor> {
-        // Usar el nuevo servicio de colores
         return await ColorCustomizationService.determineColorToken(token);
     }
 
-    // Método sincrónico de fallback para compatibilidad (usando colores hardcodeados)
     public determineColorTokenSync(token: Token): TextProcessedColor {
         const dark: boolean = DetermineTextColor.isDark();
         const posPalette: ColorMap = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;

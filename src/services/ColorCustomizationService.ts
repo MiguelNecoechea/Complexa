@@ -1,5 +1,6 @@
 import { Token } from "../models/JapaneseTokens";
 import { TextProcessedColor } from "../models/TextColors";
+import { LIGHT_POS_COLORS, DARK_POS_COLORS } from "../content/utils/DetermineTextColor";
 
 type ColorMap = Record<string, string>;
 
@@ -9,40 +10,10 @@ interface CustomColorSettings {
 }
 
 export class ColorCustomizationService {
-    private static readonly STORAGE_KEY = "customColors";
-    
-    // Colores por defecto - modo claro
-    private static readonly DEFAULT_LIGHT_COLORS: ColorMap = {
-        NOUN: "#1f77b4",
-        VERB: "#d65627",
-        ADJ: "#2ca02c",
-        ADV: "#ff7f0e",
-        PRON: "#9467bd",
-        PROPN: "#63A2B0",
-        PART: "#8c564b",
-        AUX: "#e377c2",
-        ADP: "#7f7f7f",
-        CCONJ: "#bcbd22",
-        SCONJ: "#17becf",
-    };
-
-    // Colores por defecto - modo oscuro
-    private static readonly DEFAULT_DARK_COLORS: ColorMap = {
-        NOUN: "#69a3f3",
-        VERB: "#f2706a",
-        ADJ: "#6dc66d",
-        ADV: "#ff9a4e",
-        PRON: "#b48cd5",
-        PROPN: "#2e7686",
-        PART: "#a67a6f",
-        AUX: "#f68fcf",
-        ADP: "#b3b3b3",
-        CCONJ: "#d9db4c",
-        SCONJ: "#5fdfea",
-    };
+    private static readonly STORAGE_KEY: string = "customColors";
 
     /**
-     * Detecta si el sistema está en modo oscuro
+     * Detects if the system is in dark mode
      */
     private static isDark(): boolean {
         const matchDark: MediaQueryList = window.matchMedia?.("(prefers-color-scheme: dark)");
@@ -50,18 +21,18 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Color por defecto cuando no se encuentra una categoría
+     * Default color if a category is not found
      */
     private static defaultColour(dark: boolean): string {
         return dark ? "#e0e0e0" : "#202124";
     }
 
     /**
-     * Obtiene la configuración de colores personalizados del storage
+     * Get the information about the color from settings
      */
     private static async getCustomSettings(): Promise<CustomColorSettings> {
         try {
-            const result = await chrome.storage.sync.get(this.STORAGE_KEY);
+            const result: {[key: string]: any} = await chrome.storage.sync.get(this.STORAGE_KEY);
             return result[this.STORAGE_KEY] || { lightColors: {}, darkColors: {} };
         } catch (error) {
             console.warn("Error getting custom colors from storage:", error);
@@ -70,28 +41,26 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Obtiene los colores POS (mezclando defaults + personalizados)
+     * Gets all the POS colors.
      */
     public static async getPOSColors(isDark?: boolean): Promise<ColorMap> {
         const dark: boolean = isDark ?? this.isDark();
         const customSettings: CustomColorSettings = await this.getCustomSettings();
         
-        const defaultColors: ColorMap = dark ? this.DEFAULT_DARK_COLORS : this.DEFAULT_LIGHT_COLORS;
+        const defaultColors: ColorMap = dark ? DARK_POS_COLORS : LIGHT_POS_COLORS;
         const customColors: Partial<ColorMap> = dark ? customSettings.darkColors : customSettings.lightColors;
         
-        // Filtrar valores undefined y mantener solo strings válidos
         const filteredCustomColors: ColorMap = {};
         Object.entries(customColors).forEach(([key, value]: [string, string | undefined]): void => {
-            if (value) {
-                filteredCustomColors[key] = value;
-            }
+            if (value) filteredCustomColors[key] = value;
+
         });
         
         return { ...defaultColors, ...filteredCustomColors };
     }
 
     /**
-     * Determina el color de un token
+     * Determines the color of a token.
      */
     public static async determineColorToken(token: Token): Promise<TextProcessedColor> {
         const dark: boolean = this.isDark();
@@ -105,13 +74,9 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Establece un color personalizado para una categoría POS específica
+     * Sets a customized color for a property
      */
-    public static async setColorForPOS(
-        pos: string, 
-        lightColor: string, 
-        darkColor?: string
-    ): Promise<void> {
+    public static async setColorForPOS(pos: string, lightColor: string, darkColor?: string): Promise<void> {
         try {
             const settings: CustomColorSettings = await this.getCustomSettings();
             
@@ -122,10 +87,8 @@ export class ColorCustomizationService {
             
             await chrome.storage.sync.set({ [this.STORAGE_KEY]: settings });
             
-            // Notificar a todas las pestañas activas sobre el cambio de colores
             await this.notifyColorChangeToAllTabs();
             
-            // Refrescar estilos de la app si está disponible
             await this.refreshAppStylesIfAvailable();
             
         } catch (error) {
@@ -134,7 +97,7 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Método auxiliar para refrescar estilos de la app si está disponible
+     * Auxiliary function in order to refresh tabs
      */
     private static async refreshAppStylesIfAvailable(): Promise<void> {
         if (typeof window !== 'undefined' && 'refreshAppStyles' in window) {
@@ -147,7 +110,7 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Obtiene un color específico para una categoría POS
+     * Gets a specific color for a category.
      */
     public static async getColorForPOS(pos: string, isDark?: boolean): Promise<string> {
         const colors: ColorMap = await this.getPOSColors(isDark);
@@ -155,22 +118,21 @@ export class ColorCustomizationService {
     }
 
     /**
-     * Obtiene los colores por defecto para un POS específico
+     * Obtains all the POS color for a specified element.
      */
     public static getDefaultColorsForPOS(pos: string): { light: string; dark: string } {
         const posUpper: string = pos.toUpperCase();
         return {
-            light: this.DEFAULT_LIGHT_COLORS[posUpper] ?? this.defaultColour(false),
-            dark: this.DEFAULT_DARK_COLORS[posUpper] ?? this.defaultColour(true)
+            light: LIGHT_POS_COLORS[posUpper] ?? this.defaultColour(false),
+            dark: DARK_POS_COLORS[posUpper] ?? this.defaultColour(true)
         };
     }
 
     /**
-     * Notifica a todas las pestañas activas sobre cambios en los colores
+     * Notifies all tabs about changes in the color schema
      */
     private static async notifyColorChangeToAllTabs(): Promise<void> {
         try {
-            // Enviar mensaje al background worker para que notifique a todas las pestañas
             const response = await chrome.runtime.sendMessage({
                 action: "NOTIFY_COLOR_CHANGE"
             });

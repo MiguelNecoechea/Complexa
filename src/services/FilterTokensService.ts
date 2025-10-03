@@ -54,63 +54,46 @@ export class FilterTokensService {
 
         try {
             const result: {[key: string]: any} = await chrome.storage.sync.get(STORAGE_KEY);
-            const data = result[STORAGE_KEY];
-
-            // Handle both old format (string[]) and new format (ExcludedToken[])
-            if (Array.isArray(data)) {
-                if (data.length > 0 && typeof data[0] === 'string') {
-                    // Old format - convert to new format
-                    data.forEach((surface: string) => {
-                        const normalized = normalise(surface);
-                        this.excluded.add(normalized);
-                        this.excludedTokens.set(normalized, { surface });
-                    });
-                } else {
-                    // New format
-                    data.forEach((token: ExcludedToken) => {
-                        const normalized = normalise(token.surface);
-                        this.excluded.add(normalized);
-                        this.excludedTokens.set(normalized, token);
-                    });
-                }
-            }
-
-            this.loaded = true;
+            this.load_data(result);
         } catch (err) {
             const result: {[key: string]: any} = await chrome.storage.local.get(STORAGE_KEY);
-            const data = result[STORAGE_KEY];
-
-            if (Array.isArray(data)) {
-                if (data.length > 0 && typeof data[0] === 'string') {
-                    // Old format
-                    data.forEach((surface: string) => {
-                        const normalized = normalise(surface);
-                        this.excluded.add(normalized);
-                        this.excludedTokens.set(normalized, { surface });
-                    });
-                } else {
-                    // New format
-                    data.forEach((token: ExcludedToken) => {
-                        const normalized = normalise(token.surface);
-                        this.excluded.add(normalized);
-                        this.excludedTokens.set(normalized, token);
-                    });
-                }
-            }
-
-            this.loaded = true;
+            this.load_data(result);
         }
     }
 
     // Private functionality
     private async persist(): Promise<void> {
-        const data = this.getAllTokens();
+        const data: ExcludedToken[] = this.getAllTokens();
         const storageData = { [STORAGE_KEY]: data };
         try {
             await chrome.storage.sync.set(storageData);
         } catch (err) {
             await chrome.storage.local.set(storageData);
         }
+    }
+
+    private load_data(result: {[key: string]: any}): void {
+        const data: any = result[STORAGE_KEY];
+
+        if (Array.isArray(data)) {
+            if (data.length > 0 && typeof data[0] === 'string') {
+                // Old format
+                data.forEach((surface: string): void => {
+                    const normalized: string = normalise(surface);
+                    this.excluded.add(normalized);
+                    this.excludedTokens.set(normalized, { surface });
+                });
+            } else {
+                // New format
+                data.forEach((token: ExcludedToken): void => {
+                    const normalized: string = normalise(token.surface);
+                    this.excluded.add(normalized);
+                    this.excludedTokens.set(normalized, token);
+                });
+            }
+        }
+
+        this.loaded = true;
     }
 
     getAllTokens(): ExcludedToken[] {
@@ -123,7 +106,7 @@ export class FilterTokensService {
     }
 
     async addToken(token: Token): Promise<void> {
-        const normalized = normalise(token.surface);
+        const normalized: string = normalise(token.surface);
         const excludedToken: ExcludedToken = {
             surface: token.surface,
             reading: token.reading,

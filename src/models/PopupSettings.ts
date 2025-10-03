@@ -8,7 +8,7 @@ export type ReadingTypes = "romaji" | "hiragana" | "katakana";
  * @property {boolean} enableColor - Enables or disables the coloring based on UPOS (e.g., verbs, nouns)
  * @property {boolean} enableHover - Enables or disables the hover information of the tokens.
  * @property {boolean} enableWordFilters - Enables or disables word filtering capabilities
- * @property {ReadingTypes} readingType - Specifies the type of reading to display (availabe 'hiragana', 'romaji' and 'katakana')
+ * @property {ReadingTypes} readingType - Specifies the type of reading to display (available 'hiragana', 'romaji' and 'katakana')
  */
 export interface PopupSettings {
     enableFurigana: boolean;

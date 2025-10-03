@@ -70,25 +70,25 @@ export default class HoverTokenView {
             const intoTip = (e.relatedTarget as Element | null)?.closest?.("#tooltip");
 
             if (fromSpan && fromSpan === this.activeSpan && !intoTip) {
-                this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
+                this.hideTimer = window.setTimeout((): void => this.tryHide(), TIMEOUT);
             }
         });
 
-        document.addEventListener("click", (e: MouseEvent) => this.handleClick(e));
-        window.addEventListener("scroll", () => this.scheduleTrack(), true);
-        window.addEventListener("resize", () => this.scheduleTrack());
+        document.addEventListener("click", (e: MouseEvent): void => this.handleClick(e));
+        window.addEventListener("scroll", (): void => this.scheduleTrack(), true);
+        window.addEventListener("resize", (): void => this.scheduleTrack());
 
-        this.tooltip.addEventListener("pointerenter", () => {
+        this.tooltip.addEventListener("pointerenter", (): void => {
             if (this.hideTimer !== null) { clearTimeout(this.hideTimer); this.hideTimer = null; }
             this.isLocked = true;
         });
 
-        this.tooltip.addEventListener("pointerleave", (e: PointerEvent) => {
+        this.tooltip.addEventListener("pointerleave", (e: PointerEvent): void => {
             const intoSpan = (e.relatedTarget as Element | null)?.closest?.("span[data-pos]") as HTMLSpanElement | null;
             if (intoSpan && intoSpan === this.activeSpan) { this.isLocked = false; return; }
             if (this.dictionaryMode) return;
             this.isLocked = false;
-            this.hideTimer = window.setTimeout(() => this.tryHide(), TIMEOUT);
+            this.hideTimer = window.setTimeout((): void => this.tryHide(), TIMEOUT);
         });
 
         document.addEventListener("modular-hover-toggle", (event: Event): void => {
@@ -108,7 +108,7 @@ export default class HoverTokenView {
             }
         });
 
-        mustId("jp-back-btn").addEventListener("click", (e: MouseEvent) => {
+        mustId("jp-back-btn").addEventListener("click", (e: MouseEvent): void => {
             e.stopPropagation();
             this.hideJisho();
         });
@@ -173,7 +173,7 @@ export default class HoverTokenView {
 
     private handleClick(e: MouseEvent): void {
         const target = e.target as Element | null;
-        const clickedInsideTooltip = !!target?.closest?.("#tooltip");
+        const clickedInsideTooltip: boolean = !!target?.closest?.("#tooltip");
         const clickedSpan = target?.closest?.("span[data-pos]") as HTMLSpanElement | null;
 
         if (this.isLocked && !clickedInsideTooltip) {

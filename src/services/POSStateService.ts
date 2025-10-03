@@ -26,7 +26,7 @@ const POS_CATEGORIES = {
 } as const;
 
 export class POSStateService {
-    private static readonly STORAGE_KEY = 'pos_states';
+    private static readonly STORAGE_KEY: string = 'pos_states';
     private static instance: POSStateService;
     private posStates: { [key: string]: boolean } = {};
     private isInitialized: boolean = false;
@@ -55,7 +55,7 @@ export class POSStateService {
 
     private async loadStates(): Promise<void> {
         try {
-            const result = await chrome.storage.local.get(POSStateService.STORAGE_KEY);
+            const result: {[key: string]: any} = await chrome.storage.local.get(POSStateService.STORAGE_KEY);
             this.posStates = result[POSStateService.STORAGE_KEY] || {};
             
             // Initialize all POS as enabled by default if not set

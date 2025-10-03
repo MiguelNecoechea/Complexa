@@ -28,9 +28,9 @@ const POS_CATEGORIES = {
 } as const;
 
 export class POSFilterUtility {
-    private static readonly STORAGE_KEY = 'pos_states';
+    private static readonly STORAGE_KEY: string = 'pos_states';
     private static posStates: { [key: string]: boolean } | null = null;
-    private static isInitialized = false;
+    private static isInitialized: boolean = false;
 
     /**
      * Initialize by loading POS states from chrome storage
@@ -39,7 +39,7 @@ export class POSFilterUtility {
         if (this.isInitialized) return;
 
         try {
-            const result = await chrome.storage.local.get(this.STORAGE_KEY);
+            const result: {[key: string]: any} = await chrome.storage.local.get(this.STORAGE_KEY);
             this.posStates = result[this.STORAGE_KEY] || {};
             
             // Initialize all POS as enabled by default if not set
@@ -79,9 +79,7 @@ export class POSFilterUtility {
      * Returns true if the token's POS is enabled
      */
     public static shouldProcessToken(token: Token): boolean {
-        if (!token.pos) {
-            return true; // Process tokens without POS info
-        }
+        if (!token.pos) return true; // Process tokens without POS info
 
         return this.isPOSEnabled(token.pos);
     }

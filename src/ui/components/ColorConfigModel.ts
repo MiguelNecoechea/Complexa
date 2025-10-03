@@ -1,4 +1,4 @@
-import { LIGHT_POS_COLORS } from '../../content/linguisticsContents/DetermineTextColor';
+import { LIGHT_POS_COLORS } from '../../content/utils/DetermineTextColor';
 import { ColorCustomizationService } from '../../services/ColorCustomizationService';
 import { POSStateService, getPOSStateService } from '../../services/POSStateService';
 
@@ -349,17 +349,17 @@ export class ColorConfigModel {
     }
 
     /**
-     * Desbloquea el scroll del body cuando el modal se cierra
+     * Unlocks body from scroll.
      */
     private unblockBodyScroll(): void {
         const scrollY: string = document.body.style.top;
         
-        // Restaurar estilos
+        // Restore styles
         document.body.classList.remove('modal-open');
         document.body.style.top = '';
         document.documentElement.style.overflow = '';
         
-        // Restaurar posición de scroll
+        // Restore scroll position
         if (scrollY) {
             window.scrollTo(0, parseInt(scrollY || '0') * -1);
         }
@@ -371,20 +371,20 @@ export class ColorConfigModel {
     private generateDarkModeColor(lightColor: string): string {
         // Convertir hex a RGB
         const rgb = this.hexToRgb(lightColor);
-        if (!rgb) return lightColor; // Fallback al color original si no se puede convertir
+        if (!rgb) return lightColor;
         
-        // Aumentar la luminosidad para modo oscuro (mejor contraste sobre fondo oscuro)
-        const factor = 1.5; // Factor de aclarado
+        // Increases color brightness so text is more readable in dark mode.
+        const factor = 1.5;
         const newR: number = Math.min(255, Math.round(rgb.r * factor));
         const newG: number = Math.min(255, Math.round(rgb.g * factor));
         const newB: number = Math.min(255, Math.round(rgb.b * factor));
         
-        // Convertir de vuelta a hex
+        // Convert back to hex
         return this.rgbToHex(newR, newG, newB);
     }
 
     /**
-     * Convierte color hex a RGB
+     * Converts a hex color into RGB
      */
     private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
         const result: RegExpExecArray | null = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -424,11 +424,10 @@ export class ColorConfigModel {
                     return;
                 }
                 
-                // Guardar ambos colores usando ColorCustomizationService
                 await ColorCustomizationService.setColorForPOS(
                     this.currentPOS, 
-                    selectedLightColor,     // Color para modo claro
-                    selectedDarkColor       // Color para modo oscuro
+                    selectedLightColor,
+                    selectedDarkColor
                 );
             }
             
@@ -436,7 +435,6 @@ export class ColorConfigModel {
             if (switchElement) {
                 await this.posStateService.setPOSState(this.currentPOS, switchElement.checked);
                 
-                // 🚀 Notify content scripts about POS state changes
                 try {
                     await chrome.runtime.sendMessage({
                         action: 'POS_STATES_UPDATED',
@@ -447,14 +445,11 @@ export class ColorConfigModel {
                 }
             }
             
-            // Notificar que los estilos necesitan ser refrescados
             if (window.refreshAppStyles) {
                 await window.refreshAppStyles();
             }
                         
-            // Cerrar el modal
             this.close();
-            
         } catch (error) {
             console.error('❌ Error applying changes:', error);
             this.showErrorMessage('Failed to apply changes. Please try again.');
@@ -468,20 +463,16 @@ export class ColorConfigModel {
                 return;
             }
 
-            // Obtener los colores por defecto para este POS
             const defaultColors = ColorCustomizationService.getDefaultColorsForPOS(this.currentPOS);
-            
-            // Normalizar los colores a formato de 6 caracteres
+
             const normalizedLightColor: string = this.normalizeHexColor(defaultColors.light);
             const normalizedDarkColor: string = this.normalizeHexColor(defaultColors.dark);
-            
-            // Actualizar los color pickers con los colores normalizados
+
             this.lightColorPicker.value = normalizedLightColor;
             this.darkColorPicker.value = normalizedDarkColor;
             this.lightHexInput.value = normalizedLightColor;
             this.darkHexInput.value = normalizedDarkColor;
             
-            // Actualizar la vista previa
             this.updatePreview();
                         
         } catch (error) {
@@ -492,6 +483,5 @@ export class ColorConfigModel {
     
     private showErrorMessage(message: string): void {
         console.error(`❌ ${message}`);
-        // Aquí podrías añadir una notificación de error visual si quieres
     }
 }

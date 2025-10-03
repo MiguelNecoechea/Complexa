@@ -3,17 +3,23 @@ import { fetchJishoMeaning, tokenizeBatch }  from  "../api/apiHandler"
 import { JishoLookupResponse, JishoEntry } from "../models/Jisho";
 import MessageSender = chrome.runtime.MessageSender;
 import { Token } from "../models/JapaneseTokens";
+import Tab = chrome.tabs.Tab;
+
+const ACTIONS = {
+    TOKENIZE_PARAGRAPHS: "TOKENIZE_PARAGRAPHS",
+    JISHO_LOOKUP:       "JISHO_LOOKUP",
+    NOTIFY_COLOR_CHANGE: "NOTIFY_COLOR_CHANGE",
+    POS_STATES_UPDATED: "POS_STATES_UPDATED",
+} as const;
 
 /**
- * Notifica a todas las pestañas activas sobre cambios en los colores
+ * Notifies all windows about color changes
  */
 async function notifyColorChangeToAllTabs(): Promise<void> {
     try {
-        // Obtener todas las pestañas activas
-        const tabs = await chrome.tabs.query({});
+        const tabs: Tab[] = await chrome.tabs.query({});
         
-        // Enviar mensaje a cada pestaña
-        const promises = tabs.map(async (tab) => {
+        const promises: Promise<void>[] = tabs.map(async (tab: Tab): Promise<void> => {
             if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
                 try {
                     await chrome.tabs.sendMessage(tab.id, {
@@ -21,7 +27,6 @@ async function notifyColorChangeToAllTabs(): Promise<void> {
                         type: "COLORS_UPDATED"
                     });
                 } catch (error) {
-                    // Es normal que algunas pestañas no respondan (ej: páginas sin content script)
                     console.warn(`⚠️ Could not notify tab ${tab.title}: ${error}`);
                 }
             }
@@ -35,15 +40,13 @@ async function notifyColorChangeToAllTabs(): Promise<void> {
 }
 
 /**
- * Notifica a todas las pestañas activas sobre cambios en los estados POS
+ * Notifies all active windows about the POS State
  */
 async function notifyPOSStateChangeToAllTabs(): Promise<void> {
     try {
-        // Obtener todas las pestañas activas
-        const tabs = await chrome.tabs.query({});
+        const tabs: Tab[] = await chrome.tabs.query({});
         
-        // Enviar mensaje a cada pestaña
-        const promises = tabs.map(async (tab) => {
+        const promises: Promise<void>[] = tabs.map(async (tab: Tab): Promise<void> => {
             if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
                 try {
                     await chrome.tabs.sendMessage(tab.id, {
@@ -51,7 +54,6 @@ async function notifyPOSStateChangeToAllTabs(): Promise<void> {
                         type: "POS_STATES_UPDATED"
                     });
                 } catch (error) {
-                    // Es normal que algunas pestañas no respondan (ej: páginas sin content script)
                     console.warn(`⚠️ Could not notify tab ${tab.title} about POS state change: ${error}`);
                 }
             }
@@ -64,12 +66,6 @@ async function notifyPOSStateChangeToAllTabs(): Promise<void> {
     }
 }
 
-const ACTIONS = {
-    TOKENIZE_PARAGRAPHS: "TOKENIZE_PARAGRAPHS",
-    JISHO_LOOKUP:       "JISHO_LOOKUP",
-    NOTIFY_COLOR_CHANGE: "NOTIFY_COLOR_CHANGE",
-    POS_STATES_UPDATED: "POS_STATES_UPDATED",
-} as const;
 
 chrome.runtime.onMessage.addListener((msg: { action: string; [k: string]: any }, _sender: MessageSender, sendResponse): boolean | void => {
 
@@ -119,7 +115,7 @@ chrome.runtime.onInstalled.addListener((): void => {
             darkMode: false
         };
 
-        chrome.storage.sync.get(defaults, (stored): void => {
+        chrome.storage.sync.get(defaults, (stored: {[key: string]: any}): void => {
             const newSettings: PopupSettings = { ...defaults, ...(stored as Partial<PopupSettings>) };
 
             chrome.storage.sync.set(newSettings, (): void => {
