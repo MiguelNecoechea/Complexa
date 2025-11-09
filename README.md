@@ -8,10 +8,8 @@ Complexa is a Chrome extension that helps you read and understand Japanese text 
 
 - **Readings** – Overlay furigana or romaji above each token on the page.
 - **Dictionary** – Highlight a word to see definitions in a floating tooltip.
-- **Reading helpers** – Colour coded part-of-speech hints and morphological data on hover.
+- **Reading helpers** – Colour coded Universal Part of Speech hints and morphological data on hover.
 - **Word filters** – Exclude specific words from annotation and persist the list across browsers.
-- **Kanji extraction** – Collect a list of unique kanji found on the current tab.
-- **Quiz support** – (coming soon) review vocabulary you encounter.
 - **Custom reading type** – Choose between *hiragana*, *katakana* or *romaji*.
 
 All features can be toggled from the popup and settings are saved using Chrome sync.
@@ -21,10 +19,7 @@ All features can be toggled from the popup and settings are saved using Chrome s
 Complexa injects content scripts that send page text to a tokenizer service. Each
 token is wrapped in a `<span>` with metadata for readings, part of speech and
 offset. When you click **Add Readings** the extension converts these readings
-using Wanakana and displays them inline. The dictionary tooltip uses a bundled
-JMdict database to show definitions for the token under your cursor. Word
-filters prevent specific tokens from being wrapped, and kanji extraction pulls a
-unique list of characters for quick reference.
+using Wanakana and displays them inline. The dictionary functionality is accesed using the wrapper of Jisho.
 
 ## Getting Started
 
@@ -44,7 +39,7 @@ unique list of characters for quick reference.
 ### Load in Chrome
 
 1. Open `chrome://extensions/` and enable **Developer mode**.
-2. Click **Load unpacked** and select this project folder.
+2. Click **Load unpacked** and select the dist folder that is generated at the moment of running code.
 3. The Complexa icon will appear in your toolbar.
 
 ## Repository Layout
@@ -74,5 +69,7 @@ unique list of characters for quick reference.
 
 ## Acknowledgments
 *  Kim, Miwa and Andrew for [Jisho](https://jisho.org)
+* Megagon labs for developing of the Ginza model
+* All the other Open Source projects that this project is built on.
 
-Complexa is still under active development, but the core reading and dictionary functions are stable. Contributions and feedback are welcome!
+Complexa is still under active development, but the core reading and dictionary functions should be stable. Contributions and feedback are welcome!
