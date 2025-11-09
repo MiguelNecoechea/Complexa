@@ -2,7 +2,7 @@
 
 Complexa is a Chrome extension that helps you read and understand Japanese text on any web page. It provides on‑page readings, dictionary lookups and other tools that can be toggled from a compact popup.
 
-![Popup screenshot](static/assets/icons/ComplexaLogo_cuadrada.png)
+![Popup screenshot](static/assets/icons/ComplexaLogo128.png)
 
 ## Features
 
