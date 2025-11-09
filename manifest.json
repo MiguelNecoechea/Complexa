@@ -41,7 +41,8 @@
         "matches": ["<all_urls>"]
       }
     ],
-    "commands": {
+  "linguisticsApiUrl": "http://localhost:8000/",
+  "commands": {
       "toggle-feature": {
         "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
         "description": "Toggle Complexa feature"

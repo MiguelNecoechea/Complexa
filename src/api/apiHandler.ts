@@ -1,6 +1,8 @@
 import { Token } from "../models/JapaneseTokens";
 import { JishoEntry, JishoEntrySense } from "../models/Jisho";
 
+type ManifestWithApiUrl = chrome.runtime.Manifest & { linguisticsApiUrl?: string };
+
 interface ApiSense {
     english_definitions: string[];
     parts_of_speech: string[];
@@ -17,8 +19,23 @@ interface ApiResponse {
     data: ApiEntry[];
 }
 
+function getLinguisticsApiBaseUrl(): string {
+    if (typeof chrome === "undefined" || !chrome.runtime?.getManifest) {
+        throw new Error("Chrome runtime manifest is unavailable");
+    }
+
+    const manifest: ManifestWithApiUrl = chrome.runtime.getManifest() as ManifestWithApiUrl;
+    const baseUrl: string | undefined = manifest.linguisticsApiUrl;
+
+    if (!baseUrl) {
+        throw new Error("Linguistics API URL not defined in manifest");
+    }
+
+    return baseUrl;
+}
+
 export async function tokenizeBatch(texts: string[]): Promise<Token[][]> {
-    const baseUrl: string = "http://localhost:8000/";
+    const baseUrl: string = getLinguisticsApiBaseUrl();
     const endpoint: string = "tokenize_batch";
 
     const clean: string[] = texts.map((t) => t.trim()).filter(Boolean);
