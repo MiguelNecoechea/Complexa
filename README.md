@@ -2,7 +2,7 @@
 
 Complexa is a Chrome extension that helps you read and understand Japanese text on any web page. It provides on‑page readings, dictionary lookups and other tools that can be toggled from a compact popup.
 
-![Popup screenshot](static/assets/icons/ComplexaLogo128.png)
+![Popup screenshot](screenshots/ComplexaLogo128.png)
 
 ## Features
 
@@ -69,30 +69,30 @@ using Wanakana and displays them inline. The dictionary functionality is accesed
 
 ## Screenshots
 ### Before adding helpers
-![Wikipedia without complexa screenshot](static/assets/screenshots/wikipedia_raw.png)
+![Wikipedia without complexa screenshot](screenshots/wikipedia_raw.png)
 This is wikipedia before using complexa, as a native japanese speaker this might be easy to ready,
 but as a learner is pretty hard.
 
 ### After adding helpers
-![Wikipedia screenshot](static/assets/screenshots/wikipedia.png)
+![Wikipedia screenshot](screenshots/wikipedia.png)
 
 The difference with the raw wikipedia is now that every part of the language (verbs, nouns, adjectives i.e)
 are colored depending on the detection made by the underlying foundational model.
 
 ### Close view
-![Close view to complexa](static/assets/screenshots/sample1.png)
+![Close view to complexa](screenshots/sample1.png)
 
 This is a paragraph from the Japanese artist Ado, in this sample all verbs are colored red, nouns become blue,
 adjectives green, etc. The colors are customizable and you can select which portions to turn off.
 
 ### Close view
-![The hover view](static/assets/screenshots/hover.png)
+![The hover view](screenshots/hover.png)
 
 Each token has a hover than can be disabled or enabled where you can see linguistic properties of
 each of the tokens.
 
 ### Close view
-![Dictionary](static/assets/screenshots/jisho.png)
+![Dictionary](screenshots/jisho.png)
 
 Directly from jisho the definitions for certains tokens can be looked directly witout leaving the website.
 

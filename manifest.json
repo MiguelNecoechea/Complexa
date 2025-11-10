@@ -6,8 +6,8 @@
     "action": {
       "default_popup": "views/popup.html",
       "default_icon": {
-        "48": "assets/icons/Modular48.png",
-        "128": "assets/icons/Modular128.png"
+        "48": "assets/icons/complexaLogoSmall.png",
+        "128": "assets/icons/complexaLogoBig.png"
       }
     },
     "background": {
