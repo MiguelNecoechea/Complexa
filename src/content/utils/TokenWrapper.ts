@@ -28,7 +28,6 @@ import { FilterTokensService } from "../../services/FilterTokensService";
 import { recomputeHoverState } from "./hoverState";
 import HoverTokenView from "../../views/HoverTokenView";
 
-
 export class TokenWrapper {
     private tooltipReady: boolean = false;
     private hoverEnabled: boolean = false;
@@ -47,9 +46,13 @@ export class TokenWrapper {
      * @returns               2‑D matrix: one row per paragraph, each containing
      *                        the <span> elements we created for that paragraph.
      */
-    public async wrap(paragraphs: Paragraph[], tokenizedArrays: Token[][],
-               hoverEnabled: boolean): Promise<HTMLElement[][]> {
+    public async wrap(
+        paragraphs: Paragraph[],
+        tokenizedArrays: Token[][],
+        hoverEnabled: boolean,
+    ): Promise<HTMLElement[][]> {
         const matrix: HTMLElement[][] = [];
+
         let tokIdx: number = 0;
         let paraOffset: number = 0;
         let spillover: number = 0;
@@ -60,7 +63,7 @@ export class TokenWrapper {
             const tokens: Token[] = tokenizedArrays[pIdx] ?? [];
             const row: HTMLElement[] = [];
 
-            if (!tokens.length  || !this.tokensAlignWithDom(paragraph, tokens)) {
+            if (!tokens.length || !this.tokensAlignWithDom(paragraph, tokens)) {
                 matrix.push(row);
                 continue;
             }
@@ -76,7 +79,15 @@ export class TokenWrapper {
                     continue;
                 }
                 const skip: number = spillover;
-                const { fragment, consumed, spill } = await this.wrapTextNode(node, tokens, tokIdx, paraOffset + skip, row, skip);
+
+                const { fragment, consumed, spill } = await this.wrapTextNode(
+                    node,
+                    tokens,
+                    tokIdx,
+                    paraOffset + skip,
+                    row,
+                    skip,
+                );
                 node.parentNode!.replaceChild(fragment, node);
                 tokIdx += consumed;
                 paraOffset += node.data.length;
@@ -112,12 +123,13 @@ export class TokenWrapper {
         this.hoverEnabled = enable;
         const enableWordFilters: boolean = await SettingsService.getSetting("enableWordFilters");
         await this.updateAllSpanHoverStates(true, enableWordFilters);
-        document.dispatchEvent(new CustomEvent("modular-hover-toggle", {
-            detail: { enabled: this.hoverEnabled },
-        }));
+        document.dispatchEvent(
+            new CustomEvent("modular-hover-toggle", {
+                detail: { enabled: this.hoverEnabled },
+            }),
+        );
         if (this.hoverEnabled) await this.mountHoverToolTip();
     }
-
 
     /**
      * Walk a single Text node from left→right, emit plain text + wrapped tokens,
@@ -130,8 +142,14 @@ export class TokenWrapper {
      * @param row         Collects <span> references for caller.
      * @param skip        Number of leading characters already consumed by a previous token.
      */
-    private async wrapTextNode(node: Text, tokens: Token[], startIdx: number, paraOffset: number, row: HTMLElement[],
-                        skip: number = 0): Promise<{ fragment: DocumentFragment; consumed: number; spill: number }> {
+    private async wrapTextNode(
+        node: Text,
+        tokens: Token[],
+        startIdx: number,
+        paraOffset: number,
+        row: HTMLElement[],
+        skip: number = 0,
+    ): Promise<{ fragment: DocumentFragment; consumed: number; spill: number }> {
         const frag: DocumentFragment = node.ownerDocument!.createDocumentFragment();
         const text: string = node.data.slice(skip);
         const nodeEnd: number = paraOffset + text.length;
@@ -203,8 +221,9 @@ export class TokenWrapper {
     private async mountHoverToolTip(): Promise<void> {
         if (this.tooltipReady) return;
 
-        const hoverHTML: string = await fetch(chrome.runtime.getURL("views/hoverView.html"))
-            .then((r: Response): Promise<string> => r.text());
+        const hoverHTML: string = await fetch(chrome.runtime.getURL("views/hoverView.html")).then(
+            (r: Response): Promise<string> => r.text(),
+        );
 
         document.body.insertAdjacentHTML("beforeend", hoverHTML);
         new HoverTokenView();
@@ -238,5 +257,4 @@ export class TokenWrapper {
             recomputeHoverState(span);
         });
     }
-
 }
