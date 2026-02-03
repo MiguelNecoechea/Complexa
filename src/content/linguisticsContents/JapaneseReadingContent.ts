@@ -21,7 +21,6 @@ function escapeHtml(str: string): string {
  * Mirrors the Python _add_reading logic.
  */
 function addReading(surface: string, reading: string, mode: ReadingTypes): string {
-
     const readingHira: string = wanakana.toHiragana(reading);
     const out: string[] = [];
     const kanjiBuf: string[] = [];
@@ -79,8 +78,7 @@ export class KanjiReadingsProcessor {
     }
 
     public addReadings(enableWordFilters: boolean): void {
-        const spans: NodeListOf<HTMLSpanElement> =
-            document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
+        const spans: NodeListOf<HTMLSpanElement> = document.querySelectorAll<HTMLSpanElement>("span[data-reading]");
 
         spans.forEach((span: HTMLSpanElement): void => {
             const surface: string = span.dataset.surface || span.textContent || "";
@@ -94,6 +92,8 @@ export class KanjiReadingsProcessor {
                 span.querySelectorAll("rt").forEach((rt: Element): void => {
                     (rt as HTMLElement).style.display = "none";
                 });
+
+                return;
             }
 
             if (span.querySelector("ruby")) {
@@ -140,7 +140,6 @@ export class KanjiReadingsProcessor {
             }
             rt.textContent = converted;
         });
-
     }
 
     private addRubyStyles(): void {
