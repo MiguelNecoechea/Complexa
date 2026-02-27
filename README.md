@@ -101,5 +101,6 @@ Directly from jisho the definitions for certains tokens can be looked directly w
 * Megagon labs for developing of the Ginza model
 * Saul Isaac Sanchez Hernandez and Rosa Maria guadalupe avila sandoval for helping with some parts of the frontend and presentation to the university.
 * All the other Open Source projects that this project is built on.
+* Special thanks to the Center for Data Analysis and Supercomputing (CADS) at the University of Guadalajara for providing the computing resources necessary to perform many of the calculations for these projects
 
 Complexa is still under active development, but the core reading and dictionary functions should be stable. Contributions and feedback are welcome!
